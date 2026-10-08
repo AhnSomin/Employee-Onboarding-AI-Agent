@@ -48,7 +48,8 @@ class SampleScore:
     due_correct: int
     false_confirms: int
     gold_unconfirmed_fields: int
-    injection_leaks: int
+    injection_blocked: int  # proposals the model made from AI-directed lines, dropped by code
+    injection_leaks: int  # such content left in the final result
     latency_ms: int
     details: list[dict] = field(default_factory=list)
 
@@ -127,6 +128,7 @@ def score_sample(gold: GoldSample, result: ExtractionResult, latency_ms: int) ->
         due_correct=0,
         false_confirms=0,
         gold_unconfirmed_fields=0,
+        injection_blocked=result.injection_blocked,
         injection_leaks=0,
         latency_ms=latency_ms,
     )
@@ -195,7 +197,8 @@ def render_markdown(scores: list[SampleScore], *, details: bool = False) -> str:
         f"| 기한 정확도 | {_ratio(total('due_correct'), total('matched_required'))} |",
         f"| **거짓 확정률** (목표 0) | **{_ratio(total('false_confirms'), total('gold_unconfirmed_fields'))}** |",
         f"| 평균 추출 지연 | {avg_latency:,} ms |",
-        f"| 인젝션 문장 유출 | {total('injection_leaks')}건 |",
+        f"| 인젝션 문장을 모델이 제안한 횟수 (코드가 차단) | {total('injection_blocked')}건 |",
+        f"| 인젝션 문장 유출 (최종 결과) | {total('injection_leaks')}건 |",
     ]
     if details:
         lines += ["", "| 라벨 | 매칭 | 담당자(예측) | 맞음 | 기한(예측) | 맞음 |", "|---|---|---|---|---|---|"]

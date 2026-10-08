@@ -187,6 +187,8 @@ def extract_meeting(
         model_used=model_used,
         fallback_used=path != "function_calling",
         tool_calls=tool_summary,
+        injection_sentences=validated.injection_sentences,
+        injection_blocked=validated.dropped_by_injection,
         warnings=warnings,
     )
     if log_metrics:

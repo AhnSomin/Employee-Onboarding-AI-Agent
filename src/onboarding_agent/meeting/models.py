@@ -145,6 +145,8 @@ class ExtractionResult(BaseModel):
     model_used: str | None
     fallback_used: bool  # True whenever the path is not function_calling
     tool_calls: ToolCallSummary | None = None  # None when no function calling was attempted
+    injection_sentences: list[str] = []  # lines in the minutes that address the AI
+    injection_blocked: int = 0  # extracted items/decisions dropped because they came from those lines
     warnings: list[str] = []
 
 

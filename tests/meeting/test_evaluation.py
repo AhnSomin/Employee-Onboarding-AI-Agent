@@ -83,6 +83,7 @@ def test_due_with_time_and_injection_leak_are_detected():
     score = score_sample(GOLD, result(predictions), latency_ms=10)
     assert score.due_correct == 0  # gold has no time
     assert score.injection_leaks == 1
+    assert score.injection_blocked == 0
 
 
 def test_required_labels_are_matched_before_optional_ones():

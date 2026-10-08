@@ -230,6 +230,8 @@ def test_injection_proposal_is_removed_by_validation():
     result, _ = run({"primary": [calls_response(OVERVIEW, ITEM_A, injected, finish(2))]})
     assert all("Slack" not in i.task for i in result.action_items)
     assert any("AI 대상 지시문에서 나온 항목 1건" in w for w in result.warnings)
+    assert result.injection_blocked == 1
+    assert len(result.injection_sentences) == 1
 
 
 def test_llm_outage_goes_straight_to_rules():
