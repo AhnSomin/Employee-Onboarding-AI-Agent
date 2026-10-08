@@ -158,6 +158,33 @@ def test_reprocessing_the_same_minutes_warns(patched_extract, monkeypatch):
     assert "meeting.open_previous" in keys(app)
 
 
+def test_quota_fallback_shows_the_reason_in_korean(monkeypatch):
+    from types import SimpleNamespace
+
+    from google.genai import errors
+
+    from onboarding_agent.config import Settings
+    from onboarding_agent.llm.client import LLMClient
+
+    quota = errors.ClientError(429, {"error": {"code": 429, "status": "RESOURCE_EXHAUSTED", "message": "quota"}})
+
+    class ExhaustedModels:
+        def generate_content(self, **_):
+            raise quota
+
+    client = LLMClient(
+        Settings(gemini_api_key="k", gemini_model_primary="primary"),
+        genai_client=SimpleNamespace(models=ExhaustedModels()),
+        sleep=lambda _: None,
+    )
+    monkeypatch.setattr(extract_module, "get_client", lambda: client)
+    app = AppTest.from_file(str(APP / "views" / "meeting.py"), default_timeout=TIMEOUT).run()
+    load_sample_and_extract(app)
+    assert any("규칙 기반" in m.value for m in app.metric)  # 추출 경로
+    reason = "LLM을 사용할 수 없어 규칙 기반으로 추출했습니다 — Gemini 사용 한도를 넘었습니다"
+    assert any(w.value.startswith(reason) for w in app.warning)
+
+
 def test_forced_fallback_results_cannot_be_approved_until_confirmed():
     app = AppTest.from_file(str(APP / "views" / "meeting.py"), default_timeout=TIMEOUT).run()
     app.selectbox(key="meeting.sample").set_value("03_edge_cases.txt").run()

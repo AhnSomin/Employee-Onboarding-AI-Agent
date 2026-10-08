@@ -14,7 +14,7 @@ from google.genai import errors, types
 from onboarding_agent import metrics
 from onboarding_agent.config import REPO_ROOT, Settings
 from onboarding_agent.llm.client import LLMClient
-from onboarding_agent.meeting.extract import build_prompts, extract_meeting, load_prompt
+from onboarding_agent.meeting.extract import build_prompts, describe_llm_failure, extract_meeting, load_prompt
 from onboarding_agent.meeting.roster import load_roster
 
 MEETING_DATE = date(2026, 10, 8)
@@ -241,6 +241,37 @@ def test_llm_outage_goes_straight_to_rules():
     assert result.tool_calls is None
     assert models.calls == ["primary", "primary"]
     assert any("규칙 기반" in w for w in result.warnings)
+
+
+def test_quota_exhaustion_is_explained_in_korean():
+    quota = errors.ClientError(429, {"error": {"code": 429, "status": "RESOURCE_EXHAUSTED", "message": "quota"}})
+    result, _ = run({"primary": [quota, quota]})
+    assert result.extraction_path == "rule_based"
+    warning = next(w for w in result.warnings if "규칙 기반" in w)
+    assert warning.startswith("LLM을 사용할 수 없어 규칙 기반으로 추출했습니다 — Gemini 사용 한도를 넘었습니다")
+    assert "RESOURCE_EXHAUSTED" in warning  # the raw error stays for whoever fixes it
+
+
+@pytest.mark.parametrize(
+    ("message", "reason"),
+    [
+        ("모든 모델 호출이 실패했습니다 — m: 402 RESOURCE_EXHAUSTED", "Gemini 사용 한도를 넘었습니다"),
+        ("모든 모델 호출이 실패했습니다 — m: 403 PERMISSION_DENIED", "API 키가 유효하지 않거나"),
+        ("모든 모델 호출이 실패했습니다 — m: 404 NOT_FOUND", "모델 이름을 찾을 수 없습니다"),
+        ("모든 모델 호출이 실패했습니다 — m: RemoteProtocolError", "네트워크 연결 오류"),
+        ("FORCE_FALLBACK이 켜져 있어 LLM을 호출하지 않습니다.", None),
+    ],
+)
+def test_failure_reasons(message, reason):
+    described = describe_llm_failure(message)
+    assert described is None if reason is None else reason in described
+
+
+def test_skipped_models_repeat_the_last_reason():
+    describe_llm_failure("모든 모델 호출이 실패했습니다 — m: 429 RESOURCE_EXHAUSTED")
+    assert describe_llm_failure("최근 실패한 모델만 남아 있어 잠시 LLM 호출을 건너뜁니다.") == (
+        "직전 원인: Gemini 사용 한도를 넘었습니다(할당량·결제 상태를 확인하세요)"
+    )
 
 
 def test_force_fallback_skips_the_model():

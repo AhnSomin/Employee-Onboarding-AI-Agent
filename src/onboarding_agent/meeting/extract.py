@@ -93,6 +93,37 @@ class _LLMAttempt:
     tool_summary: ToolCallSummary | None = None
 
 
+# Why the model could not be used, in words for the person at the screen (matched on the error text).
+_FAILURE_REASONS = (
+    (("RESOURCE_EXHAUSTED", " 429", " 402", "quota"), "Gemini 사용 한도를 넘었습니다(할당량·결제 상태를 확인하세요)"),
+    (
+        ("UNAUTHENTICATED", "PERMISSION_DENIED", " 401", " 403", "API key"),
+        "Gemini API 키가 유효하지 않거나 권한이 없습니다",
+    ),
+    (("NOT_FOUND", " 404"), "지정한 모델 이름을 찾을 수 없습니다(GEMINI_MODEL_* 확인)"),
+    (("DEADLINE_EXCEEDED", "Timeout", "timed out"), "모델 응답 시간이 초과됐습니다"),
+    (("UNAVAILABLE", "INTERNAL", " 500", " 502", " 503", " 504"), "Gemini 서버가 일시적으로 응답하지 않습니다"),
+    (("RemoteProtocolError", "ConnectError", "Connection"), "네트워크 연결 오류가 났습니다"),
+)
+_last_failure: dict[str, str] = {}  # the latest reason, for "recently failed" skips in the same process
+
+
+def describe_llm_failure(message: str) -> str | None:
+    """A Korean reason for an LLMUnavailable message, or None when the message says it already."""
+    for needles, reason in _FAILURE_REASONS:
+        if any(needle in message for needle in needles):
+            _last_failure["reason"] = reason
+            return reason
+    if "최근 실패한 모델" in message and "reason" in _last_failure:
+        return f"직전 원인: {_last_failure['reason']}"
+    return None
+
+
+def _fallback_warning(lead: str, exc: Exception) -> str:
+    reason = describe_llm_failure(str(exc))
+    return f"{lead} — {reason}. (자세한 오류: {exc})" if reason else f"{lead} ({exc})"
+
+
 def _run_llm(
     client: LLMClient,
     text: str,
@@ -116,7 +147,7 @@ def _run_llm(
             allowed_function_names=TOOL_NAMES,
         )
     except LLMUnavailable as exc:
-        warnings.append(f"LLM을 사용할 수 없어 규칙 기반으로 추출했습니다 ({exc})")
+        warnings.append(_fallback_warning("LLM을 사용할 수 없어 규칙 기반으로 추출했습니다", exc))
         return attempt
 
     collected = collect(loop.calls)
@@ -135,7 +166,7 @@ def _run_llm(
         attempt.extraction, attempt.model = client.generate_structured(user, LLMExtraction, system_json)
         attempt.path = "structured"
     except LLMUnavailable as exc:
-        warnings.append(f"구조화 출력도 실패해 규칙 기반으로 추출했습니다 ({exc})")
+        warnings.append(_fallback_warning("구조화 출력도 실패해 규칙 기반으로 추출했습니다", exc))
     return attempt
 
 
