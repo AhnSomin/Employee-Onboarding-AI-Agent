@@ -93,3 +93,32 @@ def test_dates_and_output_location(convert, tmp_path, capsys):
     assert convert.format_date("2020년10월07일") == "2020.10.07"
     assert convert.main(["--dataset", str(tmp_path), "--out", str(tmp_path / "x")]) == 1
     assert "찾지 못했습니다" in capsys.readouterr().out
+
+
+def test_pick_skips_excluded_meetings(convert):
+    plain = [row("Q", "000003", n, "가상 위원", "의견을 말씀드립니다. " * 60) for n in range(3)]
+    tasks = [row("Q", "000004", n, "가상 위원", "자료를 다음 주까지 제출해 주십시오. " * 40) for n in range(3)]
+    records = convert.source_records(xlsx([HEADER] + plain + tasks))
+    groups = convert.group_agendas([("d.xlsx", r) for r in records])
+    assert convert.pick(groups, 6000, frozenset({"000004"})).meta["conference"] == "000003"
+
+
+def test_test_set_uses_other_meetings_and_its_own_prefix(convert, tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(convert, "REPO_ROOT", tmp_path)
+    dataset = tmp_path / "dataset"
+    dataset.mkdir()
+    plain = [row("Q", "000003", n, "가상 위원", "의견을 말씀드립니다. " * 60) for n in range(3)]
+    tasks = [row("Q", "000004", n, "가상 위원", "자료를 다음 주까지 제출해 주십시오. " * 40) for n in range(3)]
+    with zipfile.ZipFile(dataset / "VS_소위원회.zip", "w") as archive:
+        archive.writestr("SRC_a(000003).xlsx", xlsx([HEADER] + plain))
+        archive.writestr("SRC_b(000004).xlsx", xlsx([HEADER] + tasks))
+    dev = tmp_path / "dev_manifest.json"
+    dev.write_text('[{"conference": "000004"}]', encoding="utf-8")
+    out = tmp_path / "data" / "external" / "test"
+    args = ["--dataset", str(dataset), "--out", str(out), "--prefix", "assembly_test_", "--set", "test",
+            "--exclude-manifest", str(dev)]
+    assert convert.main(args) == 0
+    assert [p.name for p in out.glob("*.txt")] == ["assembly_test_소위원회_000003.txt"]
+    assert '"set": "test"' in (out / "manifest.json").read_text(encoding="utf-8")
+    assert convert.main(args[:-6] + ["--prefix", "test_"]) == 1  # the DRY_RUN guard needs "assembly_"
+    assert "assembly_로 시작" in capsys.readouterr().out

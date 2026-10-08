@@ -2,6 +2,9 @@
 
 Run with:
     uv run python scripts/convert_assembly.py --dataset "<023 dataset folder>" [--count 5] [--max-chars 6000]
+    # a test set from meetings the dev set does not use:
+    uv run python scripts/convert_assembly.py --dataset "<folder>" --prefix assembly_test_ --set test \
+        --out data/external/assembly/test --exclude-manifest data/external/assembly/dev/manifest.json
 
 The dataset stays where it is and is only read (zip files, never extracted
 in place). Excerpts and their manifest are written only under
@@ -162,8 +165,14 @@ def load_groups(zip_path: Path) -> dict[tuple[str, str], AgendaGroup]:
     return group_agendas(records)
 
 
-def pick(groups: dict[tuple[str, str], AgendaGroup], max_chars: int) -> AgendaGroup | None:
-    """The agenda group most likely to contain tasks, within the length window."""
+def pick(
+    groups: dict[tuple[str, str], AgendaGroup], max_chars: int, exclude: frozenset[str] = frozenset()
+) -> AgendaGroup | None:
+    """The agenda group most likely to contain tasks, within the length window.
+
+    Meetings whose number is in `exclude` (e.g. the dev set's) are never picked.
+    """
+    groups = {key: g for key, g in groups.items() if g.meta["conference"] not in exclude}
     candidates = [g for g in groups.values() if MIN_CHARS <= g.chars <= max_chars and len(g.utterances) >= 2]
     if not candidates:
         candidates = [g for g in groups.values() if g.chars >= MIN_CHARS]
@@ -179,6 +188,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--count", type=int, default=5)
     parser.add_argument("--max-chars", type=int, default=MAX_CHARS)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
+    parser.add_argument("--prefix", default="assembly_", help="파일 이름 앞부분 (assembly_로 시작해야 함)")
+    parser.add_argument("--set", dest="set_name", help="manifest에 적을 세트 이름 (예: test)")
+    parser.add_argument(
+        "--exclude-manifest", type=Path, action="append", default=[],
+        help="이 manifest에 있는 회의는 고르지 않음 (여러 번 지정 가능)",
+    )
     args = parser.parse_args(argv)
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(errors="replace")
@@ -192,16 +207,24 @@ def main(argv: list[str] | None = None) -> int:
     if REPO_ROOT / "data" / "external" not in [out, *out.parents]:
         print("발췌는 data/external/ 아래에만 만들 수 있습니다 (git 제외 경로).")
         return 1
+    if not args.prefix.startswith("assembly_"):
+        print("파일 이름은 assembly_로 시작해야 합니다 (실행기가 DRY_RUN으로만 처리하는 표시).")
+        return 1
+    exclude = frozenset(
+        entry["conference"]
+        for path in args.exclude_manifest
+        for entry in json.loads(path.read_text(encoding="utf-8"))
+    )
     out.mkdir(parents=True, exist_ok=True)
 
     manifest = []
     for zip_path in sources[: args.count]:
-        group = pick(load_groups(zip_path), args.max_chars)
+        group = pick(load_groups(zip_path), args.max_chars, exclude)
         if group is None:
             continue
         text, truncated = render(group, args.max_chars)
         meta = group.meta
-        file_name = f"assembly_{meta['meeting_type']}_{meta['conference']}.txt"
+        file_name = f"{args.prefix}{meta['meeting_type']}_{meta['conference']}.txt"
         (out / file_name).write_text(text, encoding="utf-8")
         manifest.append(
             {
@@ -217,11 +240,12 @@ def main(argv: list[str] | None = None) -> int:
                 "truncated": truncated,
                 "action_markers": group.action_markers,
                 "source_members": group.members,
+                **({"set": args.set_name} if args.set_name else {}),
             }
         )
         print(f"- {file_name}: {len(text):,}자, 발언 {len(group.utterances)}개{' (잘림)' if truncated else ''}")
     (out / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"발췌 {len(manifest)}개를 {out}에 만들었습니다 (git 제외).")
+    print(f"발췌 {len(manifest)}개를 {out}에 만들었습니다 (git 제외, 제외한 회의 {len(exclude)}개).")
     return 0
 
 
