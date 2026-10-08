@@ -8,12 +8,14 @@ and due fields count as confirmed. Reasons are left in Korean review notes.
 from __future__ import annotations
 
 import re
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from datetime import date, time
 from difflib import SequenceMatcher
 
 from .dates import format_due, resolve_due
 from .models import ActionItem, Decision, LLMActionItem, LLMExtraction, new_id
+from .owner_rules import OwnerRules, Speech, default_owner_rules, promise_note
 from .roster import Roster, compact, is_group_reference, person_name, strip_titles
 
 DUPLICATE_RATIO = 0.85
@@ -57,8 +59,8 @@ def normalize_space(text: str) -> str:
     return " ".join(text.split())
 
 
-def quote_in_text(quote: str, normalized_text: str) -> bool:
-    """True when the quote appears in the minutes.
+def iter_quote_spans(quote: str, normalized_text: str) -> Iterator[list[tuple[int, int]]]:
+    """Every place the quote appears in the minutes, as spans in `normalized_text`.
 
     A quote spanning several lines may skip the bullets or speaker tags
     between them, but its sentences must appear in order and close together,
@@ -66,24 +68,33 @@ def quote_in_text(quote: str, normalized_text: str) -> bool:
     """
     quote = normalize_space(quote.replace("“", '"').replace("”", '"'))
     if not quote:
-        return False
-    if quote in normalized_text:
-        return True
+        return
+    found_whole = False
+    at = normalized_text.find(quote)
+    while at != -1:
+        found_whole = True
+        yield [(at, at + len(quote))]
+        at = normalized_text.find(quote, at + 1)
     parts = [p for p in (normalize_space(s) for s in _SENTENCE_SPLIT.split(quote)) if p]
-    if len(parts) < 2:
-        return False
+    if found_whole or len(parts) < 2:
+        return
     start = normalized_text.find(parts[0])
     while start != -1:
-        end = start + len(parts[0])
+        spans = [(start, start + len(parts[0]))]
         for part in parts[1:]:
+            end = spans[-1][1]
             found = normalized_text.find(part, end)
             if found == -1 or found - end > QUOTE_PART_GAP:
                 break
-            end = found + len(part)
+            spans.append((found, found + len(part)))
         else:
-            return True
+            yield spans
         start = normalized_text.find(parts[0], start + 1)
-    return False
+
+
+def quote_in_text(quote: str, normalized_text: str) -> bool:
+    """True when the quote appears in the minutes (see iter_quote_spans)."""
+    return next(iter_quote_spans(quote, normalized_text), None) is not None
 
 
 _LEADING_BULLET = re.compile(r"^(?:[-*•·○●▪◦※]\s*|\d+[.)]\s+)")
@@ -220,22 +231,21 @@ def _build_item(
     *,
     meeting_id: str,
     meeting_date: date,
-    normalized_text: str,
+    speech: Speech,
     compact_text: str,
     roster: Roster,
+    owner_rules: OwnerRules,
     from_rules: bool,
 ) -> ActionItem:
     notes: list[str] = []
-    needs_review = False
     evidence = raw.evidence_quote.strip()
-    if not quote_in_text(evidence, normalized_text):
-        needs_review = True
+    occurrences = list(iter_quote_spans(evidence, speech.text))
+    needs_review = not occurrences
+    if needs_review:
         notes.append("근거 인용을 회의록에서 찾지 못했습니다.")
 
     owner_name, slack_id, owner_ok = _check_owner(raw.owner_name, compact_text, roster, notes)
-    due_date, due_time, due_text, due_ok, due_review = _check_due(
-        raw, normalized_text, meeting_date, notes
-    )
+    due_date, due_time, due_text, due_ok, due_review = _check_due(raw, speech.text, meeting_date, notes)
     co_owners = [c.strip() for c in raw.co_owners if c.strip() and compact(c) in compact_text]
 
     if needs_review and (owner_ok or due_ok):
@@ -245,6 +255,17 @@ def _build_item(
     if from_rules:
         owner_ok = due_ok = False
         notes.insert(0, "규칙 기반 추출 결과라 담당자와 기한을 직접 확인해 주세요.")
+    if owner_ok and owner_name:
+        note = promise_note(
+            owner=owner_name,
+            raw_owner=raw.owner_name or "",
+            occurrences=occurrences,
+            speech=speech,
+            rules=owner_rules,
+        )
+        if note:
+            owner_ok = False
+            notes.append(note)
     return ActionItem(
         item_id=new_id(),
         meeting_id=meeting_id,
@@ -283,11 +304,17 @@ def validate_extraction(
     meeting_id: str,
     roster: Roster,
     from_rules: bool = False,
+    owner_rules: OwnerRules | None = None,
 ) -> ValidatedExtraction:
-    normalized_text = normalize_space(meeting_text)
+    warnings: list[str] = []
+    if owner_rules is None:
+        owner_rules, rules_warning = default_owner_rules()
+        if rules_warning:
+            warnings.append(rules_warning)
+    speech = Speech.from_minutes(meeting_text, owner_rules)
+    normalized_text = speech.text
     compact_text = compact(meeting_text)
     injections = find_injection_sentences(meeting_text)
-    warnings: list[str] = []
     dropped = 0
     if injections:
         preview = injections[0][:40] + ("…" if len(injections[0]) > 40 else "")
@@ -319,9 +346,10 @@ def validate_extraction(
                 raw,
                 meeting_id=meeting_id,
                 meeting_date=meeting_date,
-                normalized_text=normalized_text,
+                speech=speech,
                 compact_text=compact_text,
                 roster=roster,
+                owner_rules=owner_rules,
                 from_rules=from_rules,
             )
         )
