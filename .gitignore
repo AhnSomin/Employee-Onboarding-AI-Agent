@@ -3,6 +3,8 @@
 secrets/
 .streamlit/secrets.toml
 data/state.db
+# Public dataset copies, conversions and labels — never commit
+data/external/
 logs/
 
 # Python
