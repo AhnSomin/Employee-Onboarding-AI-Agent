@@ -152,8 +152,13 @@ def extract_meeting(
     log_metrics: bool = True,
     now: datetime | None = None,
     progress: Progress | None = None,
+    raw_extractions: list[LLMExtraction] | None = None,
 ) -> ExtractionResult:
-    """Extract, validate and package one meeting. Nothing is saved or sent here."""
+    """Extract, validate and package one meeting. Nothing is saved or sent here.
+
+    `raw_extractions`, when given, receives the extraction before validation
+    (evaluation scripts use it to score the same output under other rules).
+    """
     settings = settings or get_settings()
     progress = progress or _no_progress
     if len(text) > settings.meeting_max_chars:
@@ -179,6 +184,8 @@ def extract_meeting(
     if attempt.extraction is None:
         progress("rules", "강제 폴백" if forced else "LLM 사용 불가")
     extraction = attempt.extraction or extract_with_rules(text, meeting_date=meeting_date, roster=roster)
+    if raw_extractions is not None:
+        raw_extractions.append(extraction)
     progress("validate", "")
 
     meeting_id = new_id()

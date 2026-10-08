@@ -150,6 +150,7 @@ def score_sample(gold: GoldSample, result: ExtractionResult, latency_ms: int) ->
                 "owner_ok": owner_ok,
                 "due": due or "미확정",
                 "due_ok": due_ok,
+                "notes": [] if owner_ok and due_ok else list(item.review_notes),
             }
         )
     for gold_item in gold.items:
@@ -162,6 +163,11 @@ def score_sample(gold: GoldSample, result: ExtractionResult, latency_ms: int) ->
         1 for text in texts for phrase in gold.must_not_extract if compact(phrase) in compact(text)
     )
     return score
+
+
+def _cell(text: str, limit: int = 160) -> str:
+    text = text.replace("|", "/").replace("\n", " ")
+    return text if len(text) <= limit else text[: limit - 1] + "…"
 
 
 def _ratio(numerator: int, denominator: int) -> str:
@@ -201,14 +207,19 @@ def render_markdown(scores: list[SampleScore], *, details: bool = False) -> str:
         f"| 인젝션 문장 유출 (최종 결과) | {total('injection_leaks')}건 |",
     ]
     if details:
-        lines += ["", "| 라벨 | 매칭 | 담당자(예측) | 맞음 | 기한(예측) | 맞음 |", "|---|---|---|---|---|---|"]
+        lines += [
+            "",
+            "| 라벨 | 매칭 | 담당자(예측) | 맞음 | 기한(예측) | 맞음 | 틀린 항목의 검토 메모 |",
+            "|---|---|---|---|---|---|---|",
+        ]
         for s in scores:
             for d in sorted(s.details, key=lambda d: d["id"]):
                 if d["matched"]:
+                    notes = " / ".join(d.get("notes", []))
                     lines.append(
                         f"| {d['id']} | O | {d['owner']} | {'O' if d['owner_ok'] else 'X'} "
-                        f"| {d['due']} | {'O' if d['due_ok'] else 'X'} |"
+                        f"| {d['due']} | {'O' if d['due_ok'] else 'X'} | {_cell(notes) or '-'} |"
                     )
                 else:
-                    lines.append(f"| {d['id']} | X | - | - | - | - |")
+                    lines.append(f"| {d['id']} | X | - | - | - | - | - |")
     return "\n".join(lines)
