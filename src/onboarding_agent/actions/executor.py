@@ -25,10 +25,16 @@ from ..integrations.slack import SlackError, post_message
 from ..meeting import render
 from ..meeting.models import ActionItem, ExecutionResult, Meeting
 from ..store.base import NotFoundError, StateStore
+from .dry_run import DRY_RUN_PREFIX, EXTERNAL_SOURCE_PREFIXES, is_done, is_external_source
 
-DRY_RUN_PREFIX = "dryrun:"
-# Public-dataset excerpts are for extraction and evaluation only (see DECISIONS.md).
-EXTERNAL_SOURCE_PREFIXES = ("assembly_",)
+__all__ = [
+    "DRY_RUN_PREFIX",
+    "EXTERNAL_SOURCE_PREFIXES",
+    "ExecutionReport",
+    "execute_meeting",
+    "is_done",
+    "is_external_source",
+]
 
 logger = logging.getLogger(__name__)
 
@@ -49,19 +55,6 @@ class ExecutionReport:
     @property
     def failed(self) -> bool:
         return any(r.calendar == "failed" or r.slack == "failed" for r in self.results)
-
-
-def is_done(value: str | None, dry_run: bool) -> bool:
-    """A recorded id counts as done; dry-run ids only count in dry-run mode."""
-    if not value:
-        return False
-    if value.startswith(DRY_RUN_PREFIX):
-        return dry_run
-    return True
-
-
-def is_external_source(meeting: Meeting) -> bool:
-    return (meeting.source_filename or "").startswith(EXTERNAL_SOURCE_PREFIXES)
 
 
 def _calendar_step(

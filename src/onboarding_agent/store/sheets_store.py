@@ -25,9 +25,15 @@ from .base import NotFoundError, apply_update
 ModelT = TypeVar("ModelT", bound=BaseModel)
 
 MARKER_COLUMN = "created_by"
+# Fields added after the first release go after the marker, so an existing sheet only gains columns.
+LATE_ITEM_FIELDS = ("reminders",)
 MEETING_COLUMNS = [*Meeting.model_fields, MARKER_COLUMN]
-ITEM_COLUMNS = [*ActionItem.model_fields, MARKER_COLUMN]
-_JSON_FIELDS = {"summary", "decisions", "open_issues", "co_owners", "review_notes"}
+ITEM_COLUMNS = [
+    *(name for name in ActionItem.model_fields if name not in LATE_ITEM_FIELDS),
+    MARKER_COLUMN,
+    *LATE_ITEM_FIELDS,
+]
+_JSON_FIELDS = {"summary", "decisions", "open_issues", "co_owners", "review_notes", "reminders"}
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
 

@@ -5,7 +5,8 @@ Run with:
     uv run python scripts/reset_demo.py --yes    # actually delete
 
 Only marked data is touched:
-- Slack: messages whose ts this app stored (the bot can delete only its own)
+- Slack: messages whose ts this app stored — summaries, follow-ups and reminders
+  (the bot can delete only its own)
 - Calendar: events with extendedProperties.private.created_by=onboarding-agent
 - State: Sheets rows with created_by=onboarding-agent, or the local SQLite rows
 "dryrun:" ids point at nothing outside and are only removed with the state rows.
@@ -25,7 +26,8 @@ from onboarding_agent.store import StoreUnavailable, get_store
 
 def _slack_targets(store) -> list[str]:
     stamps = [m.slack_ts for m in store.list_meetings()]
-    stamps += [i.slack_ts for i in store.list_items()]
+    for item in store.list_items():
+        stamps += [item.slack_ts, *(log.ts for log in item.reminders)]
     return sorted({ts for ts in stamps if ts and not ts.startswith(DRY_RUN_PREFIX)})
 
 

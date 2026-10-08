@@ -94,6 +94,14 @@ class Decision(BaseModel):
     needs_review: bool = False
 
 
+class ReminderLog(BaseModel):
+    """One reminder sent for an item; reruns and reset_demo use it."""
+
+    stage: ReminderStage
+    sent_at: datetime
+    ts: str  # Slack message ts, or "dryrun:…" in DRY_RUN
+
+
 class ActionItem(BaseModel):
     item_id: str  # uuid4 assigned at extraction, immutable afterwards
     meeting_id: str
@@ -116,6 +124,7 @@ class ActionItem(BaseModel):
     completed_at: datetime | None = None
     last_reminded_stage: ReminderStage | None = None
     last_reminded_at: datetime | None = None
+    reminders: list[ReminderLog] = []
 
     @model_validator(mode="after")
     def _confirmed_fields_have_values(self) -> ActionItem:

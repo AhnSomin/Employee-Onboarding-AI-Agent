@@ -14,12 +14,14 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from .dates import format_due
-from .models import CREATED_BY, ActionItem, Meeting
+from .models import CREATED_BY, ActionItem, Meeting, ReminderStage
 
 APP_FOOTER = "회의록 승인 후 온보딩 Agent가 보낸 메시지입니다."
 CALENDAR_FOOTER = "이 일정은 신입사원 온보딩 AI Agent가 회의록 승인 후 만들었습니다."
 EVENT_DURATION = timedelta(hours=1)
 _SECTION_LIMIT = 2900  # Slack section text limit is 3000 characters
+STAGE_LABELS: dict[str, str] = {"D-1": "D-1", "D-day": "D-day", "overdue": "기한 지남"}
+REMINDER_HINT = "완료했다면 앱의 '액션 현황'에서 완료 처리해 주세요."
 
 
 @dataclass(frozen=True)
@@ -89,15 +91,17 @@ def _due_label(item: ActionItem) -> str:
     return "~" + format_due(item.due_date, item.due_time) if item.due_date else "기한 미정"
 
 
+def _mention(item: ActionItem) -> str:
+    if item.owner_slack_id:
+        return f"<@{item.owner_slack_id}>"
+    if item.owner_name:
+        return f"{_escape(item.owner_name)}(Slack 미등록)"
+    return "담당 미정"
+
+
 def item_line(item: ActionItem) -> str:
     """'• 할 일 — <@U…> · ~10/16(금)' or '• 할 일 — 이서연(Slack 미등록) · ~10/12(월) 14:00'."""
-    if item.owner_slack_id:
-        who = f"<@{item.owner_slack_id}>"
-    elif item.owner_name:
-        who = f"{_escape(item.owner_name)}(Slack 미등록)"
-    else:
-        who = "담당 미정"
-    return f"• {_escape(item.task)} — {who} · {_due_label(item)}"
+    return f"• {_escape(item.task)} — {_mention(item)} · {_due_label(item)}"
 
 
 def _section(title: str, lines: list[str]) -> list[dict[str, Any]]:
@@ -137,6 +141,18 @@ def slack_followup(meeting: Meeting, items: list[ActionItem]) -> SlackMessage:
     text = "\n".join([header, *tasks, APP_FOOTER])
     blocks = [
         *_section(header, tasks),
+        {"type": "context", "elements": [{"type": "mrkdwn", "text": APP_FOOTER}]},
+    ]
+    return SlackMessage(text=text, blocks=blocks)
+
+
+def reminder_message(item: ActionItem, stage: ReminderStage) -> SlackMessage:
+    """'⏰ [D-1] 할 일 — <@U…> 기한 10/16(금)' plus how to stop the reminders (spec 10.2)."""
+    due = format_due(item.due_date, item.due_time) if item.due_date else "미정"
+    line = f"⏰ [{STAGE_LABELS[stage]}] {_escape(item.task)} — {_mention(item)} 기한 {due}"
+    text = "\n".join([line, REMINDER_HINT, APP_FOOTER])
+    blocks = [
+        {"type": "section", "text": {"type": "mrkdwn", "text": f"{line}\n{REMINDER_HINT}"}},
         {"type": "context", "elements": [{"type": "mrkdwn", "text": APP_FOOTER}]},
     ]
     return SlackMessage(text=text, blocks=blocks)

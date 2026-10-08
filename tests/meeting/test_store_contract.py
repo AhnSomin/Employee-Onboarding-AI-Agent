@@ -10,9 +10,9 @@ import pytest
 from pydantic import ValidationError
 
 from onboarding_agent.config import REPO_ROOT, load_service_account_info, load_settings
-from onboarding_agent.meeting.models import ActionItem, Meeting, new_id
+from onboarding_agent.meeting.models import ActionItem, Meeting, ReminderLog, new_id
 from onboarding_agent.store.base import NotFoundError
-from onboarding_agent.store.sheets_store import SheetsStore
+from onboarding_agent.store.sheets_store import ITEM_COLUMNS, LATE_ITEM_FIELDS, SheetsStore
 from onboarding_agent.store.sqlite_store import SqliteStore
 
 KST = ZoneInfo("Asia/Seoul")
@@ -182,6 +182,27 @@ def test_sheets_rows_are_marked_and_foreign_rows_survive(fake_spreadsheet):
     worksheet.cells.append(["manual-row"] + [""] * (len(header) - 2) + ["someone-else"])
     assert sheets.delete_app_rows()["meetings"] == 1
     assert [row[0] for row in worksheet.cells[1:]] == ["manual-row"]
+
+
+def test_reminder_log_roundtrip(store):
+    item = make_item()
+    store.upsert_items([item])
+    sent = datetime(2026, 10, 9, 9, 0, tzinfo=ZoneInfo("Asia/Seoul"))
+    log = ReminderLog(stage="D-1", sent_at=sent, ts="1760000000.000100")
+    store.update_item(item.item_id, reminders=[log], last_reminded_stage="D-1", last_reminded_at=sent)
+    got = store.get_item(item.item_id)
+    assert got.reminders == [log]
+    assert (got.last_reminded_stage, got.last_reminded_at) == ("D-1", sent)
+
+
+def test_sheets_item_header_from_before_reminders_gains_the_column(fake_spreadsheet):
+    old_header = [c for c in ITEM_COLUMNS if c not in LATE_ITEM_FIELDS]
+    assert old_header[-1] == "created_by"  # the marker stays where M2 put it
+    fake_spreadsheet.add_worksheet("action_items", rows=10, cols=len(old_header)).cells = [list(old_header)]
+    sheets = SheetsStore(fake_spreadsheet)
+    assert fake_spreadsheet.worksheet("action_items").cells[0] == ITEM_COLUMNS
+    sheets.upsert_items([make_item()])
+    assert sheets.list_items()[0].reminders == []
 
 
 def test_sheets_upsert_batches_writes(fake_spreadsheet):
