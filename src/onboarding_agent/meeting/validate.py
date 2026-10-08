@@ -1,0 +1,330 @@
+"""Deterministic checks on extracted content (spec 8.3).
+
+Everything the LLM (or the rule-based fallback) returns is untrusted data.
+This module turns it into domain objects and decides, in code, which owner
+and due fields count as confirmed. Reasons are left in Korean review notes.
+"""
+
+from __future__ import annotations
+
+import re
+from dataclasses import dataclass, field
+from datetime import date, time
+from difflib import SequenceMatcher
+
+from .dates import format_due, resolve_due
+from .models import ActionItem, Decision, LLMActionItem, LLMExtraction, new_id
+from .roster import Roster, compact, is_group_reference, strip_titles
+
+DUPLICATE_RATIO = 0.85
+INJECTION_OVERLAP_CHARS = 12
+QUOTE_PART_GAP = 20  # max characters between parts of a multi-line quote (bullets, speaker tags)
+
+# Sentences in the minutes that address the AI reader instead of people.
+_INJECTION_PATTERNS = (
+    re.compile(
+        r"(?:이|본|해당)\s*(?:회의록|문서|메모|글|파일|내용)\S*\s*(?:을|를)?\s*"
+        r"(?:읽|보|요약|처리|분석|정리)\S*\s*(?:AI|인공지능|에이전트|모델|어시스턴트|챗봇|봇|LLM)",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"(?:이전|앞의|위의|기존|모든)\s*(?:모든\s*)?(?:지시|명령|지침|규칙|프롬프트)\S*\s*"
+        r"(?:(?:모두|전부|다)\s*)?무시"
+    ),
+    re.compile(r"ignore\s+(?:all\s+|any\s+)?(?:previous|prior|above)\s+instructions", re.IGNORECASE),
+    re.compile(r"시스템\s*프롬프트|system\s*prompt", re.IGNORECASE),
+    re.compile(
+        r"(?:AI|인공지능|에이전트|어시스턴트|챗봇|LLM)\s*(?:은|는|야|에게|님)\s.*"
+        r"(?:하라|해라|보내라|하십시오|하세요|할\s*것|실행하라)\s*[.!]?$",
+        re.IGNORECASE,
+    ),
+)
+_SENTENCE_SPLIT = re.compile(r"(?<=[.!?。])\s+|\n+")
+
+
+@dataclass
+class ValidatedExtraction:
+    summary: list[str]
+    decisions: list[Decision]
+    items: list[ActionItem]
+    open_issues: list[str]
+    warnings: list[str] = field(default_factory=list)
+    injection_sentences: list[str] = field(default_factory=list)
+    dropped_by_injection: int = 0
+
+
+def normalize_space(text: str) -> str:
+    return " ".join(text.split())
+
+
+def quote_in_text(quote: str, normalized_text: str) -> bool:
+    """True when the quote appears in the minutes.
+
+    A quote spanning several lines may skip the bullets or speaker tags
+    between them, but its sentences must appear in order and close together,
+    so unrelated sentences cannot be stitched into one quote.
+    """
+    quote = normalize_space(quote.replace("“", '"').replace("”", '"'))
+    if not quote:
+        return False
+    if quote in normalized_text:
+        return True
+    parts = [p for p in (normalize_space(s) for s in _SENTENCE_SPLIT.split(quote)) if p]
+    if len(parts) < 2:
+        return False
+    start = normalized_text.find(parts[0])
+    while start != -1:
+        end = start + len(parts[0])
+        for part in parts[1:]:
+            found = normalized_text.find(part, end)
+            if found == -1 or found - end > QUOTE_PART_GAP:
+                break
+            end = found + len(part)
+        else:
+            return True
+        start = normalized_text.find(parts[0], start + 1)
+    return False
+
+
+_LEADING_BULLET = re.compile(r"^(?:[-*•·○●▪◦※]\s*|\d+[.)]\s+)")
+
+
+def find_injection_sentences(text: str) -> list[str]:
+    lines = [_LEADING_BULLET.sub("", normalize_space(s)) for s in re.split(r"\n+", text)]
+    return [s for s in lines if s and any(p.search(s) for p in _INJECTION_PATTERNS)]
+
+
+def _overlaps(a: str, b: str) -> bool:
+    a, b = normalize_space(a), normalize_space(b)
+    if not a or not b:
+        return False
+    if a in b or b in a:
+        return True
+    match = SequenceMatcher(None, a, b, autojunk=False).find_longest_match(0, len(a), 0, len(b))
+    return match.size >= min(INJECTION_OVERLAP_CHARS, len(a), len(b))
+
+
+def _from_injection(texts: list[str], injections: list[str]) -> bool:
+    return any(_overlaps(t, s) for t in texts if t for s in injections)
+
+
+def _parse_guess_date(value: str | None) -> date | None:
+    try:
+        return date.fromisoformat(value.strip()) if value else None
+    except ValueError:
+        return None
+
+
+def _parse_guess_time(value: str | None) -> time | None:
+    try:
+        return time.fromisoformat(value.strip()) if value else None
+    except ValueError:
+        return None
+
+
+def _check_owner(
+    raw_owner: str | None, compact_text: str, roster: Roster, notes: list[str]
+) -> tuple[str | None, str | None, bool]:
+    """Return (owner_name, slack_id, confirmed)."""
+    raw = (raw_owner or "").strip()
+    if not raw:
+        notes.append("회의록에 담당자가 명시되지 않았습니다.")
+        return None, None, False
+    if is_group_reference(raw):
+        notes.append(f"개인이 아닌 지정('{raw}')이라 담당자를 비워 두었습니다.")
+        return None, None, False
+
+    core = strip_titles(raw)
+    in_text = compact(raw) in compact_text or (len(core) >= 2 and core in compact_text)
+    if not in_text:
+        notes.append(f"담당자 '{raw}'를 회의록에서 찾지 못했습니다.")
+        return raw, None, False
+
+    match = roster.match(raw)
+    if match.member:
+        member = match.member
+        if compact(member.name) != core:
+            notes.append(f"명단 매칭: '{raw}' → {member.name}")
+        if not member.slack_user_id:
+            notes.append("Slack 미등록")
+        return member.name, member.slack_user_id, True
+    if match.candidates:
+        names = ", ".join(m.name for m in match.candidates)
+        notes.append(f"담당자 후보가 여럿입니다: {names}")
+        return raw, None, False
+    if len(core) < 2:
+        notes.append(f"'{raw}'만으로는 담당자를 특정할 수 없습니다.")
+        return raw, None, False
+    notes.append("Slack 미등록 (명단에 없음)")
+    return core, None, True
+
+
+def _check_due(
+    item: LLMActionItem, normalized_text: str, meeting_date: date, notes: list[str]
+) -> tuple[date | None, time | None, str | None, bool, bool]:
+    """Return (due_date, due_time, due_text, confirmed, needs_review)."""
+    due_text = (item.due_text or "").strip() or None
+    guess_date = _parse_guess_date(item.due_date_guess)
+    guess_time = _parse_guess_time(item.due_time_guess)
+    if due_text is None:
+        notes.append("회의록에 기한이 명시되지 않았습니다.")
+        if guess_date:
+            notes.append(f"모델이 추정한 기한({guess_date:%m/%d})은 근거 표현이 없어 쓰지 않았습니다.")
+        return None, None, None, False, False
+
+    needs_review = False
+    found = quote_in_text(due_text, normalized_text)
+    if not found:
+        needs_review = True
+        notes.append(f"기한 표현 '{due_text}'을 회의록에서 찾지 못했습니다.")
+    resolved = resolve_due(due_text, meeting_date)
+    notes.extend(resolved.notes)
+    confirmed = resolved.confirmed and found
+    if resolved.due_date is None:
+        if guess_date:
+            notes.append(f"모델 추정 기한은 {guess_date:%m/%d}입니다. 확인 후 입력해 주세요.")
+        return None, None, due_text, False, needs_review
+    if guess_date and guess_date != resolved.due_date:
+        confirmed = False
+        guess_label, code_label = format_due(guess_date), format_due(resolved.due_date)
+        if guess_date.year != resolved.due_date.year:
+            guess_label = f"{guess_date.year}년 {guess_label}"
+            code_label = f"{resolved.due_date.year}년 {code_label}"
+        notes.append(
+            f"모델 추정({guess_label})과 코드 해석({code_label})이 달라 코드 값을 쓰고 미확정으로 두었습니다."
+        )
+    if resolved.due_time and guess_time and guess_time != resolved.due_time:
+        confirmed = False
+        notes.append(
+            f"모델 추정 시각({guess_time:%H:%M})과 코드 해석({resolved.due_time:%H:%M})이 다릅니다."
+        )
+    return resolved.due_date, resolved.due_time, due_text, confirmed, needs_review
+
+
+def _build_item(
+    raw: LLMActionItem,
+    *,
+    meeting_id: str,
+    meeting_date: date,
+    normalized_text: str,
+    compact_text: str,
+    roster: Roster,
+    from_rules: bool,
+) -> ActionItem:
+    notes: list[str] = []
+    needs_review = False
+    evidence = raw.evidence_quote.strip()
+    if not quote_in_text(evidence, normalized_text):
+        needs_review = True
+        notes.append("근거 인용을 회의록에서 찾지 못했습니다.")
+
+    owner_name, slack_id, owner_ok = _check_owner(raw.owner_name, compact_text, roster, notes)
+    due_date, due_time, due_text, due_ok, due_review = _check_due(
+        raw, normalized_text, meeting_date, notes
+    )
+    co_owners = [c.strip() for c in raw.co_owners if c.strip() and compact(c) in compact_text]
+
+    if from_rules:
+        owner_ok = due_ok = False
+        notes.insert(0, "규칙 기반 추출 결과라 담당자와 기한을 직접 확인해 주세요.")
+    return ActionItem(
+        item_id=new_id(),
+        meeting_id=meeting_id,
+        task=normalize_space(raw.task),
+        owner_name=owner_name,
+        co_owners=co_owners,
+        owner_slack_id=slack_id if owner_ok else None,
+        owner_status="confirmed" if owner_ok else "unconfirmed",
+        due_date=due_date,
+        due_time=due_time,
+        due_text=due_text,
+        due_status="confirmed" if due_ok and due_date else "unconfirmed",
+        evidence_quote=evidence,
+        needs_review=needs_review or due_review,
+        review_notes=notes,
+    )
+
+
+def _flag_duplicates(items: list[ActionItem]) -> None:
+    for i, first in enumerate(items):
+        for second in items[i + 1 :]:
+            if first.owner_name != second.owner_name:
+                continue
+            ratio = SequenceMatcher(None, first.task, second.task).ratio()
+            if ratio >= DUPLICATE_RATIO:
+                second.review_notes.append(
+                    f"'{first.task}'와 비슷합니다. 같은 일이면 하나를 빼 주세요."
+                )
+
+
+def validate_extraction(
+    extraction: LLMExtraction,
+    *,
+    meeting_text: str,
+    meeting_date: date,
+    meeting_id: str,
+    roster: Roster,
+    from_rules: bool = False,
+) -> ValidatedExtraction:
+    normalized_text = normalize_space(meeting_text)
+    compact_text = compact(meeting_text)
+    injections = find_injection_sentences(meeting_text)
+    warnings: list[str] = []
+    dropped = 0
+    if injections:
+        preview = injections[0][:40] + ("…" if len(injections[0]) > 40 else "")
+        warnings.append(
+            f"회의록에서 AI에게 지시하는 문장 {len(injections)}건을 찾아 데이터로만 다뤘습니다: “{preview}”"
+        )
+
+    decisions: list[Decision] = []
+    for raw in extraction.decisions:
+        if _from_injection([raw.text, raw.evidence_quote], injections):
+            dropped += 1
+            continue
+        decisions.append(
+            Decision(
+                decision_id=new_id(),
+                text=normalize_space(raw.text),
+                evidence_quote=raw.evidence_quote.strip(),
+                needs_review=not quote_in_text(raw.evidence_quote, normalized_text),
+            )
+        )
+
+    items: list[ActionItem] = []
+    for raw in extraction.action_items:
+        if _from_injection([raw.task, raw.evidence_quote], injections):
+            dropped += 1
+            continue
+        items.append(
+            _build_item(
+                raw,
+                meeting_id=meeting_id,
+                meeting_date=meeting_date,
+                normalized_text=normalized_text,
+                compact_text=compact_text,
+                roster=roster,
+                from_rules=from_rules,
+            )
+        )
+    _flag_duplicates(items)
+    if dropped:
+        warnings.append(f"AI 대상 지시문에서 나온 항목 {dropped}건을 결과에서 뺐습니다.")
+
+    summary = [
+        s for s in (normalize_space(x) for x in extraction.summary)
+        if s and not _from_injection([s], injections)
+    ][:5]
+    return ValidatedExtraction(
+        summary=summary,
+        decisions=decisions,
+        items=items,
+        open_issues=[normalize_space(x) for x in extraction.open_issues if x.strip()],
+        warnings=warnings,
+        injection_sentences=injections,
+        dropped_by_injection=dropped,
+    )
+
+
+def count_unconfirmed(items: list[ActionItem]) -> int:
+    return sum(1 for i in items if "unconfirmed" in (i.owner_status, i.due_status))

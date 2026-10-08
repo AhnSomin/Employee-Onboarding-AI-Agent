@@ -10,11 +10,12 @@ import uuid
 from datetime import date, datetime, time
 from typing import Literal
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, Field, model_validator
 
 FieldStatus = Literal["confirmed", "unconfirmed"]
 ItemStatus = Literal["draft", "approved", "done", "cancelled"]
 ReminderStage = Literal["D-1", "D-day", "overdue"]
+ExtractionPath = Literal["function_calling", "structured", "rule_based"]
 
 
 def new_id() -> str:
@@ -22,29 +23,54 @@ def new_id() -> str:
 
 
 # --- LLM output only ---
+# Field descriptions are shown to the model (tool parameters and JSON schema).
 
 
 class LLMDecision(BaseModel):
-    text: str
-    evidence_quote: str
+    text: str = Field(description="무엇을 어떻게 하기로 정했는지 한 문장")
+    evidence_quote: str = Field(description="근거가 되는 회의록 원문을 그대로 복사한 1~2문장")
 
 
 class LLMActionItem(BaseModel):
-    task: str  # one sentence ending in "~하기"
-    owner_name: str | None = None  # only when the minutes name someone explicitly
-    co_owners: list[str] = []  # P1
-    due_text: str | None = None  # due expression exactly as written in the minutes
-    due_date_guess: str | None = None  # YYYY-MM-DD, reference only; code decides
-    due_time_guess: str | None = None  # HH:MM, reference only
-    evidence_quote: str  # verbatim quote from the minutes
+    task: str = Field(description='"~하기"로 끝나는 한 문장의 할 일')
+    owner_name: str | None = Field(
+        default=None,
+        description="회의록에 명시적으로 지정된 담당자의 이름이나 호칭. 지정이 없거나 개인이 아니면 null",
+    )
+    co_owners: list[str] = Field(default=[], description="명시된 공동 담당자. 없으면 빈 배열")
+    due_text: str | None = Field(
+        default=None, description="회의록에 적힌 기한 표현 그대로. 기한이 없으면 null"
+    )
+    due_date_guess: str | None = Field(
+        default=None, description="기준일로 계산한 기한 날짜(YYYY-MM-DD). 참고용이며 불확실하면 null"
+    )
+    due_time_guess: str | None = Field(
+        default=None, description="기한 시각(HH:MM). 회의록에 시각이 없으면 null"
+    )
+    evidence_quote: str = Field(description="근거가 되는 회의록 원문을 그대로 복사한 1~2문장")
 
 
 class LLMExtraction(BaseModel):
-    title_suggestion: str | None = None
-    summary: list[str]  # 3-5 bullets
+    title_suggestion: str | None = Field(default=None, description="회의 제목 제안")
+    summary: list[str] = Field(description="회의 요약 3~5개. 회의록에 있는 내용만")
     decisions: list[LLMDecision]
     action_items: list[LLMActionItem]
-    open_issues: list[str] = []  # P1
+    open_issues: list[str] = Field(default=[], description="결론이 나지 않은 미결 사항")  # P1
+
+
+class LLMOverview(BaseModel):
+    """Arguments of the record_meeting_overview tool."""
+
+    title_suggestion: str | None = Field(default=None, description="회의 제목 제안")
+    summary: list[str] = Field(description="회의 요약 3~5개. 회의록에 있는 내용만")
+    decisions: list[LLMDecision] = Field(default=[], description="결정사항 목록")
+    open_issues: list[str] = Field(default=[], description="결론이 나지 않은 미결 사항")
+
+
+class LLMFinish(BaseModel):
+    """Arguments of the finish_extraction tool."""
+
+    item_count: int = Field(ge=0, description="propose_action_item으로 제안한 액션 아이템 수")
 
 
 # --- Domain ---
@@ -102,11 +128,23 @@ class Meeting(BaseModel):
     created_at: datetime
 
 
+class ToolCallSummary(BaseModel):
+    """What the agent called during the function-calling attempt (shown in the UI)."""
+
+    turns: int = 0
+    calls: dict[str, int] = {}  # tool name -> number of calls, invalid ones included
+    rejected: int = 0  # calls dropped because the arguments failed validation
+    merged_duplicates: int = 0
+    finished: bool = False
+
+
 class ExtractionResult(BaseModel):
     meeting: Meeting
     action_items: list[ActionItem]
+    extraction_path: ExtractionPath
     model_used: str | None
-    fallback_used: bool
+    fallback_used: bool  # True whenever the path is not function_calling
+    tool_calls: ToolCallSummary | None = None  # None when no function calling was attempted
     warnings: list[str] = []
 
 
