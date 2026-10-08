@@ -1,23 +1,51 @@
 """StateStore contract. Every backend must pass the same tests (spec 9.2)."""
 
+import json
+import os
+import uuid
 from datetime import date, datetime, time
 from zoneinfo import ZoneInfo
 
 import pytest
 from pydantic import ValidationError
 
+from onboarding_agent.config import REPO_ROOT, load_service_account_info, load_settings
 from onboarding_agent.meeting.models import ActionItem, Meeting, new_id
 from onboarding_agent.store.base import NotFoundError
+from onboarding_agent.store.sheets_store import SheetsStore
 from onboarding_agent.store.sqlite_store import SqliteStore
 
 KST = ZoneInfo("Asia/Seoul")
 
 
-@pytest.fixture(params=["sqlite", "sheets"])
-def store(request, tmp_path):
+@pytest.fixture(params=["sqlite", "sheets-fake", "sheets-live"])
+def store(request, tmp_path, fake_spreadsheet):
     if request.param == "sqlite":
-        return SqliteStore(tmp_path / "state.db")
-    pytest.skip("SheetsStore not implemented yet; it will run only when credentials are set")
+        yield SqliteStore(tmp_path / "state.db")
+    elif request.param == "sheets-fake":
+        yield SheetsStore(fake_spreadsheet)
+    else:
+        yield from _live_sheets_store()
+
+
+def _live_sheets_store():
+    """Real spreadsheet, opt-in: RUN_SHEETS_CONTRACT=1 plus credentials in .env.
+
+    Uses throwaway worksheets so the demo sheets are never touched.
+    """
+    if os.environ.get("RUN_SHEETS_CONTRACT") != "1":
+        pytest.skip("실 시트 계약 테스트는 RUN_SHEETS_CONTRACT=1일 때만 실행")
+    settings = load_settings(environ={}, dotenv_path=REPO_ROOT / ".env", secrets={})
+    if not (settings.gsheets_spreadsheet_id and settings.google_service_account_json):
+        pytest.skip("Sheets 자격 증명 없음")
+    from onboarding_agent.store.sheets_store import _open_spreadsheet
+
+    info = json.dumps(load_service_account_info(settings), sort_keys=True)
+    spreadsheet = _open_spreadsheet(info, settings.gsheets_spreadsheet_id)
+    live = SheetsStore(spreadsheet, prefix=f"contract_{uuid.uuid4().hex[:6]}_")
+    yield live
+    for worksheet in live.worksheets:
+        spreadsheet.del_worksheet(worksheet)
 
 
 def make_meeting(meeting_id: str = "m1", title: str = "주간 회의") -> Meeting:
@@ -135,3 +163,32 @@ def test_sqlite_data_survives_reopen(tmp_path):
     path = tmp_path / "state.db"
     SqliteStore(path).save_meeting(make_meeting())
     assert SqliteStore(path).get_meeting("m1") is not None
+
+
+def test_store_marker_rows_can_be_counted_and_deleted(store):
+    store.save_meeting(make_meeting())
+    store.upsert_items([make_item(), make_item()])
+    assert store.app_row_counts() == {"meetings": 1, "action_items": 2}
+    assert store.delete_app_rows() == {"meetings": 1, "action_items": 2}
+    assert store.list_meetings() == [] and store.list_items() == []
+
+
+def test_sheets_rows_are_marked_and_foreign_rows_survive(fake_spreadsheet):
+    sheets = SheetsStore(fake_spreadsheet)
+    sheets.save_meeting(make_meeting())
+    worksheet = fake_spreadsheet.worksheet("meetings")
+    header = worksheet.cells[0]
+    assert header[-1] == "created_by" and worksheet.cells[1][-1] == "onboarding-agent"
+    worksheet.cells.append(["manual-row"] + [""] * (len(header) - 2) + ["someone-else"])
+    assert sheets.delete_app_rows()["meetings"] == 1
+    assert [row[0] for row in worksheet.cells[1:]] == ["manual-row"]
+
+
+def test_sheets_upsert_batches_writes(fake_spreadsheet):
+    sheets = SheetsStore(fake_spreadsheet)
+    items = [make_item() for _ in range(5)]
+    worksheet = fake_spreadsheet.worksheet("action_items")
+    before = worksheet.calls["write"]
+    sheets.upsert_items(items)
+    sheets.upsert_items([i.model_copy(update={"task": "수정"}) for i in items])
+    assert worksheet.calls["write"] - before == 2  # one append, one batch update

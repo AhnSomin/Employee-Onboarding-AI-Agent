@@ -9,7 +9,7 @@ __all__ = ["NotFoundError", "StateStore", "StoreUnavailable", "get_store"]
 
 
 class StoreUnavailable(RuntimeError):
-    """The configured backend cannot be used yet. The message is user-facing Korean."""
+    """The configured backend cannot be used. The message is user-facing Korean."""
 
 
 def get_store(settings: Settings | None = None) -> StateStore:
@@ -18,6 +18,10 @@ def get_store(settings: Settings | None = None) -> StateStore:
         from .sqlite_store import SqliteStore
 
         return SqliteStore(settings.sqlite_path)
-    raise StoreUnavailable(
-        "Google Sheets 저장소는 아직 준비 중입니다. 지금은 STATE_BACKEND=sqlite로 실행해 주세요."
-    )
+
+    from .sheets_store import SheetsStore, SheetsStoreError
+
+    try:
+        return SheetsStore.from_settings(settings)
+    except SheetsStoreError as exc:
+        raise StoreUnavailable(f"Google Sheets 저장소를 열 수 없습니다: {exc}") from None

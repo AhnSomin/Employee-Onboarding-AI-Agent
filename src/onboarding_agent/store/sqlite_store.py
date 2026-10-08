@@ -127,6 +127,23 @@ class SqliteStore:
             )
         return updated
 
+    # --- maintenance (scripts/reset_demo.py) ---
+    # Every row in this local database was written by this app.
+
+    def app_row_counts(self) -> dict[str, int]:
+        with self._read() as conn:
+            return {
+                table: conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+                for table in ("meetings", "action_items")
+            }
+
+    def delete_app_rows(self) -> dict[str, int]:
+        counts = self.app_row_counts()
+        with self._transaction() as conn:
+            conn.execute("DELETE FROM action_items")
+            conn.execute("DELETE FROM meetings")
+        return counts
+
     # --- connections ---
     # A fresh connection per call: Streamlit runs each session in its own thread.
 
