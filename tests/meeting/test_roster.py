@@ -69,3 +69,30 @@ def test_missing_and_broken_roster_files(tmp_path):
     broken.write_text("members: [name: 김민준", encoding="utf-8")
     with pytest.raises(RosterError):
         load_roster(broken)
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        ("한가람 위원", "한가람"),
+        ("가상부제1차관 오세린", "오세린"),
+        ("가상비서실정무수석비서관 서도윤", "서도윤"),
+        ("부총리겸가상재정부장관 문해솔", "문해솔"),
+        ("가상재판소장후보자 윤채원", "윤채원"),
+        ("김민준 주무관", "김민준"),
+        ("김민준주무관", "김민준"),
+        ("인사기획팀 박지훈 주무관", "박지훈"),
+        ("김 주무관", "김"),
+        ("윤채원", "윤채원"),
+    ],
+)
+def test_person_name_drops_titles_before_or_after(raw, expected):
+    from onboarding_agent.meeting.roster import person_name
+
+    assert person_name(raw) == expected
+
+
+def test_collective_subjects_are_group_references():
+    assert is_group_reference("저희 부처")
+    assert is_group_reference("우리 위원회")
+    assert not is_group_reference("우진")

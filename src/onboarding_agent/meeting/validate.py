@@ -14,7 +14,7 @@ from difflib import SequenceMatcher
 
 from .dates import format_due, resolve_due
 from .models import ActionItem, Decision, LLMActionItem, LLMExtraction, new_id
-from .roster import Roster, compact, is_group_reference, strip_titles
+from .roster import Roster, compact, is_group_reference, person_name, strip_titles
 
 DUPLICATE_RATIO = 0.85
 INJECTION_OVERLAP_CHARS = 12
@@ -143,7 +143,10 @@ def _check_owner(
         return None, None, False
 
     core = strip_titles(raw)
-    in_text = compact(raw) in compact_text or (len(core) >= 2 and core in compact_text)
+    name = person_name(raw)
+    in_text = compact(raw) in compact_text or any(
+        len(candidate) >= 2 and candidate in compact_text for candidate in (core, name)
+    )
     if not in_text:
         notes.append(f"담당자 '{raw}'를 회의록에서 찾지 못했습니다.")
         return raw, None, False
@@ -160,11 +163,11 @@ def _check_owner(
         names = ", ".join(m.name for m in match.candidates)
         notes.append(f"담당자 후보가 여럿입니다: {names}")
         return raw, None, False
-    if len(core) < 2:
+    if len(name) < 2:
         notes.append(f"'{raw}'만으로는 담당자를 특정할 수 없습니다.")
         return raw, None, False
     notes.append("Slack 미등록 (명단에 없음)")
-    return core, None, True
+    return name, None, True
 
 
 def _check_due(
@@ -235,6 +238,10 @@ def _build_item(
     )
     co_owners = [c.strip() for c in raw.co_owners if c.strip() and compact(c) in compact_text]
 
+    if needs_review and (owner_ok or due_ok):
+        # Without verifiable evidence nothing about the item counts as confirmed.
+        owner_ok = due_ok = False
+        notes.append("근거를 확인할 수 없어 담당자와 기한을 확정하지 않았습니다.")
     if from_rules:
         owner_ok = due_ok = False
         notes.insert(0, "규칙 기반 추출 결과라 담당자와 기한을 직접 확인해 주세요.")

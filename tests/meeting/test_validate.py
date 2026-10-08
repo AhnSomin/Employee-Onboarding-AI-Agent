@@ -195,3 +195,34 @@ def test_weekend_due_gets_a_note_but_keeps_its_status(due_text, guess, status):
 def test_weekday_due_has_no_weekend_note():
     action = validate(item(due_text="10월 14일까지", due_date_guess="2026-10-14")).items[0]
     assert not any("주말" in n for n in action.review_notes)
+
+
+def test_titled_owner_outside_roster_keeps_only_the_name():
+    text = TEXT + "- 가상부제1차관 오세린: 자료를 정리해서 다음 주 금요일까지 제출하겠습니다.\n"
+    extraction = LLMExtraction(
+        summary=["요약"],
+        decisions=[],
+        action_items=[
+            item(
+                owner_name="가상부제1차관 오세린",
+                evidence_quote="자료를 정리해서 다음 주 금요일까지 제출하겠습니다.",
+            )
+        ],
+    )
+    action = validate_extraction(
+        extraction, meeting_text=text, meeting_date=MEETING_DATE, meeting_id="m1", roster=ROSTER
+    ).items[0]
+    assert (action.owner_name, action.owner_status) == ("오세린", "confirmed")
+
+
+def test_unverifiable_evidence_leaves_fields_unconfirmed():
+    action = validate(
+        item(
+            owner_name="김민준 주무관",
+            due_text="10월 14일까지",
+            evidence_quote="김민준 주무관이 many 자료를 보완하기로 함.",
+        )
+    ).items[0]
+    assert action.needs_review
+    assert action.owner_status == action.due_status == "unconfirmed"
+    assert action.owner_name == "김민준"  # kept as a suggestion
