@@ -191,6 +191,49 @@ def test_we_without_a_promise_is_still_the_subject():
     assert action.owner_status == "unconfirmed"
 
 
+TEAM = """[녹취] 주간 회의 (가상 녹취록)
+김민준 00:01:00 제가 검토해서 금요일까지 공유드리겠습니다.
+이서연 00:02:00 검토해 보겠습니다.
+정하은 00:03:00 제가 금요일까지 검토해 보겠습니다.
+최유진 00:04:00 금요일까지 검토해 보겠습니다.
+박지훈 00:05:00 제가 검토해 보겠습니다.
+김민준 00:06:00 제가 10월 16일까지 고민해 보겠습니다.
+이서연 00:07:00 제가 금요일까지 노력하겠습니다.
+정하은 00:08:00 저는 다음 주 화요일까지 생각해 보고 알려 드릴게요.
+최유진 00:09:00 제가 금요일까지 고민하겠습니다.
+"""
+
+
+@pytest.mark.parametrize(
+    ("owner", "evidence", "status"),
+    [
+        ("김민준", "제가 검토해서 금요일까지 공유드리겠습니다.", "confirmed"),
+        ("이서연", "검토해 보겠습니다.", "unconfirmed"),
+        ("정하은", "제가 금요일까지 검토해 보겠습니다.", "confirmed"),  # first person and a due date
+        ("최유진", "금요일까지 검토해 보겠습니다.", "unconfirmed"),  # no first person
+        ("박지훈", "제가 검토해 보겠습니다.", "unconfirmed"),  # no due date
+        ("김민준", "제가 10월 16일까지 고민해 보겠습니다.", "confirmed"),
+        ("정하은", "저는 다음 주 화요일까지 생각해 보고 알려 드릴게요.", "confirmed"),
+        ("이서연", "제가 금요일까지 노력하겠습니다.", "unconfirmed"),  # 노력 stays weak
+        ("최유진", "제가 금요일까지 고민하겠습니다.", "unconfirmed"),  # only '고민해 보' is excepted
+    ],
+)
+def test_weak_promise_exception_needs_first_person_and_due_date(owner, evidence, status):
+    assert check(TEAM, owner, evidence).owner_status == status
+
+
+@pytest.mark.parametrize(
+    ("line", "status"),
+    [
+        ("가상부장관 문해솔: 제가 금요일까지 검토해 보겠습니다.", "confirmed"),
+        ("가상부장관 문해솔: 금요일까지 검토해 보겠습니다.", "unconfirmed"),
+    ],
+)
+def test_weak_promise_exception_for_a_head_still_needs_first_person(line, status):
+    evidence = line.split(": ", 1)[1]
+    assert check(HEARING + line + "\n", "문해솔", evidence).owner_status == status
+
+
 def test_weak_promise_is_not_confirmed():
     action = check(HEARING, "윤채원", "제도 개선을 위해 최선을 다하겠습니다.")
     assert action.owner_status == "unconfirmed"

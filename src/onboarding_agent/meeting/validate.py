@@ -21,6 +21,8 @@ from .roster import Roster, compact, is_group_reference, person_name, strip_titl
 DUPLICATE_RATIO = 0.85
 INJECTION_OVERLAP_CHARS = 12
 QUOTE_PART_GAP = 20  # max characters between parts of a multi-line quote (bullets, speaker tags)
+MIN_ELIDED_PIECE = 10  # min characters (no spaces) of each piece of a quote shortened with "…"
+_ELISION = re.compile(r"\.{3,}|…+|\(\s*중략\s*\)")
 
 # Sentences in the minutes that address the AI reader instead of people.
 _INJECTION_PATTERNS = (
@@ -59,12 +61,36 @@ def normalize_space(text: str) -> str:
     return " ".join(text.split())
 
 
-def iter_quote_spans(quote: str, normalized_text: str) -> Iterator[list[tuple[int, int]]]:
+def _elided_spans(pieces: list[str], speech: Speech) -> Iterator[list[tuple[int, int]]]:
+    """Places where every piece appears, in order, inside one utterance or paragraph."""
+    text = speech.text
+    start = text.find(pieces[0])
+    while start != -1:
+        low, high = speech.block_bounds(start)
+        spans = [(start, start + len(pieces[0]))]
+        if spans[0][1] <= high:
+            for piece in pieces[1:]:
+                found = text.find(piece, spans[-1][1], high)
+                if found == -1:
+                    break
+                spans.append((found, found + len(piece)))
+            else:
+                yield spans
+        start = text.find(pieces[0], start + 1)
+
+
+def iter_quote_spans(
+    quote: str, normalized_text: str, speech: Speech | None = None
+) -> Iterator[list[tuple[int, int]]]:
     """Every place the quote appears in the minutes, as spans in `normalized_text`.
 
     A quote spanning several lines may skip the bullets or speaker tags
     between them, but its sentences must appear in order and close together,
     so unrelated sentences cannot be stitched into one quote.
+    A quote shortened with "...", "…" or "(중략)" counts only when every piece
+    has at least MIN_ELIDED_PIECE characters (spaces not counted) and all
+    pieces appear in order inside one utterance (one paragraph when the
+    minutes have no speaker labels). This needs `speech`.
     """
     quote = normalize_space(quote.replace("“", '"').replace("”", '"'))
     if not quote:
@@ -75,8 +101,15 @@ def iter_quote_spans(quote: str, normalized_text: str) -> Iterator[list[tuple[in
         found_whole = True
         yield [(at, at + len(quote))]
         at = normalized_text.find(quote, at + 1)
+    if found_whole:
+        return
+    if _ELISION.search(quote):
+        pieces = [p for p in (normalize_space(s) for s in _ELISION.split(quote)) if p]
+        if speech is not None and pieces and all(len(compact(p)) >= MIN_ELIDED_PIECE for p in pieces):
+            yield from _elided_spans(pieces, speech)
+        return
     parts = [p for p in (normalize_space(s) for s in _SENTENCE_SPLIT.split(quote)) if p]
-    if found_whole or len(parts) < 2:
+    if len(parts) < 2:
         return
     start = normalized_text.find(parts[0])
     while start != -1:
@@ -92,9 +125,9 @@ def iter_quote_spans(quote: str, normalized_text: str) -> Iterator[list[tuple[in
         start = normalized_text.find(parts[0], start + 1)
 
 
-def quote_in_text(quote: str, normalized_text: str) -> bool:
+def quote_in_text(quote: str, normalized_text: str, speech: Speech | None = None) -> bool:
     """True when the quote appears in the minutes (see iter_quote_spans)."""
-    return next(iter_quote_spans(quote, normalized_text), None) is not None
+    return next(iter_quote_spans(quote, normalized_text, speech), None) is not None
 
 
 _LEADING_BULLET = re.compile(r"^(?:[-*•·○●▪◦※]\s*|\d+[.)]\s+)")
@@ -239,7 +272,7 @@ def _build_item(
 ) -> ActionItem:
     notes: list[str] = []
     evidence = raw.evidence_quote.strip()
-    occurrences = list(iter_quote_spans(evidence, speech.text))
+    occurrences = list(iter_quote_spans(evidence, speech.text, speech))
     needs_review = not occurrences
     if needs_review:
         notes.append("근거 인용을 회의록에서 찾지 못했습니다.")
@@ -332,7 +365,7 @@ def validate_extraction(
                 decision_id=new_id(),
                 text=normalize_space(raw.text),
                 evidence_quote=raw.evidence_quote.strip(),
-                needs_review=not quote_in_text(raw.evidence_quote, normalized_text),
+                needs_review=not quote_in_text(raw.evidence_quote, normalized_text, speech),
             )
         )
 

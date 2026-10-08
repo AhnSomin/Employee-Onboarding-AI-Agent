@@ -49,6 +49,10 @@ _COLLECTIVE = re.compile(
     r"(?![가-힣])"
 )
 _PROMISE = re.compile(r"겠(?:습니다|다|음|어요|네요)|(?<=[가-힣])게요|기로|계획|예정|합시다")
+# A concrete due date in the same sentence: a date, a weekday or "~까지".
+_CONCRETE_DUE = re.compile(
+    r"\d{1,4}\s*[./-]\s*\d{1,2}|\d{1,2}\s*월\s*\d{1,2}\s*일|\d{1,2}\s*일|[월화수목금토일]요일|까지"
+)
 _NEXT_WORD = re.compile(r"( ?)([가-힣]+)")
 _SENTENCE_END = re.compile(r"[.?!]\s")
 _PUNCT = ":：,.?!·()[]\"'“”‘’「」"
@@ -67,6 +71,7 @@ class OwnerRules(BaseModel):
     not_institution_head_titles: tuple[str, ...] = ()
     nominee_suffixes: tuple[str, ...] = ()
     weak_promise_phrases: tuple[str, ...] = ()
+    weak_promise_exceptions: tuple[str, ...] = ()
 
     @field_validator("*", mode="before")
     @classmethod
@@ -91,14 +96,37 @@ class OwnerRules(BaseModel):
         known = (*TITLES, *self.institution_head_titles, *self.not_institution_head_titles)
         return bool(token) and any(token.endswith(t) for t in known)
 
-    def weak_phrase(self, before_promise: str) -> str | None:
-        """The weak phrase right before a promise ending ('노력하도록 하'), if any."""
-        tail = compact(before_promise)
+    def _weak_hits(self, tail: str) -> list[tuple[str, int, int]]:
+        hits = []
         for phrase in self.weak_promise_phrases:
             at = tail.rfind(phrase)
             if at != -1 and len(tail) - (at + len(phrase)) <= WEAK_GAP:
-                return phrase
-        return None
+                hits.append((phrase, at, at + len(phrase)))
+        return hits
+
+    def weak_phrase(self, before_promise: str) -> str | None:
+        """The weak phrase right before a promise ending ('노력하도록 하'), if any."""
+        hits = self._weak_hits(compact(before_promise))
+        return hits[0][0] if hits else None
+
+    def excusable(self, before_promise: str) -> bool:
+        """True when every weak phrase near the promise is part of an exception ('고민해 보')."""
+        tail = compact(before_promise)
+        hits = self._weak_hits(tail)
+        covers = [
+            (at, at + len(phrase))
+            for phrase in self.weak_promise_exceptions
+            for at in _find_all(tail, phrase)
+        ]
+        return bool(hits) and all(any(c0 <= h0 and h1 <= c1 for c0, c1 in covers) for _, h0, h1 in hits)
+
+
+def _find_all(text: str, part: str) -> list[int]:
+    found, at = [], text.find(part)
+    while at != -1:
+        found.append(at)
+        at = text.find(part, at + 1)
+    return found
 
 
 def load_owner_rules(path: Path = DEFAULT_RULES_PATH) -> OwnerRules:
@@ -136,39 +164,63 @@ def speaker_label(line: str, rules: OwnerRules) -> str | None:
 
 @dataclass(frozen=True)
 class Speech:
-    """The minutes on one single-spaced line, with the speaker of every position."""
+    """The minutes on one single-spaced line, with the speaker of every position.
+
+    Lines are grouped into blocks: one utterance (a speaker label and its
+    continuation lines), or, without speaker labels, one paragraph. Each
+    bullet starts a new block; a blank line ends one.
+    """
 
     text: str
     starts: tuple[int, ...]  # where each source line begins in `text`
     speakers: tuple[str | None, ...]  # the speaker label in force on that line
+    blocks: tuple[int, ...] = ()  # block number of each line
 
     @classmethod
     def from_minutes(cls, minutes: str, rules: OwnerRules) -> Speech:
         lines: list[str] = []
         starts: list[int] = []
         speakers: list[str | None] = []
-        offset, current = 0, None
+        blocks: list[int] = []
+        offset, current, block, new_block = 0, None, -1, True
         for raw in minutes.splitlines():
             line = " ".join(raw.split())
             if not line:
-                current = None  # a blank line ends an utterance
+                current, new_block = None, True  # a blank line ends an utterance or a paragraph
                 continue
             label = speaker_label(line, rules)
+            bullet = bool(_BULLET.match(line))
             if label:
                 current = label
-            elif _BULLET.match(line):
+            elif bullet:
                 current = None  # bullets and headings are the minute-taker's text
+            if new_block or label or bullet:
+                block += 1
+            new_block = False  # continuation lines join the utterance or paragraph
             lines.append(line)
             starts.append(offset)
             speakers.append(current)
+            blocks.append(block)
             offset += len(line) + 1
-        return cls(" ".join(lines), tuple(starts), tuple(speakers))
+        return cls(" ".join(lines), tuple(starts), tuple(speakers), tuple(blocks))
 
     def line_of(self, offset: int) -> int:
         return max(bisect_right(self.starts, offset) - 1, 0)
 
     def line_end(self, index: int) -> int:
         return self.starts[index + 1] - 1 if index + 1 < len(self.starts) else len(self.text)
+
+    def block_bounds(self, offset: int) -> tuple[int, int]:
+        """[start, end) in `text` of the utterance or paragraph around `offset`."""
+        if not self.starts:
+            return 0, len(self.text)
+        index = self.line_of(offset)
+        first = last = index
+        while first > 0 and self.blocks[first - 1] == self.blocks[index]:
+            first -= 1
+        while last + 1 < len(self.starts) and self.blocks[last + 1] == self.blocks[index]:
+            last += 1
+        return self.starts[first], self.line_end(last)
 
 
 @dataclass(frozen=True)
@@ -301,6 +353,32 @@ def _promise_subject(
     return subject
 
 
+def _sentence_bounds(text: str, start: int, end: int, at: int) -> tuple[int, int]:
+    """The sentence of [start, end) that contains position `at`."""
+    begin = start
+    for match in _SENTENCE_END.finditer(text, start, at):
+        begin = match.end()
+    following = _SENTENCE_END.search(text, at, end)
+    return begin, following.start() + 1 if following else end
+
+
+def _weak_phrase(speech: Speech, segment: _Segment, at: int, rules: OwnerRules, *, own: bool) -> str | None:
+    """The weak phrase of the promise ending at `at`, unless the speaker commits to it.
+
+    '검토해 보겠습니다' is weak, but '제가 금요일까지 검토해 보겠습니다' is not: an
+    exception phrase counts as a commitment when the owner's own sentence also
+    has a first-person subject and a concrete due date.
+    """
+    begin, finish = _sentence_bounds(speech.text, segment.start, segment.end, at)
+    phrase = rules.weak_phrase(speech.text[begin:at])
+    if phrase is None:
+        return None
+    sentence = speech.text[begin:finish]
+    if own and rules.excusable(speech.text[begin:at]) and _SELF.search(sentence) and _CONCRETE_DUE.search(sentence):
+        return None
+    return phrase
+
+
 def promise_note(
     *,
     owner: str,
@@ -328,10 +406,7 @@ def promise_note(
     endings: list[tuple[int, _Segment]] = [
         (m.start(), s) for s in scope for m in _PROMISE.finditer(speech.text, s.start, s.end)
     ]
-    weak = [
-        rules.weak_phrase(_SENTENCE_END.split(speech.text[segment.start : at])[-1])
-        for at, segment in endings
-    ]
+    weak = [_weak_phrase(speech, segment, at, rules, own=bool(own)) for at, segment in endings]
     if weak and all(weak):
         return f"'{weak[-1]}' 같은 약한 약속이라 담당자를 확정하지 않았습니다."
 

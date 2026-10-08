@@ -4,9 +4,11 @@ import pytest
 
 from onboarding_agent.config import REPO_ROOT
 from onboarding_agent.meeting.models import LLMActionItem, LLMDecision, LLMExtraction
+from onboarding_agent.meeting.owner_rules import Speech, load_owner_rules
 from onboarding_agent.meeting.roster import load_roster
 from onboarding_agent.meeting.validate import (
     find_injection_sentences,
+    normalize_space,
     quote_in_text,
     validate_extraction,
 )
@@ -226,3 +228,68 @@ def test_unverifiable_evidence_leaves_fields_unconfirmed():
     assert action.needs_review
     assert action.owner_status == action.due_status == "unconfirmed"
     assert action.owner_name == "김민준"  # kept as a suggestion
+
+
+# --- quotes shortened with "...", "…" or "(중략)" (fictional minutes) ----------------
+
+ELIDED_MINUTES = """회의명: 가상 회의
+한가람 위원: 첫째로 예산 집행 현황을 이번 주 안에 정리하겠습니다. 둘째로 위원님들 의견을 모아 보고서에 담겠습니다.
+셋째로 다음 회의 전까지 초안을 공유하겠습니다.
+서도윤 위원: 현장 점검 일정은 제가 따로 잡아서 알려 드리겠습니다.
+서도윤 위원: 그러니까... 안내 자료는 제가 보내겠습니다.
+
+- 교육 자료는 김민준 주무관이 맡기로 함. 자료 목록은
+  다음 주 월요일까지 공유하기로 함.
+- 명찰 제작은 인사팀에서 준비하기로 함.
+"""
+FIRST = "첫째로 예산 집행 현황을 이번 주 안에 정리하겠습니다."
+THIRD = "셋째로 다음 회의 전까지 초안을 공유하겠습니다."
+
+
+def found(quote: str) -> bool:
+    speech = Speech.from_minutes(ELIDED_MINUTES, load_owner_rules())
+    return quote_in_text(quote, speech.text, speech)
+
+
+@pytest.mark.parametrize("marker", [" ... ", " …… ", " (중략) ", "…"])
+def test_elided_quote_inside_one_utterance_is_found(marker):
+    assert found(FIRST + marker + THIRD)
+
+
+@pytest.mark.parametrize(
+    "quote",
+    [
+        FIRST + " ... 현장 점검 일정은 제가 따로 잡아서 알려 드리겠습니다.",  # two speakers stitched together
+        THIRD + " ... " + FIRST,  # out of order
+        FIRST + " ... 셋째로",  # a piece under 10 characters
+        FIRST + " ... 셋째로 다음 회의 전까지 초안을 보내겠습니다.",  # a piece that is not in the minutes
+        "교육 자료는 김민준 주무관이 맡기로 함. … 명찰 제작은 인사팀에서 준비하기로 함.",  # two bullets
+    ],
+)
+def test_elided_quote_outside_one_utterance_is_rejected(quote):
+    assert not found(quote)
+
+
+def test_elided_quote_inside_one_paragraph_is_found():
+    assert found("교육 자료는 김민준 주무관이 맡기로 함. … 다음 주 월요일까지 공유하기로 함.")
+
+
+def test_dots_in_the_minutes_still_match_verbatim():
+    assert found("그러니까... 안내 자료는 제가 보내겠습니다.")
+
+
+def test_elided_quote_needs_the_speakers():
+    assert not quote_in_text(FIRST + " ... " + THIRD, normalize_space(ELIDED_MINUTES))
+
+
+def test_elided_evidence_confirms_the_owner():
+    extraction = LLMExtraction(
+        summary=["요약"],
+        decisions=[],
+        action_items=[item(owner_name="한가람 위원", evidence_quote=FIRST + " ... " + THIRD)],
+    )
+    action = validate_extraction(
+        extraction, meeting_text=ELIDED_MINUTES, meeting_date=MEETING_DATE, meeting_id="m1", roster=ROSTER
+    ).items[0]
+    assert not action.needs_review
+    assert (action.owner_name, action.owner_status) == ("한가람", "confirmed")
