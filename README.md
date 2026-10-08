@@ -23,7 +23,7 @@
 - 사용자가 내용을 확인·수정해 승인하면 Google Calendar에 일정을 등록하고 Slack으로 담당자에게 알립니다.
 - 담당자나 기한이 회의록에 없으면 추측하지 않고 "미확정"으로 표시해 사용자가 채웁니다.
 - 기한 전 미완료 항목은 배치 스케줄러가 재알림합니다.
-  - 재알림은 GitHub Actions(`.github/workflows/reminders.yml`)가 평일 09:00(KST)에 실행합니다. 예약 실행은 기본 브랜치(main)에 있는 워크플로만 돌기 때문에 main에 병합된 뒤부터 동작합니다.
+- 설치·설정·실행 방법과 한계: [docs/meeting/README.md](docs/meeting/README.md)
 
 ## 아키텍처
 
