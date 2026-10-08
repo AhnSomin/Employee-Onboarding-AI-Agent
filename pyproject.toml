@@ -1,0 +1,32 @@
+[project]
+name = "onboarding-agent"
+version = "0.1.0"
+description = "신입사원 온보딩 AI Agent — 규정 Q&A와 회의록 → 액션 자동화"
+requires-python = ">=3.11"
+dependencies = [
+    "google-api-python-client>=2.201.0",
+    "google-auth>=2.61.0",
+    "google-genai>=2.29.0",
+    "gspread>=6.2.1",
+    "pandas>=3.0.6",
+    "pydantic>=2.13.5",
+    "python-dotenv>=1.2.4",
+    "pyyaml>=6.0.3",
+    "slack-sdk>=3.45.0",
+    "streamlit>=1.65.0",
+    "tenacity>=9.1.4",
+    "tzdata>=2026.5 ; sys_platform == 'win32'",
+]
+
+[build-system]
+requires = ["uv_build>=0.11.0,<0.12"]
+build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --import-mode=importlib"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]

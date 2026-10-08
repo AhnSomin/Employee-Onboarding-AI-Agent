@@ -1,0 +1,127 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "function_call": {
+              "id": "call_171555",
+              "args": {
+                "summary": [
+                  "신규 임용자 오리엔테이션을 10월 21일(수) 오후 2시 대회의실에서 진행하기로 확정하고 준비 사항을 점검했다.",
+                  "복무 규정 FAQ를 쉬운 말로 정리하여 사내 위키에 게시하기로 했다.",
+                  "분산 접수되어 누락이 발생하던 비품 신청 창구를 온라인 신청서 단일 창구로 일원화하기로 결정했다.",
+                  "자료 보완, FAQ 초안 작성, 신청서 양식 제작, 회의실 예약 등 후속 업무 담당자와 기한을 지정했다."
+                ],
+                "open_issues": [],
+                "decisions": [
+                  {
+                    "evidence_quote": "신규 임용자 오리엔테이션은 10월 21일(수) 오후 2시에 대회의실에서 진행하기로 결정함.",
+                    "text": "신규 임용자 오리엔테이션을 10월 21일(수) 오후 2시에 대회의실에서 진행하기로 결정했다."
+                  },
+                  {
+                    "evidence_quote": "복무 규정 FAQ는 사내 위키에 게시하기로 합의함.",
+                    "text": "복무 규정 FAQ는 사내 위키에 게시하기로 합의했다."
+                  },
+                  {
+                    "text": "비품 신청은 온라인 신청서 한 곳으로 받기로 했다.",
+                    "evidence_quote": "비품 신청은 온라인 신청서 한 곳으로 받기로 함."
+                  }
+                ],
+                "title_suggestion": "10월 2주차 신규 임용자 온보딩 점검 회의"
+              },
+              "name": "record_meeting_overview"
+            },
+            "thought_signature": "Er8XCrwXAWkUfROFmjZhukDtVo53suvAT7NxxqMlK3ogUB1-5iulAZXbPZ4Q-HG7WQvBlv8C68QfiKPJdcLpA5LmnfaUgsJgB_6NZ3WuMvFm4Ehb3SNyBcksifrbCsu2RwbyszXE-upfrztBgMLA7H80AkOZLxF6Xeq8bSSL00pA5db1FfQqlABYW9-GVOTiVxxOdFCG0OwLRytS0E1xVtzYCSOaoUcRAaR1Ptj08hzufqSnkyvL7el8J6jMY57MMC3F8XeIZqsb5vV3bq7PPzs5NiNB34am6Bk69FbZ3iG8TxwXfxW47BkqOccDvTBNS1miSPzJuW-WpECiuzPiE4GtCtYligfCi6yPcaTB9MaggrELxTJXdLjx5j23mfJdWVuZOuZ-LZbrFdm0m-neGTdEqyJNJebuqx50nG8uxa7JUVUarUGeNevcnBMAVBmNmSJEEzrsJDHOLuD2pODfQaI2KkaaaHDZDJSjFKCGZCMpNOrDEzKu3i89JlawTTerEt9_SOSL7ZTsLFC-QrkPck_saC7ApMlDFtKfEYvMWl7kqwcdmF6tw9MPpFGo10797TmcP6pFVDE8OHffMZDgiCl_CXD8mOiLwjOaADo5ZISbzvJZVPmuVF84vGgIUbimHs_nxqUKIwxQnfEtg4nM5wMlnCi7n6f-oJAjg7fpq7hpHBp2xJh3tHmci3Zf2jgMlIkkOcKZYsFRQMZw_GVlhfSs3TxmzAHOflzOoT15T0VwdTNVdke4qVwvboh9ENlQ2SbngpbfeA35t6w0MT2caHEr8AA5jEuhSA9NAoc4kzaqek7MdJIkQn0Hias61IH7n04dS6YhQ4UVGcYSHO9Oj7jX4eFNEmF73zs5tvtcmgcziPcEb0fIDquD5IWQtJlZRIoQWZqEjZ2KXKvf1po1iBkULer2eS97UDMeLnFapIHjVDx9DUTNVteNv_Ktagv5yLnP8LkmJSqCG4Y4dSzNZU-JhBqjL9quVhrqdS6tmrGesV9W62AKaur7yrPLJ5HUx1OhLbngvX6fQMnG165_eb25AScE9MNKhHcbeKXJGsnGlv1CXtTX9fnE806L4bF75O2n0h84SXLzfCW7YxmW_9---etV1OohEBoXMYwpIDYSMQq_YgjB76AXbBT5t75QCnH_LNwtjQbvJUjQzeLT1INs5QxV3mPN54Mi97G974X3XWEptGRb6UU2aDQRv4gfUItrf9mzO2MTtiOh3Pz6GFOh-y7Zcu3QOCtUQkTRBKHo4ZTIujJvyjFYh8GD3KwHhAeMBjlAZQXoN8txDtlXqgtWaiMFAcpLUgsL4EwO4ZMJdx1py4R_wsY8sm4CNVMqCxwPLm4T427kH_FjRqPIeHWc_sT96XyJakB5utOIATOMlMeAMtKLIenODfQRUR--4QBOQA38UpN9R2ASESkQg55qQmko4QKSP7hSXM9NJVsa8O2V_dDQzGeo7UT0FWNfXKXH08aML452bPxkIy9BhzeJmH2CjjPo9rydTS46Dg-AmCiNxaxqj3x01jLUl1QcDvwUWY_CV_JW5nxBp__dS0uumGdBvsoMYK8zO9kbLUVN-P9Zp7vBl5MWuxSQ6PdvGV_O4QqN7jch8DcLluolWAIcZU3wI5ZPwW1NJs5jHOrOvDr-2aRYVRxU-xb1CQY45TQM8PtkTxDchy44jmJjPjda7s_VMTzteNOWkfmvKBahbkt4DU-MLSMrv6uUfjnA60eLmOKy_FHHcl0kuThxComLCOkY26JKcEUnet6ItMczrYB84UVPRx6K7QaGmVOk-XQjcWN0GP3njxXT05OgNR2Ce3in3gZ2aZr6HN_sUeNIqqM1FAODSz8FDfPuiL2kYD2zdzYJeAvhhH4XP0VoTZVNX0Rsa6xrrx-ovdmpLZGGbi9Rnkw4c5OFNEmkgTYCKWTNe-ivufLIVGHfcktSa2iYuYeQcwGzOlfaLVaeKk2mcyKB4zSXkw6QaUfqC-mLcMuGefc8PB1BZmdABqqVKmjd3n_fNLQlsPoXsF99Esoih2klk7hQ6uNCf9S9he7rd8iQZI4MPo-zwRoiohYDxErphbvG673j3AsdHicHOaMQ52rWfeg2a7RK1i9_MAeR1PjlHz_-Q2wYJdBS23sCvr7l_lxqKbg8pTOaL0zm2mbD3UrSWLZLW_YRAtKfKUDRE_L17Tc5DEdytI-to861_WkRIM3URt8GdO-GJGH4HAGtQ4zkAn79ciwZvFK-Tel4UPGr-x4ijkmgMlSgLCpHzFow1OkRas0UExkRrib9Bc4lst1MI2KcMygGE0t5iVGI9XD5x_86Wpf8Oaq-iNakVPmAR-p9hC0Rqj3OIZwriYRC1r6XT1flyfxiWNZaEQTwSdgMvBt-DP4VIi4iTrqN1PnyJAN6BukJOs57zqRLFiwpTF6yUmCFFcZcMYkl3ShElEFxDTwe8-lZIq0gtnyKCmiglqprorBGBaj1wM2kVEwQ3nuH6MqEEJObGaTe4ASrY_ioaTEjBGtlsNizvDUUUBhpGwl3R1m2T-CGtByqQ-B6WmauibXsbNSBHVgygUoItjXB9phUsveHAsQfQLdOcKrk2fjixjWE108JsMzfnoNeVau36KHc1Jq5-lxe-BnVF9MHqcMFvYRcXKofk75VE76JVPZAcuUhAWjCwPHw2I2zUYxLlxfJhWQLBNyVZtnc0uhFUPPkkKxC8v1mxUO9JdA8ijMzZ5m_HvpPkYqxoWkmdkIP4LZvItDZ6fkb9ZpCz6-qvtADj5fbLM8BYQZw5YOmjhGOX4cMAgfgWgA2AT_w0N-qNlvSYL78OC7MguNaaxD9ummZ8ALKtaHZ12PleZ-UmKRMS8adF0ra7Ng6bGjXel81r93-AI_k7dhAkzyDTihKkV9WSNrWeX_TzRkr0cDI8wyw9swHuhK-7LLCuvvde4s5xYRKXn4Hph7uZ6aFe44RQmnYfwDfdalAeb7W5Z8_i67riB-3GDX0uzWHXB0pKprKk8-QBue5GVMipKm-grLXqAg3sXDtMZ5e5kYzXhaKAN0s0xidKkghthkjOG_VgRoiqFSl0V4YjM-Flef8VKaFKNfz77xhZD9ohfq829o4JkaSI3zS1rFa4svSd4tlh-RJxb_qMWdvIa2hbpgo2XpIfVLzDVC4nlkePIA7OKvlhQdwWEMsNKz582NZW4A32cgXQSegBJeWguNuuv6dDysl8p7q8g0iJ7e6QCC71d8JDc4rfXr1sQPJ9Mt7ZqWeP-TnMDBtVf-Hxy-j19_63t4MnZfkf5cicPxSS9uQFzdGRjEB-WQ3M_AwfPPJA5MxO3of-JRFW8UtQ-Zt6U8N7eOGN_slavgADmrcp7yka9OorlRUr9ABStO3aCRP0K6w5Vq_cFrc8LkSn029uMenA90tYWRFUQIKrR2WU6gDLeLg4QlANgcQnk7sWupA7tBhA-TBfzoEekJGU42EnHStOGE_ViWIQjU_SAGui7bfx8I6MLEvdScVktPCEfvvQ-XCpkg0IUR7KIsN1uUaz8gdzROdyrDY4KVC9s-0WhQ4LpgfFeBMputNTSzAOWnBZ88UcdJypmMbGOPN8ge_YzoWQSXT1MDH_4oiKrnOZkzPkuTWPu6a7NQbtkwEwaM_id0aGcNDlr5wairKXCM3C9yAmuIwsTUjY4JojOMLgWBBXD7WT0vrNjCwq6hv6o6T825iw-9dfLDpom5TYReaseIZhOLCnyjS9r1ZpxQXYZdRYiStbZ5B-adYEm3ABo5nME3NsEokjn57ScPdds-9bKYMNmPivYKGNSY8HbOPgCbdVrc-bOTSZCjJCD_rmj6f_-D7JXOFJf626jKPGlRV4Dg_PFCwUjHJ8m7ebVrTaYhUBPlQhJKmXJgrPEVhWH7Fi7v7NgroqKE-DPnqpE1cBEI8YW4qdxMnuNx3kfZ5MsHuGgKEdZ9wn0o1CLoUKQDhQmY4-gtJzle38wIxHEL15D5NyFu1IZ0aZop3PkHafsUz2mbdqNrRdW92cwn9Dx30yFwydA=="
+          },
+          {
+            "function_call": {
+              "id": "call_171556",
+              "args": {
+                "due_time_guess": null,
+                "co_owners": [],
+                "task": "오리엔테이션 자료에 연가·병가 신청 절차 추가하기",
+                "evidence_quote": "오리엔테이션 자료에 연가·병가 신청 절차 추가: 김민준 주무관, 10월 14일(수)까지",
+                "owner_name": "김민준 주무관",
+                "due_date_guess": "2026-10-14",
+                "due_text": "10월 14일(수)까지"
+              },
+              "name": "propose_action_item"
+            }
+          },
+          {
+            "function_call": {
+              "id": "call_171557",
+              "args": {
+                "co_owners": [],
+                "evidence_quote": "복무 규정 FAQ 초안 작성: 이서연 사무관, 다음 주 금요일까지",
+                "due_date_guess": "2026-10-16",
+                "owner_name": "이서연 사무관",
+                "task": "복무 규정 FAQ 초안 작성하기",
+                "due_time_guess": null,
+                "due_text": "다음 주 금요일까지"
+              },
+              "name": "propose_action_item"
+            }
+          },
+          {
+            "function_call": {
+              "id": "call_171558",
+              "args": {
+                "due_text": "10/12(월) 오후 3시까지",
+                "task": "비품 온라인 신청서 양식 제작하기",
+                "due_time_guess": "15:00",
+                "co_owners": [],
+                "owner_name": "박지훈 주무관",
+                "due_date_guess": "2026-10-12",
+                "evidence_quote": "비품 온라인 신청서 양식 제작: 박지훈 주무관, 10/12(월) 오후 3시까지"
+              },
+              "name": "propose_action_item"
+            }
+          },
+          {
+            "function_call": {
+              "id": "call_171559",
+              "args": {
+                "task": "오리엔테이션 대회의실 예약 및 장비 점검하기",
+                "evidence_quote": "오리엔테이션 대회의실 예약 및 장비 점검: 최유진 주무관, 내일까지",
+                "due_text": "내일까지",
+                "due_date_guess": "2026-10-09",
+                "owner_name": "최유진 주무관",
+                "due_time_guess": null,
+                "co_owners": []
+              },
+              "name": "propose_action_item"
+            }
+          },
+          {
+            "function_call": {
+              "id": "call_171560",
+              "args": {
+                "item_count": 4
+              },
+              "name": "finish_extraction"
+            }
+          }
+        ],
+        "role": "model"
+      },
+      "finish_reason": "STOP",
+      "index": 0
+    }
+  ],
+  "model_version": "gemini-3.8-flash",
+  "response_id": "7ifHaqKQMZ-_1e8Py-e74Ag",
+  "usage_metadata": {
+    "candidates_token_count": 881,
+    "prompt_token_count": 2421,
+    "prompt_tokens_details": [
+      {
+        "modality": "TEXT",
+        "token_count": 2421
+      }
+    ],
+    "thoughts_token_count": 996,
+    "total_token_count": 4298
+  }
+}
