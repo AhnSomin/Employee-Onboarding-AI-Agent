@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import re
 import time as time_module
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date, datetime
 from functools import lru_cache
@@ -31,12 +32,20 @@ from .models import (
     Meeting,
     ToolCallSummary,
     new_id,
+    source_hash,
 )
 from .roster import Roster, RosterError, load_roster
 from .tools import MAX_TURNS, TOOL_NAMES, TOOLS, collect, is_finish, respond
 from .validate import count_unconfirmed, validate_extraction
 
 PROMPT_FILE = "meeting_extract.md"
+
+# progress(stage, detail): stages are "llm", "structured", "rules", "validate".
+Progress = Callable[[str, str], None]
+
+
+def _no_progress(stage: str, detail: str) -> None:
+    del stage, detail
 
 
 @dataclass(frozen=True)
@@ -85,11 +94,17 @@ class _LLMAttempt:
 
 
 def _run_llm(
-    client: LLMClient, text: str, title: str, meeting_date: date, warnings: list[str]
+    client: LLMClient,
+    text: str,
+    title: str,
+    meeting_date: date,
+    warnings: list[str],
+    progress: Progress,
 ) -> _LLMAttempt:
     """Function calling, then at most one structured call. Never raises LLMUnavailable."""
     attempt = _LLMAttempt()
     system_tools, system_json, user = build_prompts(text, title, meeting_date)
+    progress("llm", " → ".join(client.available_models() or client.settings.gemini_models))
     try:
         loop, model = client.run_tool_loop(
             user,
@@ -115,6 +130,7 @@ def _run_llm(
         return attempt
 
     warnings.append("도구 호출 결과가 불완전해 구조화 출력으로 다시 추출했습니다: " + ", ".join(reasons) + ".")
+    progress("structured", ", ".join(reasons))
     try:
         attempt.extraction, attempt.model = client.generate_structured(user, LLMExtraction, system_json)
         attempt.path = "structured"
@@ -135,9 +151,11 @@ def extract_meeting(
     settings: Settings | None = None,
     log_metrics: bool = True,
     now: datetime | None = None,
+    progress: Progress | None = None,
 ) -> ExtractionResult:
     """Extract, validate and package one meeting. Nothing is saved or sent here."""
     settings = settings or get_settings()
+    progress = progress or _no_progress
     if len(text) > settings.meeting_max_chars:
         raise MeetingInputError(f"회의록이 너무 깁니다 ({len(text):,}자).")
     warnings: list[str] = []
@@ -156,9 +174,12 @@ def extract_meeting(
         warnings.append("강제 폴백이 켜져 있어 LLM 없이 규칙 기반으로 추출했습니다.")
         attempt = _LLMAttempt()
     else:
-        attempt = _run_llm(client or get_client(), text, title, meeting_date, warnings)
+        attempt = _run_llm(client or get_client(), text, title, meeting_date, warnings, progress)
     path, model_used, tool_summary = attempt.path, attempt.model, attempt.tool_summary
+    if attempt.extraction is None:
+        progress("rules", "강제 폴백" if forced else "LLM 사용 불가")
     extraction = attempt.extraction or extract_with_rules(text, meeting_date=meeting_date, roster=roster)
+    progress("validate", "")
 
     meeting_id = new_id()
     validated = validate_extraction(
@@ -175,6 +196,7 @@ def extract_meeting(
         title=title.strip() or extraction.title_suggestion or "제목 없는 회의",
         meeting_date=meeting_date,
         source_filename=source_filename,
+        source_hash=source_hash(text, meeting_date),
         summary=validated.summary,
         decisions=validated.decisions,
         open_issues=validated.open_issues,
