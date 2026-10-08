@@ -187,6 +187,51 @@ def test_status_page_lists_approved_items():
     assert list(app.dataframe[0].value["할 일"]) == ["진행 중 할 일"]
 
 
+def seed_status_items() -> SqliteStore:
+    status_store = store()
+    status_store.save_meeting(
+        Meeting(meeting_id="m1", title="주간 회의", meeting_date=date(2026, 10, 8), slack_ts="dryrun:summary",
+                created_at=datetime(2026, 10, 8, 10, tzinfo=KST))
+    )
+    status_store.upsert_items(
+        [
+            ActionItem(item_id="a", meeting_id="m1", task="자료 보완", owner_name="김민준", owner_slack_id="U00000001",
+                       owner_status="confirmed", due_date=date(2026, 10, 12), due_status="confirmed",
+                       evidence_quote="q", status="approved"),
+            ActionItem(item_id="b", meeting_id="m1", task="장소 예약", evidence_quote="q", status="approved"),
+        ]
+    )
+    return status_store
+
+
+def test_status_page_marks_items_done_and_cancelled():
+    status_store = seed_status_items()
+    app = AppTest.from_file(str(APP / "views" / "status.py"), default_timeout=TIMEOUT).run()
+    assert app.button(key="meeting.status.done").disabled  # nothing chosen yet
+    app.multiselect(key="meeting.status.selected").set_value(["a"]).run()
+    app.button(key="meeting.status.done").click().run()
+    assert not app.exception
+    assert app.success[0].value == "1건을 완료 처리했습니다."
+    assert status_store.get_item("a").status == "done" and status_store.get_item("a").completed_at
+    assert list(app.dataframe[0].value["할 일"]) == ["장소 예약"]
+    app.multiselect(key="meeting.status.selected").set_value(["b"]).run()
+    app.button(key="meeting.status.cancel").click().run()
+    assert status_store.get_item("b").status == "cancelled"
+    assert app.info[0].value == "표시할 액션 아이템이 없습니다."
+
+
+def test_status_page_previews_reminders_without_sending():
+    status_store = seed_status_items()
+    app = AppTest.from_file(str(APP / "views" / "status.py"), default_timeout=TIMEOUT).run()
+    app.date_input(key="meeting.status.preview_day").set_value(date(2026, 10, 9)).run()  # Friday before a Monday
+    assert not app.exception
+    assert app.code[0].value.startswith("⏰ [D-1] 자료 보완 — <@U00000001> 기한 10/12(월)")
+    assert "회의 요약 스레드에 답글" in app.markdown[0].value
+    assert status_store.get_item("a").reminders == []
+    app.date_input(key="meeting.status.preview_day").set_value(date(2026, 10, 1)).run()
+    assert "이 시각에 보낼 리마인더가 없습니다." in [i.value for i in app.info]
+
+
 def test_status_page_empty_store_shows_info():
     app = AppTest.from_file(str(APP / "views" / "status.py"), default_timeout=TIMEOUT).run()
     assert not app.exception
