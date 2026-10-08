@@ -11,6 +11,7 @@ from onboarding_agent.llm.client import (
     LLMClient,
     LLMOutputError,
     LLMUnavailable,
+    declare_function,
 )
 
 
@@ -190,3 +191,107 @@ def test_allowed_function_names_require_forced_call():
     client, _, _, _ = make_client({})
     with pytest.raises(ValueError):
         client.generate_with_tools("m", [], parse=lambda r: r, allowed_function_names=["x"])
+
+
+# --- multi-turn tool loop ---------------------------------------------------
+
+
+
+def calls_response(*calls: tuple[str, dict], text: str | None = None) -> types.GenerateContentResponse:
+    """A real SDK response object carrying the given function calls."""
+    parts = [
+        types.Part(function_call=types.FunctionCall(id=f"call-{i}", name=name, args=args))
+        for i, (name, args) in enumerate(calls)
+    ]
+    if text:
+        parts.append(types.Part(text=text))
+    return types.GenerateContentResponse(
+        candidates=[types.Candidate(content=types.Content(role="model", parts=parts))]
+    )
+
+
+class RecordingModels(FakeModels):
+    def __init__(self, script):
+        super().__init__(script)
+        self.contents_seen: list[list] = []
+
+    def generate_content(self, *, model, contents, config):
+        self.contents_seen.append(list(contents))
+        return super().generate_content(model=model, contents=contents, config=config)
+
+
+def make_loop_client(script):
+    models = RecordingModels(script)
+    settings = Settings(gemini_api_key="k", gemini_model_primary="primary", gemini_model_fallbacks=["backup"])
+    client = LLMClient(settings, genai_client=SimpleNamespace(models=models), sleep=lambda _: None)
+    return client, models
+
+
+def run_loop(client, max_turns=4):
+    return client.run_tool_loop(
+        "minutes",
+        [],
+        respond=lambda record: {"result": "recorded", "turn": record.turn},
+        is_done=lambda record: record.name == "finish",
+        max_turns=max_turns,
+        allowed_function_names=["note", "finish"],
+    )
+
+
+def test_tool_loop_sends_results_back_until_done():
+    client, models = make_loop_client(
+        {"primary": [calls_response(("note", {"x": 1})), calls_response(("note", {"x": 2}), ("finish", {}))]}
+    )
+    result, model = run_loop(client)
+    assert model == "primary"
+    assert result.stop_reason == "done"
+    assert result.turns == 2
+    assert [(c.turn, c.name) for c in result.calls] == [(1, "note"), (2, "note"), (2, "finish")]
+
+    second_request = models.contents_seen[1]
+    assert [c.role for c in second_request] == ["user", "model", "user"]
+    reply = second_request[2].parts[0].function_response
+    assert reply.name == "note"
+    assert reply.id == "call-0"
+    assert reply.response == {"result": "recorded", "turn": 1}
+
+
+def test_tool_loop_stops_at_max_turns_and_on_no_calls():
+    client, _ = make_loop_client({"primary": [calls_response(("note", {}))] * 2})
+    result, _ = run_loop(client, max_turns=2)
+    assert (result.stop_reason, result.turns, len(result.calls)) == ("max_turns", 2, 2)
+
+    client, _ = make_loop_client({"primary": [calls_response(text="끝났습니다.")]})
+    result, _ = run_loop(client)
+    assert (result.stop_reason, result.turns, result.final_text) == ("no_calls", 1, "끝났습니다.")
+
+
+def test_tool_loop_restarts_whole_conversation_on_transient_error():
+    client, models = make_loop_client(
+        {
+            "primary": [
+                calls_response(("note", {"x": 1})),
+                api_error(503),  # second turn fails: the conversation restarts
+                calls_response(("note", {"x": 1}), ("finish", {})),
+            ]
+        }
+    )
+    result, model = run_loop(client)
+    assert model == "primary"
+    assert [len(c) for c in models.contents_seen] == [1, 3, 1]  # restart begins from the prompt
+    assert [c.name for c in result.calls] == ["note", "finish"]
+
+
+def test_declare_function_inlines_refs_and_drops_defaults():
+    class Inner(BaseModel):
+        text: str
+
+    class Outer(BaseModel):
+        title: str | None = None
+        items: list[Inner] = []
+
+    schema = declare_function("record", "desc", Outer).parameters_json_schema
+    assert "$defs" not in str(schema) and "$ref" not in str(schema)
+    assert "default" not in schema["properties"]["items"]
+    assert schema["properties"]["items"]["items"]["properties"]["text"] == {"type": "string"}
+    assert "title" in schema["properties"]  # a field named "title" survives

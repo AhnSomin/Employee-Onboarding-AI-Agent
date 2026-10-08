@@ -13,11 +13,14 @@ what to do with them; side effects must wait for user approval.
 
 from __future__ import annotations
 
+import copy
+import functools
 import logging
 import threading
 import time
 from collections.abc import Callable, Sequence
-from typing import Any, TypeVar
+from dataclasses import dataclass
+from typing import Any, Literal, TypeVar
 
 import httpx
 from google import genai
@@ -44,6 +47,63 @@ class LLMUnavailable(RuntimeError):
 
 class LLMOutputError(ValueError):
     """The model answered, but the output cannot be used (empty, missing call, ...)."""
+
+
+@dataclass(frozen=True)
+class ToolCallRecord:
+    """One function call the model made, as data. Nothing is executed."""
+
+    turn: int  # 1-based
+    name: str
+    args: dict[str, Any]
+
+
+@dataclass(frozen=True)
+class ToolLoopResult:
+    calls: tuple[ToolCallRecord, ...]
+    turns: int
+    stop_reason: Literal["done", "no_calls", "max_turns"]
+    final_text: str | None = None  # model text when it stopped calling tools
+
+
+def declare_function(
+    name: str, description: str, parameters: type[BaseModel]
+) -> types.FunctionDeclaration:
+    """Function declaration whose parameters come from a pydantic model.
+
+    `$ref`s are inlined and `default`/`title` keys dropped, keeping the schema
+    inside the JSON Schema subset the Gemini API accepts.
+    """
+    return types.FunctionDeclaration(
+        name=name,
+        description=description,
+        parameters_json_schema=_inline_schema(parameters.model_json_schema()),
+    )
+
+
+def _inline_schema(schema: dict[str, Any]) -> dict[str, Any]:
+    defs = schema.get("$defs", {})
+
+    def resolve(node: Any) -> Any:
+        if isinstance(node, list):
+            return [resolve(item) for item in node]
+        if not isinstance(node, dict):
+            return node
+        if "$ref" in node:
+            target = copy.deepcopy(defs[node["$ref"].rsplit("/", 1)[-1]])
+            target.update({k: v for k, v in node.items() if k != "$ref"})
+            return resolve(target)
+        out: dict[str, Any] = {}
+        for key, value in node.items():
+            if key in ("$defs", "default", "title"):
+                continue
+            if key == "properties":
+                out[key] = {prop: resolve(sub) for prop, sub in value.items()}
+            else:
+                out[key] = resolve(value)
+        return out
+
+    return resolve(schema)
 
 
 def _is_transient(exc: BaseException) -> bool:
@@ -104,7 +164,7 @@ class LLMClient:
         failures: list[str] = []
         for model in models:
             try:
-                result = self._with_retries(lambda: call(client, model))
+                result = self._with_retries(functools.partial(call, client, model))
             except Exception as exc:  # any failure moves on to the next model
                 self._trip(model)
                 failures.append(f"{model}: {_describe(exc)}")
@@ -149,29 +209,68 @@ class LLMClient:
         `parse` should raise LLMOutputError or ValidationError for unusable
         output, which counts as a transient failure.
         """
-        if allowed_function_names and not require_call:
-            raise ValueError("allowed_function_names requires require_call=True")
-        mode = (
-            types.FunctionCallingConfigMode.ANY
-            if require_call
-            else types.FunctionCallingConfigMode.AUTO
-        )
-        config = types.GenerateContentConfig(
-            system_instruction=system,
-            temperature=temperature,
-            tools=[types.Tool(function_declarations=list(tools))],
-            tool_config=types.ToolConfig(
-                function_calling_config=types.FunctionCallingConfig(
-                    mode=mode,
-                    allowed_function_names=list(allowed_function_names or []) or None,
-                )
-            ),
-            automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
-        )
+        config = _tools_config(tools, system, require_call, allowed_function_names, temperature)
 
         def call(client: Any, model: str) -> T:
             response = client.models.generate_content(model=model, contents=contents, config=config)
             return parse(response)
+
+        return self.run(call)
+
+    def run_tool_loop(
+        self,
+        prompt: str,
+        tools: Sequence[types.FunctionDeclaration],
+        *,
+        respond: Callable[[ToolCallRecord], dict[str, Any]],
+        is_done: Callable[[ToolCallRecord], bool],
+        max_turns: int,
+        system: str | None = None,
+        require_call: bool = True,
+        allowed_function_names: Sequence[str] | None = None,
+        temperature: float | None = None,
+    ) -> tuple[ToolLoopResult, str]:
+        """Multi-turn function calling. Returns (transcript, model used).
+
+        Each turn sends the model's calls back with `respond(call)` as the tool
+        result, until a call satisfies `is_done`, the model stops calling, or
+        `max_turns` is reached. Calls are only recorded, never executed.
+
+        One conversation stays on one model: a transient error restarts the
+        whole conversation (on the same model, then the next one). `respond`
+        must therefore be pure; derive state from the returned transcript.
+        """
+        config = _tools_config(tools, system, require_call, allowed_function_names, temperature)
+
+        def call(client: Any, model: str) -> ToolLoopResult:
+            contents: list[types.Content] = [
+                types.Content(role="user", parts=[types.Part.from_text(text=prompt)])
+            ]
+            records: list[ToolCallRecord] = []
+            for turn in range(1, max_turns + 1):
+                response = client.models.generate_content(model=model, contents=contents, config=config)
+                function_calls = response.function_calls or []
+                if not function_calls:
+                    return ToolLoopResult(tuple(records), turn, "no_calls", response.text)
+                # Keep the model turn as returned so thought signatures go back unchanged.
+                contents.append(response.candidates[0].content)
+                replies: list[types.Part] = []
+                done = False
+                for fc in function_calls:
+                    record = ToolCallRecord(turn, fc.name or "", dict(fc.args or {}))
+                    records.append(record)
+                    replies.append(
+                        types.Part(
+                            function_response=types.FunctionResponse(
+                                id=fc.id, name=fc.name, response=respond(record)
+                            )
+                        )
+                    )
+                    done = done or is_done(record)
+                if done:
+                    return ToolLoopResult(tuple(records), turn, "done")
+                contents.append(types.Content(role="user", parts=replies))
+            return ToolLoopResult(tuple(records), max_turns, "max_turns")
 
         return self.run(call)
 
@@ -199,6 +298,30 @@ class LLMClient:
     def _trip(self, model: str) -> None:
         with self._lock:
             self._open_until[model] = self._clock() + CIRCUIT_OPEN_SEC
+
+
+def _tools_config(
+    tools: Sequence[types.FunctionDeclaration],
+    system: str | None,
+    require_call: bool,
+    allowed_function_names: Sequence[str] | None,
+    temperature: float | None,
+) -> types.GenerateContentConfig:
+    if allowed_function_names and not require_call:
+        raise ValueError("allowed_function_names requires require_call=True")
+    mode = types.FunctionCallingConfigMode.ANY if require_call else types.FunctionCallingConfigMode.AUTO
+    return types.GenerateContentConfig(
+        system_instruction=system,
+        temperature=temperature,
+        tools=[types.Tool(function_declarations=list(tools))],
+        tool_config=types.ToolConfig(
+            function_calling_config=types.FunctionCallingConfig(
+                mode=mode,
+                allowed_function_names=list(allowed_function_names or []) or None,
+            )
+        ),
+        automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
+    )
 
 
 _default_client: LLMClient | None = None
@@ -240,6 +363,31 @@ def generate_with_tools(
         contents,
         tools,
         parse=parse,
+        system=system,
+        require_call=require_call,
+        allowed_function_names=allowed_function_names,
+        temperature=temperature,
+    )
+
+
+def run_tool_loop(
+    prompt: str,
+    tools: Sequence[types.FunctionDeclaration],
+    *,
+    respond: Callable[[ToolCallRecord], dict[str, Any]],
+    is_done: Callable[[ToolCallRecord], bool],
+    max_turns: int,
+    system: str | None = None,
+    require_call: bool = True,
+    allowed_function_names: Sequence[str] | None = None,
+    temperature: float | None = None,
+) -> tuple[ToolLoopResult, str]:
+    return get_client().run_tool_loop(
+        prompt,
+        tools,
+        respond=respond,
+        is_done=is_done,
+        max_turns=max_turns,
         system=system,
         require_call=require_call,
         allowed_function_names=allowed_function_names,
