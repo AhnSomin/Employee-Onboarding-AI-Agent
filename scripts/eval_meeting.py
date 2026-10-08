@@ -31,14 +31,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--repeat", type=int, default=1, help="run every sample N times")
     parser.add_argument("--details", action="store_true", help="per-label table")
     parser.add_argument("--force-fallback", action="store_true", help="rule-based only")
-    parser.add_argument("--env-file", type=Path, help=".env to read instead of the repo root one")
     args = parser.parse_args(argv)
 
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(errors="replace")
-    if args.env_file:
-        config.DOTENV_PATH = args.env_file.resolve()
-        config.reset_settings_cache()
     settings = config.get_settings()
     roster = load_roster(settings.roster_path)
 

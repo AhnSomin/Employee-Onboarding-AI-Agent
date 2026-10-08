@@ -108,6 +108,14 @@ def _from_injection(texts: list[str], injections: list[str]) -> bool:
     return any(_overlaps(t, s) for t in texts if t for s in injections)
 
 
+def is_weekend(day: date | None) -> bool:
+    return day is not None and day.weekday() >= 5
+
+
+def weekend_note(day: date) -> str:
+    return f"주말 기한입니다({format_due(day)}). 날짜가 맞는지 확인해 주세요."
+
+
 def _parse_guess_date(value: str | None) -> date | None:
     try:
         return date.fromisoformat(value.strip()) if value else None
@@ -198,6 +206,9 @@ def _check_due(
         notes.append(
             f"모델 추정 시각({guess_time:%H:%M})과 코드 해석({resolved.due_time:%H:%M})이 다릅니다."
         )
+    if is_weekend(resolved.due_date):
+        # Informational only: the confirmed status stays as decided above.
+        notes.append(weekend_note(resolved.due_date))
     return resolved.due_date, resolved.due_time, due_text, confirmed, needs_review
 
 

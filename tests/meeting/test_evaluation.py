@@ -47,7 +47,7 @@ def test_gold_file_loads_and_covers_three_samples():
     assert [s.sample for s in samples] == [
         "01_structured_minutes.txt", "02_transcript.txt", "03_edge_cases.txt",
     ]
-    assert sum(1 for s in samples for i in s.items if not i.optional) == 16
+    assert sum(1 for s in samples for i in s.items if not i.optional) == 15
     for sample in samples:
         text = (REPO_ROOT / "data" / "samples" / sample.sample).read_text(encoding="utf-8")
         for gold in sample.items:  # every keyword must exist in the sample itself

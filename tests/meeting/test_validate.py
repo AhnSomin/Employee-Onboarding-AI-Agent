@@ -172,3 +172,26 @@ def test_year_rollover_mismatch_note_names_both_years():
     assert action.due_date == date(2027, 10, 5)
     assert action.due_status == "unconfirmed"
     assert any("2026년 10/5(월)" in n and "2027년 10/5(화)" in n for n in action.review_notes)
+
+
+@pytest.mark.parametrize(
+    ("due_text", "guess", "status"),
+    [("모레까지", "2026-10-10", "confirmed"), ("3일 이내", "2026-10-11", "confirmed")],
+)
+def test_weekend_due_gets_a_note_but_keeps_its_status(due_text, guess, status):
+    text = TEXT + f"- 계정 요청은 {due_text} 처리.\n"
+    extraction = LLMExtraction(
+        summary=["요약"],
+        decisions=[],
+        action_items=[item(due_text=due_text, due_date_guess=guess, evidence_quote=f"계정 요청은 {due_text} 처리.")],
+    )
+    action = validate_extraction(
+        extraction, meeting_text=text, meeting_date=MEETING_DATE, meeting_id="m1", roster=ROSTER
+    ).items[0]
+    assert action.due_status == status
+    assert any(n.startswith("주말 기한입니다") for n in action.review_notes)
+
+
+def test_weekday_due_has_no_weekend_note():
+    action = validate(item(due_text="10월 14일까지", due_date_guess="2026-10-14")).items[0]
+    assert not any("주말" in n for n in action.review_notes)
