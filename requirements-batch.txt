@@ -1,0 +1,7 @@
+# 리마인더 배치(scripts/run_reminders.py) 전용 최소 의존성. GitHub Actions가 설치한다.
+# 버전은 uv.lock과 맞춘다. Streamlit·Gemini·Calendar 라이브러리는 필요 없다.
+pydantic==2.13.5
+python-dotenv==1.2.4
+gspread==6.2.1
+google-auth==2.61.0
+slack-sdk==3.45.0

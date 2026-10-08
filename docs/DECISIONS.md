@@ -83,3 +83,14 @@
 - 2026-10-08 개발 세트 라벨 a1(간사가 스스로 맡은 약속)은 담당자·기한을 확정으로 둔다(사람 검수). 나머지 라벨은 초안대로 승인됐다.
 - 2026-10-08 변환기(`convert_assembly.py`)의 코드·테스트에 있는 열 이름(발언순번 등)은 원천 데이터 형식 정보라 그대로 둔다(데이터 내용이 아님).
 - 2026-10-08 원격 저장소: `origin`은 사용자 포크(psgg123/Employee-Onboarding-AI-Agent), `upstream`은 팀 저장소(AhnSomin/Employee-Onboarding-AI-Agent)다. push는 사용자가 지시할 때 포크의 `feat/meeting`으로만 한다.
+
+## 2026-10-08 (M3)
+
+- 2026-10-08 리마인더 선택(`scheduler/reminders.py`): D-1은 기한 직전 근무일(월~금)부터, D-day는 기한 당일, overdue는 기한 다음 날부터다. 공휴일은 고려하지 않는다. 도달한 가장 높은 단계 하나만, 이미 보낸 단계보다 높을 때만 보낸다. 그래서 D-1을 놓쳐도 D-day는 가고, 같은 날 다시 돌려도 중복이 없다. 완료·취소·초안 항목과 기한 없는 항목은 대상이 아니다.
+- 2026-10-08 리마인더 발송 기록: 항목에 `reminders`(단계·보낸 시각·Slack ts) 목록을 두고 보낸 직후 저장한다. 중복 판단은 이 기록으로 한다. DRY_RUN은 `dryrun:` ts로 기록해 DRY_RUN 재실행도 중복 없이 보이게 하고, 실제 실행은 이 기록을 무시한다(M2 실행기와 같은 방식). `last_reminded_stage`·`last_reminded_at`은 두 모드 모두 화면 표시용으로 갱신하며, 기록이 하나도 없을 때만 중복 판단에 쓴다. reset_demo는 이 ts로 리마인더 메시지도 지운다(채널 기록 조회 스코프가 필요 없음).
+- 2026-10-08 리마인더 메시지는 회의 요약 메시지의 스레드 답글로 보낸다. 실제 실행에서 회의 요약이 DRY_RUN(`dryrun:`)이었다면 새 메시지로 보낸다. 단계 표시는 D-1·D-day·기한 지남이다. 공개 데이터셋 회의(`assembly_`)는 리마인더도 항상 DRY_RUN이다.
+- 2026-10-08 Sheets 열 순서: 처음 배포 뒤에 추가한 항목 필드(`reminders`)는 표시 열(`created_by`) 뒤에 붙인다. 이미 만들어진 시트도 머리글에 열만 늘어나고 그대로 쓸 수 있다.
+- 2026-10-08 배치는 Streamlit·Gemini·Calendar 코드를 import하지 않는다. DRY_RUN 공통 함수는 `actions/dry_run.py`로 옮겼다(실행기에서 다시 내보냄). `requirements-batch.txt`는 uv.lock과 같은 버전으로 고정했다(pydantic, python-dotenv, gspread, google-auth, slack-sdk).
+- 2026-10-08 GitHub Actions(`.github/workflows/reminders.yml`): `0 0 * * 1-5`(UTC, 평일 09:00 KST), 수동 실행 입력 `now`·`dry_run`. 입력값은 환경 변수로만 스크립트에 넘긴다(식 삽입 방지). 권한은 contents: read, 동시 실행은 한 번에 하나, `STATE_BACKEND=sheets`·`TIMEZONE=Asia/Seoul`·`ACTIONS_DRY_RUN=false`. 액션은 actions/checkout@v7, actions/setup-python@v7.
+- 2026-10-08 액션 현황 페이지: 진행 중 항목을 골라 완료·취소한다(저장소만 바꾸고 캘린더 일정·Slack 메시지는 그대로 둔다). 리마인더 미리보기는 날짜·시각을 골라 그 시각에 보낼 알림을 보여 주며, 보내거나 기록하지 않는다. 미리보기는 앱의 ACTIONS_DRY_RUN 설정 기준으로 이미 보낸 기록을 판단한다.
+- 2026-10-08 README의 기능 2 항목에 "예약 실행은 기본 브랜치에서만 돈다"는 한 줄을 더했다(스펙 10.4). 공유 파일 — 팀원 확인 필요.
