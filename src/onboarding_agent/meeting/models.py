@@ -6,6 +6,7 @@ validation results, which code fills in, never the LLM.
 
 from __future__ import annotations
 
+import hashlib
 import uuid
 from datetime import date, datetime, time
 from typing import Literal
@@ -17,9 +18,19 @@ ItemStatus = Literal["draft", "approved", "done", "cancelled"]
 ReminderStage = Literal["D-1", "D-day", "overdue"]
 ExtractionPath = Literal["function_calling", "structured", "rule_based"]
 
+# Marker on everything this app writes outside itself (calendar events, Slack
+# messages, sheet rows), so demo data can be found and cleaned up later.
+CREATED_BY = "onboarding-agent"
+
 
 def new_id() -> str:
     return str(uuid.uuid4())
+
+
+def source_hash(text: str, meeting_date: date) -> str:
+    """Identity of a meeting's input, used to warn before processing it twice."""
+    normalized = " ".join(text.split())
+    return hashlib.sha256(f"{meeting_date.isoformat()}\n{normalized}".encode()).hexdigest()[:16]
 
 
 # --- LLM output only ---
@@ -121,6 +132,7 @@ class Meeting(BaseModel):
     title: str
     meeting_date: date
     source_filename: str | None = None
+    source_hash: str | None = None  # see source_hash()
     summary: list[str] = []
     decisions: list[Decision] = []
     open_issues: list[str] = []
