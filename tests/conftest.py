@@ -13,6 +13,7 @@ def isolated_settings(tmp_path, monkeypatch):
     monkeypatch.setattr(config, "DOTENV_PATH", tmp_path / "absent.env")
     monkeypatch.setattr(config, "_streamlit_secrets", lambda: {})
     monkeypatch.setenv("SQLITE_PATH", str(tmp_path / "state.db"))
+    monkeypatch.setenv("REG_INDEX_DIR", str(tmp_path / "reg_index"))
     monkeypatch.setattr(metrics, "LOG_PATH", tmp_path / "logs" / "events.jsonl")
     config.reset_settings_cache()
     llm_client.reset_client()
