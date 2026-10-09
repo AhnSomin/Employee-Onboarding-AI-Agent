@@ -295,6 +295,7 @@ def _build_item(
             occurrences=occurrences,
             speech=speech,
             rules=owner_rules,
+            known_member=any(member.name == owner_name for member in roster.members),
         )
         if note:
             owner_ok = False

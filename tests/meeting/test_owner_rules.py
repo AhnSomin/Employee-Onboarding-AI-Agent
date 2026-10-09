@@ -223,15 +223,97 @@ def test_weak_promise_exception_needs_first_person_and_due_date(owner, evidence,
 
 
 @pytest.mark.parametrize(
-    ("line", "status"),
+    "line",
     [
-        ("가상부장관 문해솔: 제가 금요일까지 검토해 보겠습니다.", "confirmed"),
-        ("가상부장관 문해솔: 금요일까지 검토해 보겠습니다.", "unconfirmed"),
+        "가상부장관 문해솔: 제가 금요일까지 검토해 보겠습니다.",  # the exception is not for heads
+        "가상부장관 문해솔: 제가 직접 금요일까지 검토해 보겠습니다.",  # still a weak promise
+        "가상부장관 문해솔: 금요일까지 검토해 보겠습니다.",
     ],
 )
-def test_weak_promise_exception_for_a_head_still_needs_first_person(line, status):
+def test_weak_promise_exception_is_not_for_heads(line):
     evidence = line.split(": ", 1)[1]
-    assert check(HEARING + line + "\n", "문해솔", evidence).owner_status == status
+    assert check(HEARING + line + "\n", "문해솔", evidence).owner_status == "unconfirmed"
+
+
+# --- heads need "직접" in the promise (2026-10-09) --------------------------------
+
+
+@pytest.mark.parametrize(
+    ("line", "status"),
+    [
+        ("가상부장관 문해솔: 제가 다음 주 금요일까지 보고드리겠습니다.", "unconfirmed"),  # "제가" alone
+        ("가상부장관 문해솔: 제가 직접 다음 주 금요일까지 보고드리겠습니다.", "confirmed"),
+        ("가상부장관 문해솔: 그 문제는 직접 챙겨서 보고드리겠습니다.", "confirmed"),  # "직접" in the promise
+        ("가상부장관 문해솔: 직접적인 피해 현황을 정리해서 보고드리겠습니다.", "unconfirmed"),  # "직접적" is not it
+        ("가상부장관 문해솔: 현장은 제가 직접 봤습니다. 결과는 다음 주에 보고드리겠습니다.", "unconfirmed"),
+        ("가상부장관 문해솔: 저희가 직접 점검하겠습니다.", "unconfirmed"),  # "저희" is still a group
+    ],
+)
+def test_heads_are_personal_only_with_direct(line, status):
+    evidence = line.split(": ", 1)[1]
+    action = check(HEARING + line + "\n", "문해솔", evidence)
+    assert action.owner_status == status, action.review_notes
+
+
+def test_head_note_explains_direct():
+    line = "가상부장관 문해솔: 제가 다음 주 금요일까지 보고드리겠습니다."
+    action = check(HEARING + line + "\n", "문해솔", line.split(": ", 1)[1])
+    assert any("'직접'이 없어" in n for n in action.review_notes)
+
+
+# --- local government heads (2026-10-09) ------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "title",
+    ["가상특별시장", "가상광역시장", "가상특별자치시장", "가상도지사", "가상특별자치도지사",
+     "가상시장", "가상군수", "가상구청장", "가상교육감"],
+)
+def test_local_government_heads(title):
+    assert RULES.is_institution_head(title)
+
+
+@pytest.mark.parametrize(
+    ("line", "status"),
+    [
+        ("가상광역시장 윤채원: 그 사업은 다음 달까지 마무리하겠습니다.", "unconfirmed"),
+        ("가상군수 서도윤: 주민 설명회는 제가 직접 10월 20일까지 열겠습니다.", "confirmed"),
+        ("가상교육감 오세린: 학교별 점검 결과를 금요일까지 공유하겠습니다.", "unconfirmed"),
+    ],
+)
+def test_local_government_head_promises(line, status):
+    owner, evidence = line.split(": ", 1)
+    assert check(HEARING + line + "\n", owner.split()[1], evidence).owner_status == status
+
+
+# --- "-하도록 하겠" / "-토록 하겠" forms of weak promises (2026-10-09) ----------------
+
+WEAK_FORMS = """[녹취] 주간 회의 (가상 녹취록)
+김민준 00:01:00 그 의견은 참고하겠습니다.
+이서연 00:02:00 그 부분은 참고하도록 하겠습니다.
+정하은 00:03:00 말씀하신 내용은 참고토록 하겠습니다.
+최유진 00:04:00 일정에 늦지 않도록 노력하도록 하겠습니다.
+박지훈 00:05:00 지적하신 점은 유념토록 하겠습니다.
+김민준 00:06:00 지난 자료를 참고하여 금요일까지 보고서를 작성하겠습니다.
+이서연 00:07:00 그 건은 제가 조치를 하도록 하겠습니다.
+"""
+
+
+@pytest.mark.parametrize(
+    ("owner", "evidence", "status"),
+    [
+        ("김민준", "그 의견은 참고하겠습니다.", "unconfirmed"),
+        ("이서연", "그 부분은 참고하도록 하겠습니다.", "unconfirmed"),
+        ("정하은", "말씀하신 내용은 참고토록 하겠습니다.", "unconfirmed"),
+        ("최유진", "일정에 늦지 않도록 노력하도록 하겠습니다.", "unconfirmed"),
+        ("박지훈", "지적하신 점은 유념토록 하겠습니다.", "unconfirmed"),
+        ("김민준", "지난 자료를 참고하여 금요일까지 보고서를 작성하겠습니다.", "confirmed"),  # 참고 is not the promise
+        ("이서연", "그 건은 제가 조치를 하도록 하겠습니다.", "confirmed"),  # "-하도록 하겠" alone is not weak
+    ],
+)
+def test_weak_promise_conjugations(owner, evidence, status):
+    action = check(WEAK_FORMS, owner, evidence)
+    assert action.owner_status == status, action.review_notes
 
 
 def test_weak_promise_is_not_confirmed():

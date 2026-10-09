@@ -200,14 +200,14 @@ def test_weekday_due_has_no_weekend_note():
 
 
 def test_titled_owner_outside_roster_keeps_only_the_name():
-    text = TEXT + "가상부제1차관 오세린: 자료는 제가 정리해서 다음 주 금요일까지 제출하겠습니다.\n"
+    text = TEXT + "가상부제1차관 오세린: 자료는 제가 직접 정리해서 다음 주 금요일까지 제출하겠습니다.\n"
     extraction = LLMExtraction(
         summary=["요약"],
         decisions=[],
         action_items=[
             item(
                 owner_name="가상부제1차관 오세린",
-                evidence_quote="자료는 제가 정리해서 다음 주 금요일까지 제출하겠습니다.",
+                evidence_quote="자료는 제가 직접 정리해서 다음 주 금요일까지 제출하겠습니다.",
             )
         ],
     )
