@@ -62,7 +62,7 @@ Gemini·Google Calendar·Google Sheets·Slack이 모두 `[OK]`여야 합니다. 
 
 ## 5. GitHub Secrets (리마인더 배치)
 
-저장소 Settings → Secrets and variables → Actions → New repository secret:
+작업 저장소는 [psgg123/onboarding-agent-claude](https://github.com/psgg123/onboarding-agent-claude)이고, 리마인더 예약 실행은 이 저장소의 기본 브랜치 `main`에서 돕니다. Secrets는 저장소 주인이 직접 등록합니다: [Settings → Secrets and variables → Actions](https://github.com/psgg123/onboarding-agent-claude/settings/secrets/actions) → New repository secret.
 
 | 이름 | 값 |
 |---|---|
@@ -74,4 +74,4 @@ Gemini·Google Calendar·Google Sheets·Slack이 모두 `[OK]`여야 합니다. 
 - 배치는 Google Sheets에서 상태를 읽습니다. 앱도 `STATE_BACKEND=sheets`로 써야 리마인더가 앱에서 승인한 항목을 봅니다.
 - Secrets가 비어 있으면 워크플로는 로그에 "설정 필요"와 빠진 이름을 남기고 성공으로 끝납니다.
 - 예약 실행은 기본 브랜치(main)에 있는 워크플로만 돕니다(평일 09:00 KST = 00:00 UTC, 늦어질 수 있음).
-- 수동 실행: Actions → reminders → Run workflow. `now`에 기준 시각(예: `2026-10-16T09:00:00+09:00`)을, `dry_run`에 발송 여부를 넣습니다.
+- 수동 실행: [Actions → reminders](https://github.com/psgg123/onboarding-agent-claude/actions/workflows/reminders.yml) → Run workflow. `now`에 기준 시각(예: `2026-10-16T09:00:00+09:00`)을, `dry_run`에 발송 여부를 넣습니다.

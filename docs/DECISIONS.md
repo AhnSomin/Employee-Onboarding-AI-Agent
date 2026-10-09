@@ -115,3 +115,9 @@
 - 2026-10-08 Gemini 한도 관리: `eval_meeting.py`는 실행 전에 예상 호출 수를 보여 주고(`--plan`은 그것만), `--save-raw`로 원 출력을 저장하며, `--rescore`로 모델 호출 없이 다시 채점한다. 기본 반복은 원래 1회다.
 - 2026-10-08 `scripts/report_metrics.py`(공유 파일, 새로 만듦): 기능 2 지표를 마크다운으로 낸다. `--since`·`--until`로 개발·테스트 이벤트를 빼고 집계하며, DRY_RUN 실행은 따로 센다. 적용 전 값은 사람이 `docs/meeting/MEASUREMENT.md` 절차로 재고, 스크립트는 "(측정 필요)"로 둔다.
 - 2026-10-08 문서: 기능 2 문서는 `docs/meeting/`(README·SETUP·MEASUREMENT, 내 담당)에 두고, 저장소 README에는 링크 한 줄만 둔다(앞서 넣은 예약 실행 안내 한 줄을 링크로 바꿨다). `docs/DEMO.md`는 공유 파일로 새로 만들고 기능 2 절만 썼다. AI Hub 데이터의 정확한 출처 표기 문구는 "확인 필요"로 남겼다.
+
+## 2026-10-09 (작업 저장소 이전)
+
+- 2026-10-09 **작업 저장소 이전 (사람 결정).** 작업 저장소는 사용자 소유의 비공개 저장소 `psgg123/onboarding-agent-claude`다. push는 이 저장소의 `main`으로 한다(리마인더 예약 실행이 기본 브랜치에서만 돌기 때문). 원격 이름: `origin`=새 저장소, `fork`=예전 포크(psgg123/Employee-Onboarding-AI-Agent), `upstream`=팀 저장소. 로컬 `main`이 `origin/main`을 추적하고 `push.default=upstream`이다.
+- 2026-10-09 이전 당시 새 저장소에는 예전 포크를 가져온 것과 같은 커밋만 있었다(`main`=3fa2b6f, `feat/meeting`=a4615b1). 둘 다 로컬 작업의 조상이라 `main`은 빨리 감기(fast-forward)로 올렸다.
+- 2026-10-09 GitHub Secrets는 새 저장소에 저장소 주인이 직접 등록한다. 팀 저장소의 PR #1과 포크는 이번에는 건드리지 않는다.

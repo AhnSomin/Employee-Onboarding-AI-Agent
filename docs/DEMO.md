@@ -20,7 +20,7 @@
 - [ ] 강제 폴백: 회의록 화면의 "LLM 없이 규칙 기반으로 추출 (시연용 강제 폴백)" 토글을 켜고 한 번 추출해 보고, 다시 끕니다.
 - [ ] 리마인더 수동 실행 순서
   1. 앱에서 기한이 다음 근무일인 항목을 승인합니다.
-  2. GitHub Actions → reminders → Run workflow: `now`에 그 전 근무일 09:00(예: `2026-10-15T09:00:00+09:00`)을 넣고, `dry_run`을 끕니다.
+  2. GitHub Actions([psgg123/onboarding-agent-claude](https://github.com/psgg123/onboarding-agent-claude/actions/workflows/reminders.yml)) → reminders → Run workflow: `now`에 그 전 근무일 09:00(예: `2026-10-15T09:00:00+09:00`)을 넣고, `dry_run`을 끕니다.
   3. Slack 회의 요약 스레드에 `[D-1]` 답글이 하나 왔는지 확인합니다.
   4. 같은 입력으로 한 번 더 실행해 "보낼 리마인더 없음"을 확인합니다.
 - [ ] Gemini 한도: 시연 전날부터 평가 스크립트를 돌리지 않습니다. 필요하면 `--plan`으로 호출 수만 봅니다.

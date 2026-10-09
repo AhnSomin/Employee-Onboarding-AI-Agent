@@ -2,6 +2,7 @@
 
 회의록 텍스트를 올리면 요약, 결정사항, 액션 아이템(할 일·담당자·기한·근거)을 뽑습니다. 사람이 확인·수정해 승인하면 Google Calendar 일정과 Slack 알림을 만들고, 승인한 항목은 기한 전후로 Slack 스레드에서 다시 알립니다.
 
+- 작업 저장소: [psgg123/onboarding-agent-claude](https://github.com/psgg123/onboarding-agent-claude) — 기본 브랜치 `main`(리마인더 예약 실행 기준)
 - 설정: [SETUP.md](SETUP.md) — Google 서비스 계정·캘린더·시트 공유, Slack 앱과 스코프, `.env`, GitHub Secrets
 - 시연: [../DEMO.md](../DEMO.md)의 기능 2
 - 적용 전 측정 절차: [MEASUREMENT.md](MEASUREMENT.md)
