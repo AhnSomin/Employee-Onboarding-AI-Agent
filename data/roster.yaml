@@ -1,11 +1,11 @@
 # 데모용 가상 명단입니다. 실제 인물이 아닙니다.
-# slack_user_id는 자리표시 값입니다. 데모 Slack 워크스페이스의 사용자 ID(예: U012AB3CDE)로 사람이 바꿔 넣습니다.
+# slack_user_id: 김민준은 데모 Slack 워크스페이스의 실제 멤버 ID, 나머지는 자리표시 값입니다(사람이 바꿔 넣음). null이면 'Slack 미등록'으로 보입니다.
 # 이 명단은 LLM에 보내지 않고, 회의록에서 뽑은 담당자 이름을 코드가 매칭할 때만 씁니다.
 members:
   - name: 김민준
     aliases: [김 주무관, 민준]
     team: 운영지원과
-    slack_user_id: U00000001
+    slack_user_id: U0C829PHYE6
   - name: 이서연
     aliases: [이 사무관]
     team: 운영지원과

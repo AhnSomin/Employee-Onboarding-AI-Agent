@@ -135,7 +135,8 @@ def test_all_calls_in_one_turn():
     assert result.tool_calls.finished
     assert [i.task for i in result.action_items] == ["오리엔테이션 자료 보완하기", "FAQ 초안 작성하기"]
     first = result.action_items[0]
-    assert (first.owner_name, first.owner_status, first.owner_slack_id) == ("김민준", "confirmed", "U00000001")
+    slack_id = ROSTER.match("김민준").member.slack_user_id
+    assert (first.owner_name, first.owner_status, first.owner_slack_id) == ("김민준", "confirmed", slack_id)
     assert (first.due_date, first.due_status) == (date(2026, 10, 14), "confirmed")
     assert models.calls == ["primary"]
 

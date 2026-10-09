@@ -60,7 +60,7 @@ def test_strip_titles_and_group_references():
 
 def test_slack_id_can_be_missing(roster):
     assert roster.match("이서연").member.slack_user_id is None
-    assert roster.match("김민준").member.slack_user_id == "U00000001"
+    assert roster.match("김민준").member.slack_user_id.startswith("U")
 
 
 def test_missing_and_broken_roster_files(tmp_path):

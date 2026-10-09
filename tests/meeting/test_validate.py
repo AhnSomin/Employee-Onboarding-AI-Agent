@@ -47,7 +47,8 @@ def validate(*items, decisions=(), from_rules=False):
 def test_confirmed_owner_and_due_with_slack_id():
     out = validate(item(owner_name="김민준 주무관", due_text="10월 14일까지", due_date_guess="2026-10-14"))
     action = out.items[0]
-    assert (action.owner_name, action.owner_status, action.owner_slack_id) == ("김민준", "confirmed", "U00000001")
+    slack_id = ROSTER.match("김민준").member.slack_user_id
+    assert (action.owner_name, action.owner_status, action.owner_slack_id) == ("김민준", "confirmed", slack_id)
     assert (action.due_date, action.due_status) == (date(2026, 10, 14), "confirmed")
     assert not action.needs_review
 
