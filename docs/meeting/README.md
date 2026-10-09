@@ -5,6 +5,7 @@
 - 작업 저장소: [psgg123/onboarding-agent-claude](https://github.com/psgg123/onboarding-agent-claude) — 기본 브랜치 `main`(리마인더 예약 실행 기준)
 - 설정: [SETUP.md](SETUP.md) — Google 서비스 계정·캘린더·시트 공유, Slack 앱과 스코프, `.env`, GitHub Secrets
 - 시연: [../DEMO.md](../DEMO.md)의 기능 2
+- 평가 요약(발표용): [EVALUATION.md](EVALUATION.md) · 확정 규칙 한 쪽 요약: [RULES.md](RULES.md) · 블라인드 테스트: [BLIND_TEST.md](BLIND_TEST.md)
 - 적용 전 측정 절차: [MEASUREMENT.md](MEASUREMENT.md)
 - 설계 결정과 규칙 동결 지점: [../DECISIONS.md](../DECISIONS.md)
 
@@ -26,6 +27,7 @@
 | 앱 | `uv run streamlit run app/main.py` |
 | 테스트 | `uv run pytest` |
 | 추출 평가 — 예상 호출 수만 | `uv run python scripts/eval_meeting.py --plan` |
+| 블라인드 라벨 → 평가 파일 | `uv run python scripts/blind_labels.py` (`--init`: 양식 만들기) |
 | 추출 평가 (원 출력 저장) | `uv run python scripts/eval_meeting.py --details --save-raw logs/eval_raw.jsonl` |
 | 저장된 출력 다시 채점 (호출 0회) | `uv run python scripts/eval_meeting.py --rescore logs/eval_raw.jsonl --details` |
 | 리마인더 수동 실행 | `uv run python scripts/run_reminders.py --now 2026-10-16T09:00:00+09:00 [--dry-run]` |
@@ -51,7 +53,7 @@
 
 기관장급(장관·차관·시도지사 등)은 "제가 직접 ~하겠습니다"처럼 '직접'이라고 말할 때만 개인 담당자로 확정합니다. 다만 아래 경우에는 규칙이 틀리게 판단할 수 있습니다. 시연과 평가에서는 사람이 확인 화면에서 바로잡습니다.
 
-- **목록에 없는 직함**: 정부 위원회 위원장·부위원장(예: "가상방송위원회 부위원장"), 대사는 기관장급으로 보지 않습니다. 이들이 "제가 ~하겠습니다"라고 하면 개인 담당자로 확정될 수 있습니다.
+- **목록에 없는 직함**: 설정 파일에 없는 정부 위원회 위원장(예: "가상선거관리위원장"), 정부 위원회 부위원장, 대사는 기관장급으로 보지 않습니다. 이들이 "제가 ~하겠습니다"라고 하면 개인 담당자로 확정될 수 있습니다.
 - **'저도'**: "저도 금요일까지 검토해 보겠습니다"를 "제가 ~"와 같은 본인 약속으로 봅니다.
 - **남이 하는 '직접'**: 기관장이 "실장으로 하여금 직접", "실장에게 직접"이라고 해도 기관장 본인의 '직접'으로 셉니다. "직접 지원 예산"처럼 명사 앞의 '직접'도 마찬가지입니다.
 - **'후보자'만 붙은 발언자**: "문해솔 후보자:"처럼 기관 이름 없이 '후보자'만 있으면 기관장급으로 보지 않습니다. "가상재판소장 후보자 문해솔:"은 기관장급으로 봅니다.

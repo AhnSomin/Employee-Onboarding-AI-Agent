@@ -44,3 +44,32 @@
 | Sheets 접근 실패 | `STATE_BACKEND=sqlite`로 로컬 시연합니다. 리마인더는 `uv run python scripts/run_reminders.py --now … --dry-run`으로 대신 보여 줍니다. |
 | GitHub Actions 지연·실패 | 로컬에서 `run_reminders.py --now …`로 같은 결과를 보여 줍니다. 예약 실행은 몇 분~수십 분 늦을 수 있습니다. |
 | 네트워크 끊김 | 강제 폴백 토글과 `ACTIONS_DRY_RUN=true`로 오프라인 시연을 합니다. |
+
+### 대체 시연 대본 (연동 장애 시: DRY_RUN 미리보기 + 로컬 리마인더 CLI)
+
+Calendar·Slack·Sheets 중 하나라도 안 되면 이 대본으로 바꿉니다. 실제로 만들거나 보내지는 않지만, 같은 화면 흐름과 같은 중복 방지를 보여 줍니다. `.env`는 고치지 않고 명령줄 환경변수로만 바꿉니다.
+
+**준비**: 앱을 끄고, 터미널에서 DRY_RUN과 로컬 저장소로 다시 시작합니다.
+
+```bash
+ACTIONS_DRY_RUN=true STATE_BACKEND=sqlite uv run streamlit run app/main.py
+```
+
+Gemini도 안 되면 회의록 화면의 강제 폴백 토글을 켭니다.
+
+**대본**
+
+1. **엣지케이스 회의록 업로드** → 미확정·검토 필요 표시를 확인합니다(본 대본 1번과 같음).
+2. **담당자·기한 채우기 → 미리보기 → 승인** → 화면의 "DRY_RUN — 실제 등록·발송 없음" 표시와 "DRY_RUN 페이로드"를 보여 줍니다. 만들 캘린더 일정과 보낼 Slack 메시지가 그대로 나옵니다.
+3. **중복 없음**: 승인을 다시 누르면 일정·메시지가 "건너뜀(이미 …)"으로 나옵니다.
+4. **액션 현황 → 리마인더 미리보기**: 기준 날짜를 기한 전 근무일로 바꾸면 `[D-1]` 메시지가 보입니다.
+5. **로컬 리마인더 CLI**: 두 번째 터미널에서 GitHub Actions가 매일 아침 돌리는 것과 같은 명령을 실행합니다. `--now`에는 기한 전 근무일 09:00을 넣습니다.
+
+   ```bash
+   ACTIONS_DRY_RUN=true STATE_BACKEND=sqlite uv run python scripts/run_reminders.py --now 2026-10-15T09:00:00+09:00 --dry-run
+   ```
+
+   `[D-1]` 메시지 본문이 출력됩니다. 같은 명령을 한 번 더 실행하면 "보낼 리마인더 없음"이 나옵니다(중복 방지).
+6. **강제 폴백 토글**(본 대본 6번).
+
+할 말: "실제 연동에서는 같은 흐름으로 캘린더 일정과 Slack 메시지가 만들어지고, 리마인더는 GitHub Actions가 평일 09:00에 이 명령으로 보냅니다."
