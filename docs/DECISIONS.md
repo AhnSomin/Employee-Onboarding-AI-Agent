@@ -215,3 +215,15 @@
   - 개인 담당자 x2-1은 매칭됐지만 확정되지 않았다. 모델이 근거 인용 앞에 발언자 표기를 붙였는데, 그 문장이 발언의 첫 문장이 아니어서 인용을 회의록에서 찾지 못했다(안전한 쪽의 실패).
   - x1-1은 모델이 뽑지 않았다(재현율 손실).
   - 규칙 기반 기준선은 발언 전체를 할 일로 내므로 키워드가 우연히 맞기 쉽다. 매칭 수가 실제보다 후하게 나온다.
+- 2026-10-10 **블라인드 세트와 발표 자료.**
+  - 블라인드 세트 양식(`data/external/blind/_양식.yaml`)과 변환기(`scripts/blind_labels.py`)를 만들었다. 아직 회의록이 없어 실행은 건너뛰었다.
+  - 평가 요약 `docs/meeting/EVALUATION.md`, 규칙 한 쪽 요약 `docs/meeting/RULES.md`, 작성 안내 `docs/meeting/BLIND_TEST.md`를 썼다. 집계 수치와 가상 예시만 썼다.
+  - `docs/DEMO.md`에 DRY_RUN 미리보기와 로컬 리마인더 CLI로 하는 대체 시연 대본을 더했다.
+- 2026-10-10 **실연동 검증 (일부).** `smoke_test` 결과는 Gemini OK, Slack OK(워크스페이스 test-2, #onboarding-demo)였다. Calendar·Sheets는 SKIP이었다. 앱이 읽는 `.env`에 `GOOGLE_SERVICE_ACCOUNT_JSON`·`GCAL_CALENDAR_ID`·`GSHEETS_SPREADSHEET_ID`가 없다(키 파일 `secrets/google-service-account.json`은 있다). 그래서 Calendar·Sheets가 필요한 검증은 건너뛰었다.
+  - Slack 검증은 실제 발송으로 했다. 추출은 강제 폴백(모델 호출 없음), 상태는 임시 SQLite에 두었다.
+    - 승인 1회에 Slack 요약 1건이 나갔다. 승인 버튼 두 번 누르기, 새로고침, 다른 페이지에 갔다 오기, 다시 실행 모두 추가 발송이 없었다.
+    - 김민준은 `<@멤버ID>` 멘션으로, 이서연은 "이서연(Slack 미등록)"으로 나갔다.
+    - 실패 재시도: `SLACK_CHANNEL_ID`를 없는 채널로 덮어써 발송을 실패시켰다. 앱을 원래 설정으로 다시 띄워 재시도하니 Slack만 한 번 나갔고, 이후 재시도에서는 "건너뜀(이미 보냄)"이었다. Calendar는 설정이 없어 매번 실패로 남았다.
+    - 로컬 리마인더 CLI(`--now 2026-10-13T09:00:00+09:00`)로 D-1 스레드 답글 1건을 실제로 보냈다. 같은 입력으로 다시 돌리니 "보낼 리마인더 없음"이었다.
+  - GitHub Actions: Secrets 4개 이름을 확인했다. `reminders`를 `dry_run=true`로 수동 실행했고 성공했다. Secrets로 Sheets를 읽었고 보낼 리마인더는 없었다. Sheets에 승인 항목이 없어 Actions의 실제 발송 확인은 건너뛰었다.
+  - 실연동으로 만든 Slack 메시지 3건(요약 2건, 리마인더 1건)은 지우지 않고 남겼다. `reset_demo`는 목록만 확인했다.
