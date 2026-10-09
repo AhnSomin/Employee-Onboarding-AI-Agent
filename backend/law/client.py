@@ -66,6 +66,33 @@ def _grams(text: str) -> set[str]:
     return {t[i:i + 2] for i in range(len(t) - 1)}
 
 
+def fetch_admrul(name: str) -> dict | None:
+    """행정규칙(예규·훈령·지침) 본문. 이름이 정확히 일치하는 것만. 본문이 첨부파일뿐인 규칙은 None."""
+    cp = _cache_path("admrul_" + name)
+    if cp.exists():
+        return json.loads(cp.read_text())
+    if not config.LAW_API_OC:
+        return None
+    try:
+        r = requests.get(f"{BASE}/lawSearch.do", timeout=15,
+                         params={"OC": config.LAW_API_OC, "target": "admrul", "type": "JSON", "query": name, "display": 10}).json()
+        hits = r["AdmRulSearch"]["admrul"]
+        hits = hits if isinstance(hits, list) else [hits]
+        norm = lambda x: re.sub(r"\s+", "", x)
+        hit = next((h for h in hits if norm(h["행정규칙명"]) == norm(name)), None)
+        if hit is None:
+            return None
+        body = requests.get(f"{BASE}/lawService.do", timeout=30,
+                            params={"OC": config.LAW_API_OC, "target": "admrul", "type": "JSON",
+                                    "ID": hit["행정규칙일련번호"]}).json()["AdmRulService"]
+        if not isinstance(body.get("조문내용"), list):
+            return None
+        cp.write_text(json.dumps(body, ensure_ascii=False))
+        return body
+    except Exception:
+        return None
+
+
 def search_articles(query: str, law: str = "국가공무원 복무규정", k: int = 3) -> list[str]:
     """조문 단위로 쪼개 2-gram(글자 두 개) 겹침으로 순위를 매긴다 (임베딩 RAG로 교체 예정).
     조사·어미가 달라도 매칭되고, 흔한 글자쌍은 낮은 가중치(역문서빈도)를 받는다.

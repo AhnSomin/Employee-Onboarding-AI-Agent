@@ -5,9 +5,11 @@ type Msg = { role: "user" | "assistant"; text: string; escalated?: boolean };
 
 const SUGGESTIONS = [
   "반차 2번 쓰면 하루로 쳐요?",
-  "입사 1년 안 됐는데 연가 며칠이에요?",
-  "결혼하면 휴가 며칠 받아요?",
-  "출장 가면 숙박비는 어떻게 돼요?",
+  "복지포인트는 어떻게 부여돼요?",
+  "명절휴가비 받아요?",
+  "시보 기간은 얼마나 돼요?",
+  "육아휴직 하면 수당 나와요?",
+  "선물 받아도 돼요?",
   "기획조정관은 무슨 일을 하나요?",
 ];
 
@@ -62,7 +64,7 @@ export default function Chat({ onActivity }: { onActivity: () => void }) {
       <header className="panel-head">
         <div>
           <h2>규정 질문하기</h2>
-          <p className="muted">복무규정·여비·보수·직제 규정을 근거로 쉽게 풀어 답해요.</p>
+          <p className="muted">복무·복지·수당·임용·행동강령·직제 규정을 근거로 쉽게 풀어 답해요.</p>
         </div>
         <div className="head-actions">
           {mode && <span className="badge">{mode}</span>}

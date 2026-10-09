@@ -9,7 +9,14 @@ import numpy as np
 from backend import config
 from backend.law import client as law
 
-LAWS = ["국가공무원 복무규정", "공무원 여비 규정", "공무원보수규정", "국가데이터처와 그 소속기관 직제 시행규칙"]
+# (이름, 종류): law=법령, admrul=행정규칙(지침·예규)
+SOURCES = [
+    ("국가공무원 복무규정", "law"), ("공무원 여비 규정", "law"), ("공무원보수규정", "law"),
+    ("국가데이터처와 그 소속기관 직제 시행규칙", "law"),
+    ("공무원 후생복지에 관한 규정", "law"), ("공무원수당 등에 관한 규정", "law"),
+    ("국가공무원법", "law"), ("공무원임용령", "law"), ("공무원 행동강령", "law"),
+    ("국가데이터처 맞춤형 복지제도 운영지침", "admrul"),
+]
 INDEX_DIR = config.DATA_DIR / "rag_index"
 EMBED_MODEL = "text-embedding-3-small"
 MAX_CHARS = 1800
@@ -44,10 +51,34 @@ def chunk_law(name: str, body: dict) -> list[dict]:
     return out
 
 
+def chunk_admrul(name: str, body: dict) -> list[dict]:
+    """행정규칙: 조문내용이 문자열 목록이다. '제N조'로 시작하는 항목이 조, 장 제목은 건너뛴다. 긴 조는 항(①②…) 경계로 나눈다."""
+    out = []
+    for item in body["조문내용"]:
+        m = re.match(r"(제\d+조(?:의\d+)?\([^)]*\))\s*(.*)", item, re.S)
+        if not m:
+            continue  # '제2장 …' 같은 장 제목
+        title, rest = m.group(1), _clean(item)
+        if len(rest) <= MAX_CHARS:
+            out.append({"law": name, "article": title, "para": "", "text": rest})
+            continue
+        parts = re.split(r"(?=[①-⑳])", rest)
+        cur = ""
+        for pt in parts:
+            if len(cur) + len(pt) > MAX_CHARS and cur:
+                out.append({"law": name, "article": title, "para": cur.lstrip()[:1] if cur.lstrip()[:1] in "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳" else "", "text": cur.strip()})
+                cur = ""
+            cur += pt
+        if cur.strip():
+            out.append({"law": name, "article": title, "para": "", "text": cur.strip()})
+    return out
+
+
 def chunk_tables(name: str, body: dict) -> list[dict]:
     """별표(표)는 휴가 일수·여비 금액 같은 숫자가 있어 따로 색인한다. 길면 줄 단위로 나눈다."""
     out = []
-    units = (body["법령"].get("별표") or {}).get("별표단위", [])
+    root = body.get("법령", body)
+    units = (root.get("별표") or {}).get("별표단위", [])
     for u in units if isinstance(units, list) else [units]:
         if u.get("별표구분") != "별표":
             continue
@@ -83,12 +114,12 @@ def _embed(texts: list[str]) -> np.ndarray:
 
 def build() -> int:
     chunks = []
-    for name in LAWS:
-        body = law.fetch_law(name)
+    for name, kind in SOURCES:
+        body = law.fetch_law(name) if kind == "law" else law.fetch_admrul(name)
         if not body:
-            print(f"[skip] {name}: 법령을 가져오지 못함")
+            print(f"[skip] {name}: 가져오지 못함")
             continue
-        cs = chunk_law(name, body) + chunk_tables(name, body)
+        cs = (chunk_law(name, body) if kind == "law" else chunk_admrul(name, body)) + chunk_tables(name, body)
         print(f"{name}: {len(cs)} chunks")
         chunks += cs
     vecs = _embed([f'{label(c)}\n{c["text"][:MAX_CHARS]}' for c in chunks])
@@ -96,6 +127,7 @@ def build() -> int:
     np.save(INDEX_DIR / "vectors.npy", vecs)
     (INDEX_DIR / "chunks.json").write_text(json.dumps(chunks, ensure_ascii=False))
     load_index.cache_clear()
+    _bm25_stats.cache_clear()
     return len(chunks)
 
 
@@ -112,12 +144,44 @@ def _grams(t: str) -> set[str]:
     return {t[i:i + 2] for i in range(len(t) - 1)}
 
 
+@lru_cache(maxsize=1)
+def _bm25_stats():
+    """글자 2-gram BM25 통계 (조문 제목 글자는 3배 가중). 긴 청크가 점수를 독식하지 않도록 길이 정규화."""
+    chunks, _ = load_index()
+    docs = []
+    for c in chunks:
+        tf = {}
+        for g in _gram_list(label(c) + c["text"]):
+            tf[g] = tf.get(g, 0) + 1
+        for g in _gram_list(c["article"]):
+            tf[g] = tf.get(g, 0) + 3
+        docs.append(tf)
+    df = {}
+    for tf in docs:
+        for g in tf:
+            df[g] = df.get(g, 0) + 1
+    lens = np.array([sum(tf.values()) for tf in docs], dtype=float)
+    return docs, df, lens, lens.mean()
+
+
+def _gram_list(t: str) -> list[str]:
+    t = re.sub(r"\W+", "", t)
+    return [t[i:i + 2] for i in range(len(t) - 1)]
+
+
 def _lexical(query: str, chunks: list[dict]) -> np.ndarray:
-    bodies = [_grams(label(c) + c["text"]) for c in chunks]
-    titles = [_grams(c["article"]) for c in chunks]
-    q = _grams(query)
-    idf = {g: 1.0 / n for g in q if (n := sum(g in b for b in bodies))}
-    return np.array([sum(w * (3 if g in t else 1) for g, w in idf.items() if g in b) for b, t in zip(bodies, titles)])
+    docs, df, lens, avg = _bm25_stats()
+    n, k1, b = len(docs), 1.2, 0.75
+    scores = np.zeros(n)
+    for g in set(_gram_list(query)):
+        if g not in df:
+            continue
+        idf = np.log(1 + (n - df[g] + 0.5) / (df[g] + 0.5))
+        for i, tf in enumerate(docs):
+            f = tf.get(g)
+            if f:
+                scores[i] += idf * f * (k1 + 1) / (f + k1 * (1 - b + b * lens[i] / avg))
+    return scores
 
 
 @lru_cache(maxsize=512)
@@ -125,8 +189,51 @@ def _embed_query(q: str) -> np.ndarray:
     return _embed([q])[0]
 
 
-def search(query: str, k: int = 5, mode: str = "hybrid") -> list[dict]:
-    """mode: 'vector' | 'keyword' | 'hybrid'. 관련 없으면 빈 리스트."""
+RERANK_MODELS = ["gpt-4.1-mini", "gpt-4o-mini"]
+_RERANK_PROMPT = """공무원 규정 검색 결과를 재정렬한다. 사용자 질문에 답하는 데 가장 직접적으로 쓰이는 조문부터, 최대 {k}개의 번호를 고른다.
+- 질문이 묻는 내용(일수·금액·절차·정의·대상 등)이 실제로 적힌 조문을 우선한다. 제목만 비슷한 조문은 뒤로.
+- 질문과 무관한 조문은 고르지 않는다. 모두 무관하면 빈 목록.
+JSON만 출력: {{"ranked": [번호, ...]}}"""
+
+
+@lru_cache(maxsize=512)
+def _rerank_ids(query: str, cands: tuple, k: int) -> tuple:
+    """cands: (번호, 설명) 튜플들. LLM이 고른 번호를 순서대로 반환."""
+    from openai import OpenAI
+    cl = OpenAI(api_key=config.OPENAI_API_KEY, timeout=30, max_retries=1)
+    listing = "\n".join(f"[{i}] {d}" for i, d in cands)
+    last = None
+    for model in RERANK_MODELS:
+        try:
+            r = cl.chat.completions.create(
+                model=model, temperature=0,
+                messages=[{"role": "system", "content": _RERANK_PROMPT.format(k=k)},
+                          {"role": "user", "content": f"질문: {query}\n\n후보:\n{listing}"}],
+                response_format={"type": "json_object"})
+            ids = json.loads(r.choices[0].message.content).get("ranked", [])
+            valid = {i for i, _ in cands}
+            return tuple(int(i) for i in ids if int(i) in valid)[:k]
+        except Exception as e:
+            last = e
+    raise RuntimeError(type(last).__name__)
+
+
+def _rerank(query: str, hits: list[dict], k: int) -> list[dict]:
+    cands = tuple((i, f'{label(h)} — {h["text"][:220].replace(chr(10), " ")}') for i, h in enumerate(hits))
+    ids = _rerank_ids(query, cands, k)
+    return [hits[i] for i in ids]
+
+
+def search(query: str, k: int = 5, mode: str = "rerank") -> list[dict]:
+    """mode: 'vector' | 'keyword' | 'hybrid' | 'rerank'(기본: 하이브리드 상위 20 → LLM 재순위). 관련 없으면 빈 리스트."""
+    if mode == "rerank":
+        pool = search(query, k=20, mode="hybrid")
+        if not pool or not config.OPENAI_API_KEY:
+            return pool[:k]
+        try:
+            return _rerank(query, pool, k)
+        except Exception:
+            return pool[:k]  # 재순위 실패 시 하이브리드 결과로
     idx = load_index()
     if idx is None:
         return []
@@ -134,12 +241,12 @@ def search(query: str, k: int = 5, mode: str = "hybrid") -> list[dict]:
     lex = _lexical(query, chunks)
     if mode == "keyword" or not config.OPENAI_API_KEY:
         order = np.argsort(-lex)[:k]
-        return [{**chunks[i], "score": float(lex[i])} for i in order if lex[i] > 0.3]
+        return [{**chunks[i], "score": float(lex[i])} for i in order if lex[i] > 3.0]
     try:
         cos = vecs @ _embed_query(query)
     except Exception:
         order = np.argsort(-lex)[:k]
-        return [{**chunks[i], "score": float(lex[i])} for i in order if lex[i] > 0.3]
+        return [{**chunks[i], "score": float(lex[i])} for i in order if lex[i] > 3.0]
     if cos.max() < MIN_COSINE:   # 키워드는 '추천' 같은 흔한 글자쌍에 속으므로 판정에 쓰지 않음
         return []
     if mode == "vector":

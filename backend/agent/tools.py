@@ -49,7 +49,7 @@ def build_tools(emp_id: str, ctx: dict, only: set[str] | None = None) -> dict:
         return {"ok": True, "done": done, "total": total}
 
     def lookup_law(query: str) -> dict:
-        """국가공무원 복무규정·공무원 여비 규정·공무원보수규정·국가데이터처 직제 시행규칙에서 관련 조문을 검색한다.
+        """복무·여비·보수·수당·후생복지(국가데이터처 맞춤형 복지제도 운영지침 포함)·국가공무원법·공무원임용령·행동강령·국가데이터처 직제 규정에서 관련 조문을 검색한다.
 
         Args:
             query: 검색할 질문 또는 법령 용어 (예: 반일 연가, 출장 숙박비)
