@@ -18,7 +18,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path, PurePosixPath
 
-from .parse_law import EFFECTIVE, VERSION, read_pdf_lines
+from .parse_law import EFFECTIVE, VERSION, annex_header, read_pdf_lines
 
 CLASSES = (
     "법령·행정규칙",
@@ -83,6 +83,32 @@ def classify_file(path: Path, label: str) -> InventoryEntry:
         head = "\n".join(line.text for line in lines[:12])
         version, effective = VERSION.search(head), EFFECTIVE.search(head)
         title = next((line.text.strip() for line in lines if line.text.strip()), None)
+        annex = annex_header(lines)
+        if annex:
+            label = f"{annex.group('law').strip()} [{annex.group('kind')} {annex.group('no')}]"
+            chars = sum(len(line.text.strip()) for line in lines if not line.image)
+            if chars < 40 or any(line.image for line in lines):
+                return InventoryEntry(
+                    **base,
+                    text_extractable=extractable,
+                    category=CLASSES[2],
+                    external_send="허가(공개 법령 별표)",
+                    indexed=False,
+                    reason="이미지 별표 — 옮겨 적지 않고 미색인",
+                    title=label,
+                )
+            return InventoryEntry(
+                **base,
+                text_extractable=extractable,
+                category=CLASSES[2],
+                external_send="허가(공개 법령 별표)",
+                indexed=True,
+                reason="공개 법령의 별표(글자 추출 가능)",
+                title=annex.group("law").strip(),
+                version_label=f"[{annex.group('kind')} {annex.group('no')}]"
+                + (f" <{annex.group('note')}>" if annex.group("note") else ""),
+                notes=["별표 파일 — 시행일은 적혀 있지 않음(미확인)"],
+            )
         if not with_text:
             return InventoryEntry(
                 **base,
@@ -203,6 +229,29 @@ def repo_material(repo_root: Path) -> list[InventoryEntry]:
     return entries
 
 
+def transcription_entries(repo_root: Path) -> list[InventoryEntry]:
+    """Tables a person or agent typed from images in a public statute (data/manual/tables/, committed)."""
+    entries = []
+    for path in sorted((repo_root / "data" / "manual" / "tables").glob("*.txt")):
+        text = path.read_text(encoding="utf-8")
+        reviewed = "검수 완료" in text.split("---", 2)[1] if text.startswith("---") else False
+        entries.append(
+            InventoryEntry(
+                path=str(PurePosixPath(path.relative_to(repo_root))),
+                format="txt",
+                size=path.stat().st_size,
+                sha256=sha256_of(path),
+                text_extractable="예",
+                category=CLASSES[0],
+                external_send="허가(공개 법령)",
+                indexed=True,
+                reason="공개 법령의 이미지 표를 옮겨 적은 전사본" + ("(검수 완료)" if reviewed else "(사람 검수 전)"),
+                notes=["manual_transcription"],
+            )
+        )
+    return entries
+
+
 def build_inventory(source_dirs: dict[str, Path], repo_root: Path) -> dict:
     entries: list[InventoryEntry] = []
     missing: list[str] = []
@@ -212,6 +261,7 @@ def build_inventory(source_dirs: dict[str, Path], repo_root: Path) -> dict:
             continue
         for path in sorted(p for p in folder.iterdir() if p.is_file() and not p.name.startswith(".")):
             entries.append(classify_file(path, label))
+    entries += transcription_entries(repo_root)
     entries += repo_material(repo_root)
     return {
         "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),

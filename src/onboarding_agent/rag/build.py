@@ -14,10 +14,21 @@ from pathlib import Path
 
 import yaml
 
-from .chunker import chunk_law, estimate_tokens, link_refs, source_doc
+from .chunker import (
+    annex_source_doc,
+    attach_tables,
+    chunk_annex,
+    chunk_law,
+    chunk_transcription,
+    estimate_tokens,
+    link_refs,
+    parse_transcription,
+    source_doc,
+    transcription_source_doc,
+)
 from .models import RegChunk, SourceDoc
-from .parse_law import ParsedLaw, parse_pdf
-from .sources import build_inventory
+from .parse_law import ParsedLaw, parse_annex_pdf, parse_pdf
+from .sources import CLASSES, build_inventory
 
 MAX_CHUNKS = 200
 MAX_DOC_TOKENS = 120_000  # estimated
@@ -46,9 +57,18 @@ def prepare(source_dirs: dict[str, Path], repo_root: Path, targets: dict) -> Bui
     inventory = build_inventory(source_dirs, repo_root)
     plan = BuildPlan(inventory)
     candidates: list[tuple[int, str, Path, dict]] = []
+    annexes: list[tuple[Path, dict]] = []
+    transcriptions: list[tuple[Path, dict]] = []
     priority = list(targets.get("priority", []))
     for entry in inventory["entries"]:
         if not entry["indexed"]:
+            continue
+        if entry["path"].startswith("data/manual/tables/"):
+            transcriptions.append((repo_root / entry["path"], entry))
+            continue
+        if entry["category"] == CLASSES[2]:
+            label, _, name = entry["path"].partition("/")
+            annexes.append((source_dirs[label] / name, entry))
             continue
         label, _, name = entry["path"].partition("/")
         path = source_dirs[label] / name
@@ -79,6 +99,40 @@ def prepare(source_dirs: dict[str, Path], repo_root: Path, targets: dict) -> Bui
         plan.chunks += chunks
         plan.excluded += [{"doc": doc.doc_title, **item} for item in law.excluded + dropped]
         plan.warnings += [f"{doc.doc_title}: {w}" for w in law.warnings]
+    parents = {d.doc_title: d for d in plan.docs}
+    for path, entry in annexes:
+        annex = parse_annex_pdf(path)
+        parent = parents.get(annex.law_title) if annex else None
+        if annex is None or parent is None:
+            plan.unindexed.append(
+                {"title": entry["title"] or path.name, "reason": "본문 법령이 색인에 없거나 별표를 읽지 못함"}
+            )
+            continue
+        doc = annex_source_doc(
+            annex, parent, sha256=entry["sha256"], source_uri=f"local:{entry['path']}", collected_at=collected
+        )
+        plan.docs.append(doc)
+        plan.chunks += chunk_annex(annex, doc)
+    for path, entry in transcriptions:
+        front, table = parse_transcription(path.read_text(encoding="utf-8"))
+        parent = parents.get(str(front.get("법령명")))
+        if parent is None or (front.get("버전") and front["버전"] != parent.version_label):
+            plan.unindexed.append({"title": path.name, "reason": "전사본의 법령·버전이 색인된 본문과 맞지 않음"})
+            continue
+        doc = transcription_source_doc(
+            front, parent, sha256=entry["sha256"], source_uri=f"local:{entry['path']}", collected_at=collected
+        )
+        plan.docs.append(doc)
+        plan.chunks.append(chunk_transcription(front, table, doc))
     indexed_ids = {d.doc_id for d in plan.docs}
-    plan.chunks = link_refs([c for c in plan.chunks if c.doc_id in indexed_ids])
+    plan.chunks = attach_tables(link_refs([c for c in plan.chunks if c.doc_id in indexed_ids]))
+    plan.excluded = [item for item in plan.excluded if not _covered(item, plan.chunks)]
     return plan
+
+
+def _covered(item: dict, chunks: list[RegChunk]) -> bool:
+    """An image table that now has a transcription is no longer an exclusion."""
+    if item.get("kind") != "이미지 표·그림":
+        return False
+    article = item["detail"].split("조")[0].removeprefix("제") if item["detail"].startswith("제") else None
+    return any(c.kind == "table" and c.article_no == article for c in chunks)

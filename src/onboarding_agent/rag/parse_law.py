@@ -32,7 +32,12 @@ CHAPTER = re.compile(r"^제(\d+장(?:의\d+)?)\s+(.+?)(?:\s*<[^>]*>)?$")
 SECTION = re.compile(r"^제(\d+절(?:의\d+)?)\s+(.+?)(?:\s*<[^>]*>)?$")
 ADDENDA = re.compile(r"^부\s*칙(?:\s|<|$)")
 ANNEX = re.compile(r"\[(별표|별지)\s*(?:제\s*)?(\d+(?:의\d+)?)(?:호)?(?:\s*서식)?\]")
-GARBLED = re.compile(r"[�-]")
+GARBLED = re.compile("[\\ufffd\\ue000-\\uf8ff]")  # replacement character and the private use area
+ANNEX_TITLE = re.compile(
+    r"^■?\s*(?P<law>[^\[]+?)\s*\[(?P<kind>별표|별지)\s*(?:제\s*)?(?P<no>\d+(?:의\d+)?)(?:호)?(?:\s*서식)?\]"
+    r"\s*(?:<(?P<note>[^>]*)>)?\s*$"
+)
+RELATED = re.compile(r"\(제(\d+)조(?:의(\d+))?(?:제\d+항)?(?:제\d+호)?\s*관련\)")
 
 
 IMAGE_MARKER = "[표·그림(이미지) — 텍스트로 추출되지 않아 미색인]"
@@ -278,3 +283,47 @@ def _date(match: re.Match | None) -> date | None:
     if not match:
         return None
     return date(int(match.group(1)), int(match.group(2)), int(match.group(3)))
+
+
+@dataclass
+class ParsedAnnex:
+    """A 별표 or 별지 printed as its own file: "■ 국가공무원 복무규정 [별표 2] <개정 2025. 2. 11.>"."""
+
+    law_title: str
+    kind: str  # 별표 | 별지
+    number: str
+    note: str | None  # e.g. "개정 2025. 2. 11." (an amendment date, not an effective date)
+    title: str | None
+    related_article: str | None  # from "(제20조제1항 관련)"
+    lines: list[Line]
+    pages: int
+
+
+def annex_header(lines: list[Line]) -> re.Match | None:
+    first = next((line.text.strip() for line in lines if line.text.strip()), "")
+    return ANNEX_TITLE.match(first)
+
+
+def parse_annex(lines: list[Line], pages: int = 1) -> ParsedAnnex | None:
+    header = annex_header(lines)
+    if header is None:
+        return None
+    body = [line for line in lines if line.text.strip()][1:]
+    title = body[0].text.strip() if body else None
+    related = RELATED.search(title or "")
+    related_no = (related.group(1) + (f"의{related.group(2)}" if related.group(2) else "")) if related else None
+    return ParsedAnnex(
+        law_title=header.group("law").strip(),
+        kind=header.group("kind"),
+        number=header.group("no"),
+        note=header.group("note"),
+        title=title,
+        related_article=related_no,
+        lines=body,
+        pages=pages,
+    )
+
+
+def parse_annex_pdf(path: Path) -> ParsedAnnex | None:
+    lines, pages = read_pdf_lines(path)
+    return parse_annex(lines, pages)

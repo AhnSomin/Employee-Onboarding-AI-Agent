@@ -40,7 +40,7 @@ from .chunker import flow_text
 from .escalation import save_escalation
 from .index import LoadedIndex
 from .models import ModelAnswer, RegAnswer, RegChunk
-from .parse_law import article_label
+from .parse_law import IMAGE_MARKER, article_label
 from .retrieve import DEFAULT_MODE, Hit, RetrievalResult, Retriever
 from .usage import BudgetExceeded
 from .validate import Validation, validate_answer
@@ -361,7 +361,7 @@ class QAService:
             "chunk_id": chunk.chunk_id,
             "doc_title": self.doc_titles.get(chunk.doc_id),
             "article": self.label(chunk),
-            "text": model_text(chunk),
+            "text": model_text(chunk, self.index),
         }
 
     # --- helpers --------------------------------------------------------------------------
@@ -371,7 +371,8 @@ class QAService:
             return chunk.heading or ""
         text = article_label(chunk.article_no)
         text += f"({chunk.article_title})" if chunk.article_title else ""
-        return text + (f" 제{chunk.paragraph_no}항" if chunk.paragraph_no else "")
+        text += f" 제{chunk.paragraph_no}항" if chunk.paragraph_no else ""
+        return text + (" 표(전사본)" if chunk.kind == "table" else "")
 
     def _generate(self, prompt: str, purpose: str) -> tuple[ModelAnswer, str]:
         if self.counter is not None:
@@ -388,7 +389,7 @@ class QAService:
         for hit in retrieval.hits:
             tag = " (참조 조문: 앞 근거가 가리키는 조문)" if hit.via == "ref" else ""
             lines.append(f"[{hit.chunk.chunk_id}] {self.doc_titles.get(hit.chunk.doc_id)} {self.label(hit.chunk)}{tag}")
-            lines.append(model_text(hit.chunk))
+            lines.append(model_text(hit.chunk, self.index))
         return "\n".join(lines)
 
     @staticmethod
@@ -431,9 +432,15 @@ class QAService:
             doc = self.index.docs.get(doc_id)
             if doc is None:
                 continue
+            if doc.doc_type == "annex":
+                labels.append(f"{doc.doc_title} {doc.version_label or '별표'} (시행일 미확인)")
+                continue
             when = f"시행 {_dot(doc.effective_date)}" if doc.effective_date else "시행일 미확인"
-            labels.append(f"{doc.doc_title} {when}" + (f" ({doc.version_label})" if doc.version_label else ""))
-        return "; ".join(labels) or "미확인"
+            label = f"{doc.doc_title} {when}" + (f" ({doc.version_label})" if doc.version_label else "")
+            if "manual_transcription" in doc.unverified:
+                label += " · 표 전사본 검수 대기"
+            labels.append(label)
+        return "; ".join(dict.fromkeys(labels)) or "미확인"
 
     def _period_unavailable(self, question: str, retrieval: RetrievalResult) -> str | None:
         docs = [
@@ -482,9 +489,16 @@ class QAService:
         return result
 
 
-def model_text(chunk: RegChunk) -> str:
-    """Source text for the model: amendment notes dropped, the image-table marker kept."""
-    return flow_text(chunk.text, keep_marker=True)
+def model_text(chunk: RegChunk, index: LoadedIndex | None = None) -> str:
+    """Source text for the model: amendment notes dropped. The image-table marker is kept,
+    or points at the transcription when the article has one."""
+    text = flow_text(chunk.text, keep_marker=True)
+    tables = [ref for ref in chunk.refs if index and (t := index.chunk(ref)) and t.kind == "table"]
+    if tables and IMAGE_MARKER in text:
+        text = text.replace(IMAGE_MARKER, f"[표(이미지) — 옮겨 적은 표 전사본: {', '.join(tables)}]")
+    if chunk.kind == "table":
+        text = "[표 전사본 — 원문 PDF의 이미지 표를 옮겨 적음(사람 검수 전일 수 있음)] " + text
+    return text
 
 
 def _dot(day: date | None) -> str:

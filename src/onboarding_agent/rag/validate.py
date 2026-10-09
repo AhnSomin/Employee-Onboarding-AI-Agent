@@ -9,7 +9,8 @@ What is checked (each check reports passed / failed / warning / not_applicable):
    exist in that article (warning when it cannot be told).
 4. 수치·날짜 — every Arabic number with a unit (일, 시간, 개월, 년, 원, %, 회 …)
    and every date in a point or condition appears in the text of the chunks
-   that point cites (whitespace ignored). Korean number words (하루, 열흘…)
+   that point cites (whitespace ignored). For a cited table or annex chunk the
+   bare number is enough, because table cells carry the unit in the header. Korean number words (하루, 열흘…)
    cannot be compared automatically and give a warning.
 5. 문서명 — every law or regulation name in the reply is the title of a cited
    chunk's document, or is named in a cited chunk's text.
@@ -110,10 +111,13 @@ def validate_answer(
                     article_state = "warning" if article_state != "failed" else article_state
                     warnings.append(f"'{match.group(0).strip()}'의 항을 근거에서 확인하지 못했습니다.")
 
-        # 4. numbers and dates
+        # 4. numbers and dates. A table cell holds a bare number under a header such as "일수",
+        # so for table and annex chunks the number alone (as a whole number) is enough.
+        table_numbers = {n for c in chunks if c.kind in ("table", "annex") for n in re.findall(r"\d+", c.text)}
         for match in [*NUMBER_UNIT.finditer(item.text), *DATE.finditer(item.text)]:
             number_state = "passed" if number_state == "not_applicable" else number_state
-            if compact(match.group(0)) not in source:
+            bare = match.re is NUMBER_UNIT and match.group(1) in table_numbers
+            if compact(match.group(0)) not in source and not bare:
                 number_state = "failed"
                 failures.append(f"{kind} '{_short(item.text)}'의 '{match.group(0).strip()}'가 근거 원문에 없습니다.")
         if KOREAN_NUMBER.search(item.text):

@@ -155,9 +155,16 @@ def render_cards(result: AnswerResult, runtime) -> None:
         when = f"시행 {dot(doc.effective_date)}" if doc and doc.effective_date else "시행일 미확인"
         kind = "가상 자료" if doc and doc.is_fictional else "실제 법령"
         tags = ["인용" if chunk.chunk_id in cited else ("참조 조문" if hit.via == "ref" else "검색됨"), kind]
+        if chunk.kind == "table":
+            reviewed = doc is not None and "manual_transcription" not in doc.unverified
+            tags.append("표 전사본(검수 완료)" if reviewed else "표 전사본(검수 대기)")
+        elif chunk.kind == "annex":
+            tags.append("별표")
         title = f"{doc.doc_title if doc else chunk.doc_id} {runtime.service.label(chunk)}"
         with st.container(border=True):
             st.markdown(f"**{title}**  `{chunk.chunk_id}`")
+            if chunk.kind == "table":
+                st.badge(tags[-1], color="orange" if "대기" in tags[-1] else "green")
             st.caption(
                 " · ".join(tags)
                 + f" · {when}"
@@ -169,7 +176,14 @@ def render_cards(result: AnswerResult, runtime) -> None:
             with st.expander("원문 보기", expanded=chunk.chunk_id in cited):
                 st.text(chunk.text)
                 if IMAGE_MARKER in chunk.text:
-                    st.caption("이 조문의 표는 원문 PDF에 이미지로 들어 있어 색인하지 않았습니다(OCR하지 않음).")
+                    tables = [r for r in chunk.refs if (t := runtime.index.chunk(r)) and t.kind == "table"]
+                    st.caption(
+                        "이 조문의 표는 원문 PDF에 이미지로 들어 있습니다. 옮겨 적은 표 전사본: " + ", ".join(tables)
+                        if tables
+                        else "이 조문의 표는 원문 PDF에 이미지로 들어 있어 색인하지 않았습니다(OCR하지 않음)."
+                    )
+                if chunk.kind == "table":
+                    st.caption("원문 PDF의 이미지 표를 옮겨 적은 것입니다. 원문과 다를 수 있으니 PDF로 확인하세요.")
 
 
 def location(loc: dict) -> str:

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-10T01:39:34+09:00",
+  "generated_at": "2026-10-10T02:15:19+09:00",
   "classes": [
     "법령·행정규칙",
     "기관 규정·업무 안내문",
@@ -9,9 +9,27 @@
     "손상·미지원·권한 미확인"
   ],
   "source_folders": {
-    "regulations_raw": "있음"
+    "regulations_raw": "있음",
+    "data/manual": "있음"
   },
   "entries": [
+    {
+      "path": "regulations_raw/[별표 2] 경조사별 휴가 일수표(제20조제1항 관련)(국가공무원 복무규정).pdf",
+      "format": "pdf",
+      "size": 41735,
+      "sha256": "42bab275961a066964d7b668bc24fb3d09a84275d50183ccf6ba442f680c597f",
+      "text_extractable": "예 (1/1쪽)",
+      "category": "별표·서식",
+      "external_send": "허가(공개 법령 별표)",
+      "indexed": true,
+      "reason": "공개 법령의 별표(글자 추출 가능)",
+      "title": "국가공무원 복무규정",
+      "effective_date": null,
+      "version_label": "[별표 2] <개정 2025. 2. 11.>",
+      "notes": [
+        "별표 파일 — 시행일은 적혀 있지 않음(미확인)"
+      ]
+    },
     {
       "path": "regulations_raw/공무원 행동강령(대통령령)(제32661호)(20220602).pdf",
       "format": "pdf",
@@ -62,6 +80,40 @@
       "version_label": "총리령 제2161호",
       "notes": [
         "법제처 국가법령정보센터 인쇄본(머리말 '법제처 n 국가법령정보센터' 제거)"
+      ]
+    },
+    {
+      "path": "data/manual/tables/국가공무원 복무규정_제15조_연가일수표.txt",
+      "format": "txt",
+      "size": 775,
+      "sha256": "112ebf115894d63501d2d533b7320a04791cf4680c3088d4ea84a13121dbeb48",
+      "text_extractable": "예",
+      "category": "법령·행정규칙",
+      "external_send": "허가(공개 법령)",
+      "indexed": true,
+      "reason": "공개 법령의 이미지 표를 옮겨 적은 전사본(사람 검수 전)",
+      "title": null,
+      "effective_date": null,
+      "version_label": null,
+      "notes": [
+        "manual_transcription"
+      ]
+    },
+    {
+      "path": "data/manual/tables/국가공무원 복무규정_제16조_연가미리사용표.txt",
+      "format": "txt",
+      "size": 919,
+      "sha256": "5e11564da9cba78b3a94858b6faabc3714654df86d4afcb92b78435487de6785",
+      "text_extractable": "예",
+      "category": "법령·행정규칙",
+      "external_send": "허가(공개 법령)",
+      "indexed": true,
+      "reason": "공개 법령의 이미지 표를 옮겨 적은 전사본(사람 검수 전)",
+      "title": null,
+      "effective_date": null,
+      "version_label": null,
+      "notes": [
+        "manual_transcription"
       ]
     },
     {

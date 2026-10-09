@@ -3,15 +3,18 @@
 Run with:
     uv run python scripts/eval_regulations.py plan  [--set FILE]   # expected calls only
     uv run python scripts/eval_regulations.py dev   [--set FILE]   # retrieval metrics, no generation
-    uv run python scripts/eval_regulations.py final [--set FILE]   # one run with generation (budgeted)
-    uv run python scripts/eval_regulations.py rescore RUN.jsonl    # re-check saved outputs, no calls
+    uv run python scripts/eval_regulations.py final --save-raw [--set FILE]  # one run with generation (budgeted)
+    uv run python scripts/eval_regulations.py final --rescore RUN.jsonl      # rescore saved outputs, no calls
 
 Retrieval metrics (hit@1/3/5, MRR) are measured for vector, BM25 and RRF on
 the same questions; question embeddings are cached, so a rerun makes no
 embedding call. The final run generates in file order until its share of the
 generation budget is used; questions held before generation (gate, period)
-and questions left without budget are counted separately. Raw model outputs
-are saved under data/regulations/eval/runs/ (git-ignored) for `rescore`.
+and questions left without budget are counted separately. With --save-raw the
+raw model outputs are saved under data/regulations/eval/runs/ (git-ignored);
+`--rescore` scores them again against the current set file (expected status
+and evidence, by question id) and reruns the deterministic checks, with no
+model or embedding call.
 """
 
 from __future__ import annotations
@@ -31,7 +34,6 @@ from onboarding_agent.rag.answer import ConversationState
 from onboarding_agent.rag.index import IndexUnavailable
 from onboarding_agent.rag.models import ModelAnswer
 from onboarding_agent.rag.service import build_runtime
-from onboarding_agent.rag.usage import GENERATE_PLAN
 from onboarding_agent.rag.validate import CHECK_NAMES, validate_answer
 
 EVAL_DIR = REPO_ROOT / "data" / "regulations" / "eval"
@@ -49,9 +51,20 @@ def expected_pairs(item: dict) -> list[tuple[str, str]]:
     return [(e["doc_title"], str(e["article"])) for e in item.get("expected_evidence") or []]
 
 
+def evidence_key(chunk, titles: dict[str, str]) -> tuple[str | None, str | None]:
+    """(law title, article number) — or (law title, "별표 n") for an annex chunk."""
+    if chunk.kind == "annex" and chunk.heading:
+        return titles.get(chunk.doc_id), chunk.heading.split("]")[0].strip("[")
+    return titles.get(chunk.doc_id), chunk.article_no
+
+
+def evidence_label(title: str, article: str) -> str:
+    return f"{title} {article}" if article.startswith("별표") else f"{title} 제{article}조"
+
+
 def rank_of(hits, expected: list[tuple[str, str]], titles: dict[str, str]) -> int | None:
     for position, hit in enumerate(hits, start=1):
-        if (titles.get(hit.chunk.doc_id), hit.chunk.article_no) in expected:
+        if evidence_key(hit.chunk, titles) in expected:
             return position
     return None
 
@@ -116,7 +129,7 @@ def print_metrics(report: dict, title: str) -> None:
         "\n|---|---|---|---|---|---|---|"
     )
     for r in report["rows"]:
-        expected = ", ".join(f"{t} 제{a}조" for t, a in r["expected"]) or "(없음)"
+        expected = ", ".join(evidence_label(t, a) for t, a in r["expected"]) or "(없음)"
         score = r["modes"]["vector"]["top_vector_score"]
         print(
             f"| {r['id']} | {expected} | {r['modes']['vector']['rank']} | {r['modes']['bm25']['rank']} | "
@@ -132,17 +145,21 @@ def cmd_plan(items: list[dict], runtime) -> None:
         query = " ".join([*(item.get("context") or []), item["question"]]).strip()
         if runtime.embedder and runtime.embedder.cache.get(runtime.embedder.config.query_task, query) is None:
             uncached += 1
-    used = runtime.meter.by_purpose("generate")
-    totals = runtime.meter.totals()
-    print(f"문항 {len(items)} · 새 질문 임베딩 예상 {uncached}회 (지금까지 {totals.get('embed_query', 0)}/30)")
+    meter = runtime.meter
+    used = meter.by_purpose("generate")
+    totals = meter.totals()
     print(
-        f"생성: final_eval 몫 {GENERATE_PLAN['final_eval'] - used.get('final_eval', 0)}회 남음, "
-        f"재생성 몫 {GENERATE_PLAN['regenerate'] - used.get('regenerate', 0)}회 남음 "
-        f"(전체 {totals.get('generate', 0)}/12)"
+        f"문항 {len(items)} · 새 질문 임베딩 예상 {uncached}회 "
+        f"(이번 예산 {totals.get('embed_query', 0)}/{meter.caps['embed_query']})"
+    )
+    print(
+        f"생성: final_eval 몫 {meter.plan.get('final_eval', 0) - used.get('final_eval', 0)}회 남음, "
+        f"재생성 몫 {meter.plan.get('regenerate', 0) - used.get('regenerate', 0)}회 남음 "
+        f"(이번 예산 {totals.get('generate', 0)}/{meter.caps['generate']})"
     )
 
 
-def cmd_final(items: list[dict], draft: bool, runtime, set_path: Path) -> int:
+def cmd_final(items: list[dict], draft: bool, runtime, set_path: Path, save_raw: bool) -> int:
     runtime.embedder.query_purpose = "query:final_eval"
     runtime.service.escalations = RUNS / "eval_escalations.jsonl"
     titles = {d.doc_id: d.doc_title for d in runtime.index.docs.values()}
@@ -161,49 +178,65 @@ def cmd_final(items: list[dict], draft: bool, runtime, set_path: Path) -> int:
             context=(item.get("context") or [])[-1:],
         )
         held = search.gated or runtime.service._period_unavailable(item["question"], search)
-        if not held and used >= GENERATE_PLAN["final_eval"]:
+        if not held and used >= runtime.meter.plan.get("final_eval", 0):
             rows.append({"id": item["id"], "outcome": "not_run_budget", "expected_status": item["expected_status"]})
             continue
         start = time.monotonic()
         result = runtime.service.answer(item["question"], state, purpose="final_eval")
         answer = result.answer
-        cited_pairs = {(titles.get(c.split(":")[0]), _article(c)) for c in result.cited_ids}
-        expected = expected_pairs(item)
+        cited_keys = [
+            list(evidence_key(runtime.index.chunk(c), titles)) for c in result.cited_ids if runtime.index.chunk(c)
+        ]
         rows.append(
-            {
-                "id": item["id"],
-                "outcome": "held" if held else "generated",
-                "expected_status": item["expected_status"],
-                "status": answer.status,
-                "status_ok": answer.status == item["expected_status"],
-                "expected_evidence": expected,
-                "evidence_ok": (
-                    all(e in cited_pairs for e in expected) if expected and answer.status == "answered" else None
-                ),
-                "cited": result.cited_ids,
-                "retrieved": [h.chunk.chunk_id for h in (result.retrieval.hits if result.retrieval else [])],
-                "answer": answer.model_dump(mode="json"),
-                "attempts": result.attempts,
-                "warnings": result.warnings,
-                "seconds": round(time.monotonic() - start, 2),
-                "generate_requests": result.generate_requests,
-            }
+            score_row(
+                {
+                    "id": item["id"],
+                    "question": item["question"],
+                    "outcome": "held" if held else "generated",
+                    "status": answer.status,
+                    "cited": result.cited_ids,
+                    "cited_keys": cited_keys,
+                    "retrieved": [h.chunk.chunk_id for h in (result.retrieval.hits if result.retrieval else [])],
+                    "answer": answer.model_dump(mode="json"),
+                    "attempts": result.attempts,
+                    "warnings": result.warnings,
+                    "seconds": round(time.monotonic() - start, 2),
+                    "generate_requests": result.generate_requests,
+                },
+                item,
+            )
         )
     after = runtime.meter.totals()
     RUNS.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now().strftime("%Y%m%dT%H%M%S")
-    run_path = RUNS / f"final_{stamp}.jsonl"
-    run_path.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
-    summary = summarize(rows, retrieval, before, after, draft, set_path)
+    summary = summarize(rows, retrieval["metrics"], before, after, draft, set_path)
     (RUNS / f"final_{stamp}_summary.json").write_text(
         json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8"
     )
-    print_final(summary, rows, retrieval)
-    print(f"\n원 출력: {run_path.relative_to(REPO_ROOT)}")
+    print_final(summary, rows)
+    print_metrics(retrieval, "최종 세트")
+    if save_raw:
+        run_path = RUNS / f"final_{stamp}.jsonl"
+        run_path.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
+        print(f"\n원 출력: {run_path.relative_to(REPO_ROOT)} (다시 채점: final --rescore 이 파일)")
+    else:
+        print("\n--save-raw 없이 실행해 원 출력을 남기지 않았습니다. 다시 채점할 수 없습니다.")
     return 0
 
 
-def summarize(rows, retrieval, before, after, draft, set_path) -> dict:
+def score_row(row: dict, item: dict) -> dict:
+    """Score one saved row against its set item: expected status, and expected evidence when answered."""
+    expected = expected_pairs(item)
+    cited = {tuple(k) for k in row.get("cited_keys", [])}
+    row["expected_status"] = item["expected_status"]
+    row["expected_evidence"] = expected
+    if "status" in row:
+        row["status_ok"] = row["status"] == item["expected_status"]
+        row["evidence_ok"] = all(e in cited for e in expected) if expected and row["status"] == "answered" else None
+    return row
+
+
+def summarize(rows, retrieval_metrics_by_mode, before, after, draft, set_path) -> dict:
     generated = [r for r in rows if r["outcome"] == "generated"]
     held = [r for r in rows if r["outcome"] == "held"]
     checks: dict[str, Counter] = {name: Counter() for name in CHECK_NAMES}
@@ -222,7 +255,7 @@ def summarize(rows, retrieval, before, after, draft, set_path) -> dict:
         "status_accuracy_held": _ratio([r["status_ok"] for r in held]),
         "evidence_match_answered": _ratio(evidence),
         "checks": {name: dict(counter) for name, counter in checks.items()},
-        "retrieval_metrics": retrieval["metrics"],
+        "retrieval_metrics": retrieval_metrics_by_mode,
         "seconds_total": round(sum(r.get("seconds", 0) for r in rows), 2),
         "requests": {
             "generate": after.get("generate", 0) - before.get("generate", 0),
@@ -231,7 +264,7 @@ def summarize(rows, retrieval, before, after, draft, set_path) -> dict:
     }
 
 
-def print_final(summary: dict, rows: list[dict], retrieval: dict) -> None:
+def print_final(summary: dict, rows: list[dict]) -> None:
     print(f"## 최종 세트 — {summary['label']}")
     print(
         f"문항 {summary['questions']} · 생성 {summary['generated']} · 생성 전 보류 {summary['held_before_generation']} "
@@ -250,25 +283,35 @@ def print_final(summary: dict, rows: list[dict], retrieval: dict) -> None:
             f"| {r['id']} | {r['outcome']} | {r['expected_status']} | {r.get('status', '-')} | "
             f"{'O' if r.get('status_ok') else ('X' if 'status_ok' in r else '-')} | {', '.join(r.get('cited', []))} |"
         )
-    print_metrics(retrieval, "최종 세트")
 
 
-def cmd_rescore(path: Path, runtime) -> int:
+def cmd_rescore(path: Path, items: list[dict], draft: bool, runtime, set_path: Path) -> int:
+    """Score saved outputs against the current set file and rerun the checks. No model or embedding call."""
     titles = {d.doc_id: d.doc_title for d in runtime.index.docs.values()}
+    by_id = {item["id"]: item for item in items}
+    rows = []
     for line in path.read_text(encoding="utf-8").splitlines():
         row = json.loads(line)
+        if row["id"] not in by_id:
+            print(f"{row['id']}: 현재 세트에 없는 문항이라 건너뜀")
+            continue
+        if by_id[row["id"]]["question"] != row.get("question", by_id[row["id"]]["question"]):
+            print(f"{row['id']}: 질문이 바뀌어 다시 실행해야 합니다(채점에서 뺌)")
+            continue
+        rows.append(score_row(row, by_id[row["id"]]))
         for attempt in row.get("attempts", []):
             if "output" not in attempt:
                 continue
             retrieved = {cid: runtime.index.chunk(cid) for cid in row.get("retrieved", []) if runtime.index.chunk(cid)}
             validation = validate_answer(ModelAnswer.model_validate(attempt["output"]), retrieved, titles)
             print(row["id"], attempt["attempt"], validation.checks, validation.failures[:2])
+    saved = path.with_name(path.stem + "_summary.json")
+    metrics = json.loads(saved.read_text(encoding="utf-8"))["retrieval_metrics"] if saved.is_file() else {}
+    summary = summarize(rows, metrics, {}, {}, draft, set_path)
+    summary["rescored_from"] = str(path.relative_to(REPO_ROOT)) if path.is_relative_to(REPO_ROOT) else str(path)
+    print()
+    print_final(summary, rows)
     return 0
-
-
-def _article(chunk_id: str) -> str:
-    part = chunk_id.split(":")[1]
-    return part[1:].replace("-", "의")
 
 
 def _ratio(values: list[bool]) -> str:
@@ -280,6 +323,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("command", choices=["plan", "dev", "final", "rescore"])
     parser.add_argument("run", nargs="?", type=Path)
     parser.add_argument("--set", type=Path)
+    parser.add_argument("--save-raw", action="store_true", help="final: 원 출력을 runs/에 남긴다")
+    parser.add_argument("--rescore", type=Path, metavar="RUN.jsonl", help="final: 저장된 원 출력만 다시 채점")
     args = parser.parse_args(argv)
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(errors="replace")
@@ -289,10 +334,11 @@ def main(argv: list[str] | None = None) -> int:
     except IndexUnavailable as exc:
         print(f"색인이 없어 평가할 수 없습니다: {exc}")
         return 1
-    if args.command == "rescore":
-        return cmd_rescore(args.run, runtime)
     set_path = args.set or EVAL_DIR / ("dev.yaml" if args.command == "dev" else "final.yaml")
     items, draft = load_set(set_path)
+    rescore = args.rescore or (args.run if args.command == "rescore" else None)
+    if rescore:
+        return cmd_rescore(rescore, items, draft, runtime, set_path)
     if args.command == "plan":
         cmd_plan(items, runtime)
         return 0
@@ -311,7 +357,7 @@ def main(argv: list[str] | None = None) -> int:
         print("\n최소 점수 제안: " + json.dumps(report["threshold"], ensure_ascii=False))
         print("질문 임베딩 누계: " + str(runtime.meter.totals().get("embed_query", 0)))
         return 0
-    return cmd_final(items, draft, runtime, set_path)
+    return cmd_final(items, draft, runtime, set_path, args.save_raw)
 
 
 if __name__ == "__main__":

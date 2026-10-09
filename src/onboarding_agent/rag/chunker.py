@@ -21,10 +21,12 @@ from __future__ import annotations
 
 import hashlib
 import re
-from datetime import datetime
+from datetime import date, datetime
+
+import yaml
 
 from .models import RegChunk, SourceDoc
-from .parse_law import IMAGE_MARKER, Article, Line, ParsedLaw, article_label
+from .parse_law import IMAGE_MARKER, Article, Line, ParsedAnnex, ParsedLaw, article_label
 
 SPLIT_OVER = 1200  # estimated tokens (upper bound); the target is about 300-900
 PARAGRAPH = re.compile(r"^\s*([①-⑳])")
@@ -337,3 +339,160 @@ def _refs(
     for match in ANNEX_REF.finditer(text):
         refs.append(f"{match.group(1)} {match.group(2)} (미색인)")
     return list(dict.fromkeys(refs))
+
+
+# --- annexes and table transcriptions -------------------------------------------------------
+
+
+def annex_source_doc(
+    annex: ParsedAnnex, parent: SourceDoc | None, *, sha256: str, source_uri: str | None, collected_at: datetime
+) -> SourceDoc:
+    """An annex file: its own document, tied to the law it belongs to. Its print date is an
+    amendment date, so the effective date stays unknown."""
+    suffix = ("annex" if annex.kind == "별표" else "form") + annex.number.replace("의", "-")
+    doc_id = f"{parent.doc_id}-{suffix}" if parent else "doc" + hashlib.sha1(sha256.encode()).hexdigest()[:10]
+    label = f"[{annex.kind} {annex.number}]" + (f" <{annex.note}>" if annex.note else "")
+    return SourceDoc(
+        doc_id=doc_id,
+        doc_title=annex.law_title,
+        doc_type="annex",
+        version_label=label,
+        effective_date=None,
+        promulgation_date=None,
+        applies_to=None,
+        source_kind="local_file",
+        source_uri=source_uri,
+        source_sha256=sha256,
+        collected_at=collected_at,
+        external_send_allowed=True,
+        unverified=["effective_date", "applies_to", "parent_version_match"],
+        parent_doc_id=parent.doc_id if parent else None,
+    )
+
+
+def chunk_annex(annex: ParsedAnnex, doc: SourceDoc) -> list[RegChunk]:
+    heading = f"[{annex.kind} {annex.number}] {annex.title or ''}".strip()
+    text = "\n".join(line.text.rstrip() for line in annex.lines if line.text.strip())
+    # Table cells: a print line ends at a cell boundary as often as inside a cell, so lines join with a space.
+    search = normalize(" ".join(line.text.strip() for line in annex.lines))
+    refs = [chunk_id(doc.parent_doc_id, annex.related_article)] if doc.parent_doc_id and annex.related_article else []
+    return [
+        RegChunk(
+            chunk_id=f"{doc.doc_id}:t1",
+            doc_id=doc.doc_id,
+            article_no=None,
+            article_title=None,
+            paragraph_no=None,
+            section_path=None,
+            heading=heading,
+            text=text,
+            search_text=search,
+            embed_text=f"[{annex.law_title}] {heading}\n{search}",
+            location=_location(annex.lines),
+            refs=refs,
+            has_proviso=bool(PROVISO.search(search)) or "비고" in search,
+            kind="annex",
+        )
+    ]
+
+
+def parse_transcription(text: str) -> tuple[dict, str]:
+    """(front matter, table) of a transcription file: YAML between two '---' lines, then the table."""
+    _, front, body = text.split("---\n", 2)
+    return yaml.safe_load(front) or {}, body.strip()
+
+
+def transcription_reviewed(front: dict) -> bool:
+    return "검수 완료" in str(front.get("상태", ""))
+
+
+def transcription_source_doc(
+    front: dict, parent: SourceDoc | None, *, sha256: str, source_uri: str, collected_at: datetime
+) -> SourceDoc:
+    article = str(front["조문"])
+    effective = front.get("시행일")
+    unverified = ["applies_to"] + ([] if transcription_reviewed(front) else ["manual_transcription"])
+    return SourceDoc(
+        doc_id=f"{parent.doc_id if parent else 'doc'}-t{article.replace('의', '-')}",
+        doc_title=str(front["법령명"]),
+        doc_type="law",
+        version_label=str(front.get("버전")) if front.get("버전") else None,
+        effective_date=date.fromisoformat(str(effective)) if effective else None,
+        promulgation_date=None,
+        applies_to=None,
+        source_kind="manual_download",
+        source_uri=source_uri,
+        source_sha256=sha256,
+        collected_at=collected_at,
+        external_send_allowed=True,
+        unverified=unverified,
+        parent_doc_id=parent.doc_id if parent else None,
+    )
+
+
+def chunk_transcription(front: dict, table: str, doc: SourceDoc) -> RegChunk:
+    article = str(front["조문"])
+    paragraph = str(front["항"]) if front.get("항") else None
+    title = front.get("조문제목")
+    header = f"[{doc.doc_title}] {article_label(article)}" + (f"({title})" if title else "")
+    header += (f" 제{paragraph}항" if paragraph else "") + "의 표(전사본)"
+    rows = [row for row in table.splitlines() if not re.fullmatch(r"\|?(\s*:?-{3,}:?\s*\|)+\s*", row.strip())]
+    search = normalize(" ".join(rows).replace("|", " | "))
+    return RegChunk(
+        chunk_id=f"{doc.doc_id}:t1",
+        doc_id=doc.doc_id,
+        article_no=article,
+        article_title=title,
+        paragraph_no=paragraph,
+        section_path=None,
+        heading="표 전사본",
+        text=table,
+        search_text=search,
+        embed_text=f"{header}\n{search}",
+        location={"pdf_page": front.get("PDF쪽"), "pdf_page_end": front.get("PDF쪽"),
+                  "printed_page": front.get("인쇄쪽"), "printed_page_end": front.get("인쇄쪽"), "transcribed": True},
+        refs=[chunk_id(doc.parent_doc_id, article)] if doc.parent_doc_id else [],
+        has_proviso=False,
+        kind="table",
+    )
+
+
+def attach_tables(chunks: list[RegChunk]) -> list[RegChunk]:
+    """Two-way links between an article and its table or annex chunks.
+
+    The article piece that a table or annex belongs to gets that chunk id first in its refs
+    (so reference expansion brings it along): for an annex, the piece that names it ("별표 2",
+    whose "(미색인)" wording is replaced); for a table, the piece with its paragraph, or the
+    article itself when it is not split.
+    """
+    pieces: dict[str, list[RegChunk]] = {}
+    for c in chunks:
+        if c.kind == "article":
+            pieces.setdefault(c.chunk_id.split(":p")[0], []).append(c)
+    extra: dict[str, list[str]] = {}
+    for c in chunks:
+        if c.kind == "article":
+            continue
+        for ref in c.refs:
+            group = pieces.get(ref.split(":p")[0], [])
+            if c.kind == "annex" and c.heading:
+                label = c.heading.split("]")[0].strip("[")
+                owners = [p for p in group if any(r == f"{label} (미색인)" for r in p.refs)] or group[:1]
+            else:
+                owners = [p for p in group if len(group) == 1 or p.paragraph_no == c.paragraph_no] or group[:1]
+            for owner in owners:
+                extra.setdefault(owner.chunk_id, []).append(c.chunk_id)
+    annex_label = {(c.doc_id.rsplit("-", 1)[0], c.heading.split("]")[0].strip("[")): c.chunk_id
+                   for c in chunks if c.kind == "annex" and c.heading}
+    out = []
+    for c in chunks:
+        if c.kind != "article":
+            out.append(c)
+            continue
+        refs = []
+        for ref in c.refs:
+            match = re.match(r"(별표|별지) (\d+(?:의\d+)?) \(미색인\)", ref)
+            annex = annex_label.get((c.doc_id, f"{match.group(1)} {match.group(2)}")) if match else None
+            refs.append(annex or ref)
+        out.append(c.model_copy(update={"refs": list(dict.fromkeys(extra.get(c.chunk_id, []) + refs))}))
+    return out

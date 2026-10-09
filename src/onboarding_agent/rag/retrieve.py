@@ -88,7 +88,12 @@ class Retriever:
         self.min_score = DEFAULT_MIN_SCORE if min_score is None else min_score
         self.terms = [tokenize(c.search_text + " " + (c.article_title or "")) for c in index.chunks]
         self.bm25 = BM25Index(self.terms)
-        self.aliases = _doc_aliases({d.doc_title: d.doc_id for d in index.docs.values()})
+        # Names point at the law itself; its annexes and table transcriptions share the title.
+        self.aliases = _doc_aliases({d.doc_title: d.doc_id for d in index.docs.values() if not d.parent_doc_id})
+        self.family = {d.doc_id: {d.doc_id} for d in index.docs.values() if not d.parent_doc_id}
+        for d in index.docs.values():
+            if d.parent_doc_id in self.family:
+                self.family[d.parent_doc_id].add(d.doc_id)
 
     # --- public -------------------------------------------------------------------------------
 
@@ -138,7 +143,8 @@ class Retriever:
     def article(self, doc_title: str, article_no: str) -> list[RegChunk]:
         doc_id = self.aliases.get(doc_title.replace(" ", "")) or self.aliases.get(doc_title)
         number = article_no.replace("제", "").replace("조", "").replace(" ", "") or article_no
-        return [c for c in self.index.chunks if c.doc_id == doc_id and c.article_no == number]
+        docs = self.family.get(doc_id or "", set())
+        return [c for c in self.index.chunks if c.doc_id in docs and c.article_no == number]
 
     # --- internals ----------------------------------------------------------------------------
 
@@ -171,7 +177,8 @@ class Retriever:
         hits: list[int] = []
         for match in ARTICLE.finditer(question):
             number = match.group(1) + (f"의{match.group(2)}" if match.group(2) else "")
-            hits += [i for i, c in enumerate(self.index.chunks) if c.doc_id == doc_id and c.article_no == number]
+            docs = self.family.get(doc_id, {doc_id})  # the article and its transcribed tables
+            hits += [i for i, c in enumerate(self.index.chunks) if c.doc_id in docs and c.article_no == number]
         return list(dict.fromkeys(hits))
 
     def _ref_hits(self, hits: list[Hit], seen: set[int], vector_scores, bm25_scores) -> list[Hit]:

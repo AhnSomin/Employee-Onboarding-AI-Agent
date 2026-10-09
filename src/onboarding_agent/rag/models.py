@@ -30,6 +30,7 @@ class SourceDoc(BaseModel):
     is_fictional: bool = False
     external_send_allowed: bool
     unverified: list[str] = []
+    parent_doc_id: str | None = None  # an annex or a table transcription belongs to this law document
 
 
 class RegChunk(BaseModel):
@@ -46,6 +47,7 @@ class RegChunk(BaseModel):
     location: dict  # {"pdf_page", "pdf_page_end", "printed_page", "printed_page_end"} or {"lines": [s, e]}
     refs: list[str] = []  # resolved chunk ids, or the source wording when unresolved
     has_proviso: bool
+    kind: Literal["article", "table", "annex"] = "article"  # table: transcribed table of an article
 
 
 class AnswerPoint(BaseModel):

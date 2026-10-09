@@ -1,0 +1,15 @@
+# 규정 Q&A 호출 예산 (지시서 v2 3절을 작업마다 바꿀 때 쓴다).
+# RAG_ENFORCE_BUDGET=true일 때만 넘는 호출을 막고, 사용량은 늘 data/regulations/usage.jsonl에 남는다.
+# since 이후의 요청만 이번 예산으로 센다. 이전 사용량은 status 명령의 "전체 누적"에 나온다.
+session: "2026-10-10 시연 보완(C1~C6)"
+since: "2026-10-10T02:03:00+09:00"
+caps:
+  generate: 20
+  embed_query: 40
+  embed_doc_tokens: 20000  # 새로 생기거나 바뀐 청크만(추정 상한, 안전장치)
+generate_plan:
+  followup_check: 4   # C4 후속 질문 점검
+  final_eval: 10      # C5 최종 세트 10문항
+  regenerate: 2       # 검증 실패 시 재생성 예비
+  app_question: 2     # 앱 화면 확인
+  spare: 2

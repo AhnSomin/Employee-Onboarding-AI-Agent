@@ -23,7 +23,9 @@ dist/
 # Regulation Q&A — index, caches, usage, drafts and raw law files stay local
 data/index/
 data/raw/
-data/manual/
+data/manual/*
+# 공개 법령의 이미지 표를 옮겨 적은 전사본은 커밋한다
+!data/manual/tables/
 data/regulations/usage.jsonl
 data/regulations/pending_escalations.jsonl
 data/regulations/eval/runs/

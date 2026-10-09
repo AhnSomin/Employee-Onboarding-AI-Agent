@@ -35,9 +35,49 @@
       "unverified": [
         "applies_to"
       ]
+    },
+    {
+      "doc_id": "dec36728-annex2",
+      "title": "국가공무원 복무규정",
+      "version_label": "[별표 2] <개정 2025. 2. 11.>",
+      "effective_date": null,
+      "promulgation_date": null,
+      "source_sha256": "42bab275961a066964d7b668bc24fb3d09a84275d50183ccf6ba442f680c597f",
+      "chunks": 1,
+      "unverified": [
+        "effective_date",
+        "applies_to",
+        "parent_version_match"
+      ]
+    },
+    {
+      "doc_id": "dec36728-t15",
+      "title": "국가공무원 복무규정",
+      "version_label": "대통령령 제36728호",
+      "effective_date": "2026-10-02",
+      "promulgation_date": null,
+      "source_sha256": "112ebf115894d63501d2d533b7320a04791cf4680c3088d4ea84a13121dbeb48",
+      "chunks": 1,
+      "unverified": [
+        "applies_to",
+        "manual_transcription"
+      ]
+    },
+    {
+      "doc_id": "dec36728-t16",
+      "title": "국가공무원 복무규정",
+      "version_label": "대통령령 제36728호",
+      "effective_date": "2026-10-02",
+      "promulgation_date": null,
+      "source_sha256": "5e11564da9cba78b3a94858b6faabc3714654df86d4afcb92b78435487de6785",
+      "chunks": 1,
+      "unverified": [
+        "applies_to",
+        "manual_transcription"
+      ]
     }
   ],
-  "index_version": "v20261010T013558",
+  "index_version": "v20261010T021520",
   "embedding": {
     "model": "gemini-embedding-001",
     "dim": 3072,
@@ -46,8 +86,8 @@
     "input_format": "embed_text v1: [법령명] 제n조(제목) [제m항] 헤더 + search_text",
     "normalization": "L2 (float32)"
   },
-  "chunk_count": 151,
-  "est_input_tokens_upper_bound": 53365,
+  "chunk_count": 154,
+  "est_input_tokens_upper_bound": 54012,
   "excluded": [
     {
       "doc": "국가공무원 복무규정",
@@ -56,18 +96,8 @@
     },
     {
       "doc": "국가공무원 복무규정",
-      "kind": "이미지 표·그림",
-      "detail": "제15조 (파일 7쪽, OCR하지 않음)"
-    },
-    {
-      "doc": "국가공무원 복무규정",
       "kind": "삭제 조문",
       "detail": "제15조의2"
-    },
-    {
-      "doc": "국가공무원 복무규정",
-      "kind": "이미지 표·그림",
-      "detail": "제16조 (파일 8쪽, OCR하지 않음)"
     },
     {
       "doc": "국가공무원 복무규정",
@@ -211,8 +241,8 @@
   "unindexed": [],
   "usage": {
     "document_requests": 1,
-    "document_est_tokens": 240,
-    "embedded_now": 1,
-    "from_cache": 150
+    "document_est_tokens": 647,
+    "embedded_now": 3,
+    "from_cache": 151
   }
 }

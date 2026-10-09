@@ -7,7 +7,9 @@ it runs. A call that would pass a cap raises BudgetExceeded instead of being
 sent. A 429 (quota) halts that kind of call for good, so nothing retries into
 a spent quota; the halt is in the log until a person clears it.
 
-Document token counts are estimates (see chunker.estimate_tokens).
+Totals are per budget session (from the `since` time in budget.yaml) for the
+caps, and also kept over all time for reporting. Document token counts are
+estimates (see chunker.estimate_tokens).
 """
 
 from __future__ import annotations
@@ -20,6 +22,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+import yaml
+
+# Instruction v2 section 3 defaults; a task can set its own in data/regulations/budget.yaml.
 CAPS = {"generate": 12, "embed_query": 30, "embed_doc_tokens": 120_000}
 GENERATE_PLAN = {"final_eval": 5, "app_question": 1, "regenerate": 2, "tool_mode": 3, "spare": 1}
 
@@ -41,20 +46,54 @@ class UsageRecord:
 
 
 class UsageMeter:
-    def __init__(self, path: Path, caps: dict[str, int] | None = None, enforce: bool = True) -> None:
+    """Counts requests per budget session (records at or after `since`) and over all time.
+
+    Caps and the per-purpose generation plan come from data/regulations/budget.yaml when
+    it exists (see `from_budget_file`), otherwise from the instruction defaults above.
+    """
+
+    def __init__(
+        self,
+        path: Path,
+        caps: dict[str, int] | None = None,
+        enforce: bool = True,
+        since: str | None = None,
+        plan: dict[str, int] | None = None,
+        session: str | None = None,
+    ) -> None:
         self.path = path
         self.caps = dict(CAPS if caps is None else caps)
-        self.enforce = enforce  # False: log every call but block none (after the build task)
+        self.plan = dict(GENERATE_PLAN if plan is None else plan)
+        self.enforce = enforce  # False: log every call but block none
+        self.since = datetime.fromisoformat(since) if since else None
+        self.session = session
         self._lock = threading.Lock()
 
-    def records(self) -> list[dict[str, Any]]:
+    @classmethod
+    def from_budget_file(cls, path: Path, budget_file: Path, enforce: bool = True) -> UsageMeter:
+        if not budget_file.is_file():
+            return cls(path, enforce=enforce)
+        data = yaml.safe_load(budget_file.read_text(encoding="utf-8")) or {}
+        return cls(
+            path,
+            caps=data.get("caps"),
+            enforce=enforce,
+            since=str(data["since"]) if data.get("since") else None,
+            plan=data.get("generate_plan"),
+            session=data.get("session"),
+        )
+
+    def records(self, lifetime: bool = False) -> list[dict[str, Any]]:
         if not self.path.is_file():
             return []
-        return [json.loads(line) for line in self.path.read_text(encoding="utf-8").splitlines() if line.strip()]
+        rows = [json.loads(line) for line in self.path.read_text(encoding="utf-8").splitlines() if line.strip()]
+        if lifetime or self.since is None:
+            return rows
+        return [r for r in rows if datetime.fromisoformat(r["at"]) >= self.since]
 
-    def totals(self) -> dict[str, int]:
+    def totals(self, lifetime: bool = False) -> dict[str, int]:
         counts: Counter[str] = Counter()
-        for record in self.records():
+        for record in self.records(lifetime):
             if record["kind"] == "embed_doc":
                 counts["embed_doc_tokens"] += record["est_tokens"]
                 counts["embed_doc_requests"] += record["requests"]
@@ -62,9 +101,9 @@ class UsageMeter:
                 counts[record["kind"]] += record["requests"]
         return dict(counts)
 
-    def by_purpose(self, kind: str = "generate") -> dict[str, int]:
+    def by_purpose(self, kind: str = "generate", lifetime: bool = False) -> dict[str, int]:
         counts: Counter[str] = Counter()
-        for record in self.records():
+        for record in self.records(lifetime):
             if record["kind"] == kind:
                 counts[record["purpose"]] += record["requests"]
         return dict(counts)
@@ -84,10 +123,10 @@ class UsageMeter:
             return
         if totals.get(kind, 0) + amount > self.caps[kind]:
             raise BudgetExceeded(f"{kind}: 예산 {self.caps[kind]}회를 넘습니다.")
-        if kind == "generate" and purpose in GENERATE_PLAN:
+        if kind == "generate" and purpose in self.plan:
             used = self.by_purpose("generate").get(purpose, 0)
-            if used + amount > GENERATE_PLAN[purpose]:
-                raise BudgetExceeded(f"생성 '{purpose}' 몫 {GENERATE_PLAN[purpose]}회를 다 썼습니다.")
+            if used + amount > self.plan[purpose]:
+                raise BudgetExceeded(f"생성 '{purpose}' 몫 {self.plan[purpose]}회를 다 썼습니다.")
 
     def record(self, record: UsageRecord) -> None:
         with self._lock:

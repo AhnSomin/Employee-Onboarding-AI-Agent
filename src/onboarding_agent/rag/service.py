@@ -26,6 +26,7 @@ USAGE_LOG = REG_DATA / "usage.jsonl"
 ESCALATIONS = REG_DATA / "pending_escalations.jsonl"
 GLOSSARY = REG_DATA / "glossary.yaml"
 TOOL_LOG = REG_DATA / "logs" / "tool_mode.jsonl"
+BUDGET = REG_DATA / "budget.yaml"
 
 
 def embedding_config(settings: Settings) -> EmbeddingConfig:
@@ -83,7 +84,7 @@ def make_embedder(settings: Settings, counter: CountingGenai | None, root: Path 
 
 def build_runtime(settings: Settings, *, meter: UsageMeter | None = None) -> Runtime:
     """Load the current index (IndexUnavailable if there is none) and everything that answers from it."""
-    meter = meter or UsageMeter(USAGE_LOG, enforce=settings.rag_enforce_budget)
+    meter = meter or UsageMeter.from_budget_file(USAGE_LOG, BUDGET, enforce=settings.rag_enforce_budget)
     config = embedding_config(settings)
     index = load_index(settings.reg_index_dir, config)
     counter = counting_client(settings, meter)

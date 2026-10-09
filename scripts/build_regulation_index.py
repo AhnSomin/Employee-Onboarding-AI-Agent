@@ -24,7 +24,7 @@ from onboarding_agent.config import REPO_ROOT, get_settings
 from onboarding_agent.rag.build import BuildPlan, load_targets, prepare
 from onboarding_agent.rag.embed import EmbeddingError
 from onboarding_agent.rag.index import IndexUnavailable, build_index, load_index
-from onboarding_agent.rag.service import USAGE_LOG, counting_client, embedding_config, make_embedder
+from onboarding_agent.rag.service import BUDGET, USAGE_LOG, counting_client, embedding_config, make_embedder
 from onboarding_agent.rag.sources import write_inventory
 from onboarding_agent.rag.usage import BudgetExceeded, UsageMeter
 
@@ -98,7 +98,9 @@ def main(argv: list[str] | None = None) -> int:
             return 1
         print(f"색인 {index.version} · 청크 {len(index.chunks)} · 문서 {len(index.docs)}")
         print(json.dumps(index.manifest["embedding"], ensure_ascii=False))
-        print("사용량:", json.dumps(UsageMeter(USAGE_LOG).totals(), ensure_ascii=False))
+        meter = UsageMeter.from_budget_file(USAGE_LOG, BUDGET, enforce=settings.rag_enforce_budget)
+        print(f"사용량(이번 예산 '{meter.session}'):", json.dumps(meter.totals(), ensure_ascii=False))
+        print("사용량(전체 누적):", json.dumps(meter.totals(lifetime=True), ensure_ascii=False))
         return 0
 
     plan = prepare(source_dirs(args.source), REPO_ROOT, load_targets(REG_DATA / "targets.yaml"))
@@ -110,7 +112,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.command in ("inventory", "plan"):
         return 0
 
-    meter = UsageMeter(USAGE_LOG)
+    meter = UsageMeter.from_budget_file(USAGE_LOG, BUDGET, enforce=settings.rag_enforce_budget)
     counter = counting_client(settings, meter, purpose="document")
     embedder = make_embedder(settings, counter)
     if embedder is None:
