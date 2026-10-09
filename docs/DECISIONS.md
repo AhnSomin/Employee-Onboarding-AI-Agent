@@ -227,3 +227,13 @@
     - 로컬 리마인더 CLI(`--now 2026-10-13T09:00:00+09:00`)로 D-1 스레드 답글 1건을 실제로 보냈다. 같은 입력으로 다시 돌리니 "보낼 리마인더 없음"이었다.
   - GitHub Actions: Secrets 4개 이름을 확인했다. `reminders`를 `dry_run=true`로 수동 실행했고 성공했다. Secrets로 Sheets를 읽었고 보낼 리마인더는 없었다. Sheets에 승인 항목이 없어 Actions의 실제 발송 확인은 건너뛰었다.
   - 실연동으로 만든 Slack 메시지 3건(요약 2건, 리마인더 1건)은 지우지 않고 남겼다. `reset_demo`는 목록만 확인했다.
+- 2026-10-10 **실연동 검증 마무리.** 사람이 허가해 `.env`에 Google 값 3개를 넣었다(`GOOGLE_SERVICE_ACCOUNT_JSON`, `GCAL_CALENDAR_ID`, `GSHEETS_SPREADSHEET_ID`). 그 뒤 `smoke_test`는 4개 연동이 모두 OK였다. 추출은 강제 폴백으로 해서 모델을 부르지 않았고, 가상 샘플만 썼다.
+  - Sheets: `RUN_SHEETS_CONTRACT=1` 실 시트 계약 테스트 11개가 통과했다. 테스트는 임시 워크시트를 쓰고 지우며, 데모 시트는 건드리지 않는다.
+  - 화면 흐름(`STATE_BACKEND=sheets`, 실제 실행)
+    - 샘플 01 4개 항목을 승인했다. 승인 버튼을 두 번 눌러도 Calendar 일정은 항목마다 1개씩, Slack 요약은 1건만 생겼다. 새로고침, 다른 페이지에 갔다 오기, 같은 회의 다시 실행에서도 늘지 않았다(Calendar API로 앱 일정 7개, 항목마다 1개 확인).
+    - 실패 재시도: `GCAL_CALENDAR_ID`를 없는 캘린더로 덮어쓰고 샘플 02 3개 항목을 승인했다. Calendar는 실패했고 Slack은 발송됐다. 앱을 원래 설정으로 다시 띄워 재시도하니 Calendar만 3개 생성됐고 Slack은 "건너뜀(이미 보냄)"이었다.
+    - 멘션: 김민준은 멘션으로, 나머지는 "(Slack 미등록)"으로 나갔다.
+  - GitHub Actions: `reminders`를 `now=2026-10-13T09:00:00+09:00`, `dry_run=false`로 실행했다. 첫 실행은 리마인더 5건(기한 지남 3, D-day 1, D-1 1)을 회의 요약 스레드에 실제로 보냈다. 같은 입력의 두 번째 실행은 "보낼 리마인더 없음"이었다.
+  - 위 검증으로 만든 Calendar 일정 7개, Slack 메시지 7건, 시트 행(회의 2, 항목 9)은 지우지 않고 남겼다. `reset_demo`는 목록만 확인했다.
+  - Sheets 검증이 통과해 `.env`의 `STATE_BACKEND`를 `sheets`로 두었다(사람 지시). `ACTIONS_DRY_RUN`은 `true` 그대로다.
+- 2026-10-10 **명단 (사람 결정).** 박지훈·박소연·최유진·정하은의 자리표시 Slack ID를 `null`로 바꿨다. 실제 ID는 김민준만 있다. 그래서 시연에서 나머지는 "Slack 미등록"으로 보인다. 관련 테스트 1개(`test_review.py`)를 맞췄다.

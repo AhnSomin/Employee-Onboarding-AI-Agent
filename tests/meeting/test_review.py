@@ -124,7 +124,7 @@ def test_approval_saves_approved_and_draft_items_with_slack_ids(tmp_path):
     saved = {i.item_id: i for i in store.list_items(meeting_id="m1")}
     assert saved["a"].status == "draft" and saved["a"].approved_at is None
     assert saved["b"].status == "approved" and saved["b"].approved_at == NOW
-    assert (saved["b"].owner_name, saved["b"].owner_slack_id) == ("박지훈", "U00000003")
+    assert (saved["b"].owner_name, saved["b"].owner_slack_id) == ("박지훈", None)  # no Slack ID in the roster
     meeting = store.get_meeting("m1")
     assert meeting.summary == ["새 요약"]
     assert [d.decision_id for d in meeting.decisions][0] == "d1"  # unchanged line keeps its evidence
