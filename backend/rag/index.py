@@ -16,6 +16,15 @@ SOURCES = [
     ("공무원 후생복지에 관한 규정", "law"), ("공무원수당 등에 관한 규정", "law"),
     ("국가공무원법", "law"), ("공무원임용령", "law"), ("공무원 행동강령", "law"),
     ("국가데이터처 맞춤형 복지제도 운영지침", "admrul"),
+    # --- 신입이 자주 묻는 주제 확장 (3번째 값: 조문 제목 필터 — 너무 방대한 법령은 관련 조문만)
+    ("부정청탁 및 금품등 수수의 금지에 관한 법률", "law"), ("부정청탁 및 금품등 수수의 금지에 관한 법률 시행령", "law"),
+    ("공무원연금법", "law"), ("공무원 재해보상법", "law"),
+    ("공무원 인재개발법", "law"), ("공무원 인재개발법 시행령", "law"),
+    ("공무원 성과평가 등에 관한 규정", "law"),
+    ("통계법", "law"), ("통계법 시행령", "law"),
+    ("소득세법", "law"),
+    ("소득세법 시행령", "law", r"근로소득|공제|세액|연말정산|원천징수|부양|비과세|과세표준"),
+    ("조세특례제한법", "law", r"월세|신용카드|현금영수증|소득공제|세액공제|근로|주택마련|청약|연금계좌|기부금"),
 ]
 INDEX_DIR = config.DATA_DIR / "rag_index"
 EMBED_MODEL = "text-embedding-3-small"
@@ -97,6 +106,49 @@ def chunk_tables(name: str, body: dict) -> list[dict]:
     return out
 
 
+ATT_DIR = config.DATA_DIR / "attachments"
+_CH = re.compile(r"^\s*(제\s*\d+\s*장)\s*/?\s*([^\n●]{2,40})", re.M)
+
+
+def ensure_attachment_text(att: dict) -> str | None:
+    """첨부 PDF → 텍스트. 없으면 법제처에서 내려받아 pdftotext로 변환한다 (poppler 필요)."""
+    import subprocess
+    ATT_DIR.mkdir(exist_ok=True)
+    pdf, txt = ATT_DIR / f'{att["file"]}.pdf', ATT_DIR / f'{att["file"]}.txt'
+    if not txt.exists():
+        if not pdf.exists():
+            import requests
+            r = requests.get(att["url"], timeout=120)
+            r.raise_for_status()
+            pdf.write_bytes(r.content)
+        subprocess.run(["pdftotext", "-enc", "UTF-8", str(pdf), str(txt)], check=True)
+    return txt.read_text()
+
+
+def chunk_attachment(name: str, text: str) -> list[dict]:
+    """PDF 한 쪽 = 한 청크(길면 문단 경계로 분할). 목차·거의 빈 쪽은 건너뛰고, 장 제목을 앞에 붙인다.
+    출처 표기는 'PDF N쪽' (문서 안 인쇄 쪽수와 다를 수 있어 PDF 기준임을 밝힌다)."""
+    out, chapter = [], ""
+    for n, page in enumerate(text.split("\f"), 1):
+        if m := _CH.search(page):
+            chapter = f"{m.group(1).replace(' ', '')} {m.group(2).strip()}"
+        body = re.sub(r"●\s*\d+\s*●", "", page)
+        body = re.sub(r"[ \t]+", " ", body)
+        body = re.sub(r"\n{3,}", "\n\n", body).strip()
+        if len(body) < 80 or body.count("···") > 5:
+            continue
+        pieces, cur = [], ""
+        for para in body.split("\n\n"):
+            if len(cur) + len(para) > MAX_CHARS and cur:
+                pieces.append(cur); cur = ""
+            cur += para + "\n\n"
+        pieces.append(cur)
+        for i, pc in enumerate(x.strip() for x in pieces if x.strip()):
+            out.append({"law": name, "article": f"PDF {n}쪽", "para": f"({i + 1}/{len(pieces)})" if len(pieces) > 1 else "",
+                        "text": (f"[{chapter}] " if chapter else "") + pc})
+    return out
+
+
 def label(c: dict) -> str:
     return f'{c["law"]} {c["article"]} {c["para"]}'.strip()
 
@@ -114,13 +166,23 @@ def _embed(texts: list[str]) -> np.ndarray:
 
 def build() -> int:
     chunks = []
-    for name, kind in SOURCES:
+    for name, kind, *flt in SOURCES:
         body = law.fetch_law(name) if kind == "law" else law.fetch_admrul(name)
         if not body:
             print(f"[skip] {name}: 가져오지 못함")
             continue
         cs = (chunk_law(name, body) if kind == "law" else chunk_admrul(name, body)) + chunk_tables(name, body)
+        if flt:
+            cs = [c for c in cs if re.search(flt[0], c["article"])]
         print(f"{name}: {len(cs)} chunks")
+        chunks += cs
+    for att in json.loads((config.DATA_DIR / "attachment_sources.json").read_text()):
+        try:
+            cs = chunk_attachment(att["name"], ensure_attachment_text(att))
+        except Exception as e:
+            print(f"[skip] {att['name']}: {type(e).__name__}")
+            continue
+        print(f'{att["name"]}: {len(cs)} chunks (첨부 PDF)')
         chunks += cs
     vecs = _embed([f'{label(c)}\n{c["text"][:MAX_CHARS]}' for c in chunks])
     INDEX_DIR.mkdir(exist_ok=True)
@@ -192,6 +254,7 @@ def _embed_query(q: str) -> np.ndarray:
 RERANK_MODELS = ["gpt-4.1-mini", "gpt-4o-mini"]
 _RERANK_PROMPT = """공무원 규정 검색 결과를 재정렬한다. 사용자 질문에 답하는 데 가장 직접적으로 쓰이는 조문부터, 최대 {k}개의 번호를 고른다.
 - 질문이 묻는 내용(일수·금액·절차·정의·대상 등)이 실제로 적힌 조문을 우선한다. 제목만 비슷한 조문은 뒤로.
+- 같은 내용이 법령·규정 조문과 예규(PDF 쪽)에 모두 있으면 법령·규정 조문을 앞에 두고, 예규는 세부 기준·사례가 필요할 때 뒤에 함께 고른다.
 - 질문과 무관한 조문은 고르지 않는다. 모두 무관하면 빈 목록.
 JSON만 출력: {{"ranked": [번호, ...]}}"""
 
@@ -206,7 +269,7 @@ def _rerank_ids(query: str, cands: tuple, k: int) -> tuple:
     for model in RERANK_MODELS:
         try:
             r = cl.chat.completions.create(
-                model=model, temperature=0,
+                model=model, temperature=0, seed=7,
                 messages=[{"role": "system", "content": _RERANK_PROMPT.format(k=k)},
                           {"role": "user", "content": f"질문: {query}\n\n후보:\n{listing}"}],
                 response_format={"type": "json_object"})
@@ -218,16 +281,54 @@ def _rerank_ids(query: str, cands: tuple, k: int) -> tuple:
     raise RuntimeError(type(last).__name__)
 
 
+_EXPAND_PROMPT = """공무원 규정 검색을 돕는다. 사용자의 구어체 질문을 법령·규정에 실제로 쓰이는 용어로 바꾼 검색어 2개를 만든다.
+예) "야근하면 수당 받아요?" → ["시간외근무수당 초과근무", "야간근무수당 지급"], "스트레스 상담" → ["공무원 상담센터 운영", "건강관리 지원"]
+질문에 없는 사실을 만들지 말고, 같은 의미를 다른 표현으로만 쓴다. JSON만 출력: {"queries": ["...", "..."]}"""
+
+
+@lru_cache(maxsize=512)
+def _expand(query: str) -> tuple:
+    from openai import OpenAI
+    cl = OpenAI(api_key=config.OPENAI_API_KEY, timeout=20, max_retries=1)
+    for model in RERANK_MODELS:
+        try:
+            r = cl.chat.completions.create(model=model, temperature=0, seed=7, response_format={"type": "json_object"},
+                                           messages=[{"role": "system", "content": _EXPAND_PROMPT}, {"role": "user", "content": query}])
+            qs = json.loads(r.choices[0].message.content).get("queries", [])
+            return tuple(str(x) for x in qs[:2] if str(x).strip())
+        except Exception:
+            continue
+    return ()
+
+
+def _multi_pool(query: str, size: int) -> list[dict]:
+    """원 질문 + 법령 용어로 바꾼 검색어들의 하이브리드 결과를 RRF로 합친다."""
+    first = search(query, k=size, mode="hybrid")
+    if not first:      # 원 질문부터 의미상 무관하면 질의 확장으로 억지 후보를 만들지 않는다
+        return []
+    lists = [first]
+    if config.OPENAI_API_KEY:
+        lists += [search(q, k=size, mode="hybrid") for q in _expand(query)]
+    score, by_idx = {}, {}
+    for hits in lists:
+        for rank, h in enumerate(hits):
+            score[h["idx"]] = score.get(h["idx"], 0) + 1 / (60 + rank)
+            by_idx[h["idx"]] = h
+    return [by_idx[i] for i in sorted(score, key=lambda i: -score[i])[:size]]
+
+
 def _rerank(query: str, hits: list[dict], k: int) -> list[dict]:
     cands = tuple((i, f'{label(h)} — {h["text"][:220].replace(chr(10), " ")}') for i, h in enumerate(hits))
-    ids = _rerank_ids(query, cands, k)
+    ids = list(_rerank_ids(query, cands, k))
+    # 재순위가 실행마다 달라질 수 있어, 검색 점수가 높은 상위 3개는 빠뜨리지 않고 뒤에 덧붙인다
+    ids += [i for i in range(min(3, len(hits))) if i not in ids]
     return [hits[i] for i in ids]
 
 
 def search(query: str, k: int = 5, mode: str = "rerank") -> list[dict]:
     """mode: 'vector' | 'keyword' | 'hybrid' | 'rerank'(기본: 하이브리드 상위 20 → LLM 재순위). 관련 없으면 빈 리스트."""
     if mode == "rerank":
-        pool = search(query, k=20, mode="hybrid")
+        pool = _multi_pool(query, 40)
         if not pool or not config.OPENAI_API_KEY:
             return pool[:k]
         try:
@@ -251,13 +352,15 @@ def search(query: str, k: int = 5, mode: str = "rerank") -> list[dict]:
         return []
     if mode == "vector":
         order = np.argsort(-cos)[:k]
-        return [{**chunks[i], "score": float(cos[i])} for i in order]
+        return [{**chunks[i], "score": float(cos[i]), "idx": int(i)} for i in order]
     rr = {}                                    # Reciprocal Rank Fusion
     for scores in (cos, lex):
-        for rank, i in enumerate(np.argsort(-scores)[:20]):
+        for rank, i in enumerate(np.argsort(-scores)[:40]):
             rr[int(i)] = rr.get(int(i), 0) + 1 / (60 + rank)
-    order = sorted(rr, key=lambda i: -rr[i])[:k]
-    return [{**chunks[i], "score": float(cos[i])} for i in order]
+    # 한쪽 검색에서만 높게 나온 정답(예: 표)이 합산 점수에서 탈락하지 않도록 각 검색의 상위 10개는 반드시 포함
+    must = {int(i) for scores in (cos, lex) for i in np.argsort(-scores)[:10]}
+    order = sorted(rr, key=lambda i: (i not in must, -rr[i]))[:k]
+    return [{**chunks[i], "score": float(cos[i]), "idx": int(i)} for i in order]
 
 
 def format_hits(hits: list[dict]) -> list[str]:

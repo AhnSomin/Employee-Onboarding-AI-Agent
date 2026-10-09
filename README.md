@@ -38,7 +38,7 @@
 |---|---|
 | UI / 서버 | React + Vite / FastAPI |
 | LLM | OpenAI (function calling), 장애 시 모델 자동 전환 + 규칙 기반 폴백 |
-| 검색 | OpenAI 임베딩 + 키워드 하이브리드 검색 (조·항·별표 단위 1,787청크) + LLM 재순위 |
+| 검색 | OpenAI 임베딩 + 키워드 하이브리드 검색 (조·항·별표·예규 PDF 쪽 단위 약 6,000청크) + 질의 확장 + LLM 재순위 |
 | 법령 데이터 | 법제처 국가법령정보센터 Open API |
 | 일정 / 알림 | Google Calendar API / Slack API |
 | 상태 저장소 | 경량 DB(SQLite) 또는 Google Sheets |
@@ -78,20 +78,20 @@
 
 | 기능 | 상태 |
 |---|---|
-| 규정 질의응답 (RAG) | 구현 완료. 복무·여비·보수·수당·후생복지·국가공무원법·임용령·행동강령·국가데이터처 직제·맞춤형 복지제도 운영지침 색인, 조문 번호 인용, 업무 범위 밖 질문은 안내, 근거 없는 업무 질문은 에스컬레이션 |
+| 규정 질의응답 (RAG) | 구현 완료. 복무·여비·보수·수당·후생복지·국가공무원법·임용령·행동강령·국가데이터처 직제·맞춤형 복지제도 운영지침에 더해 청탁금지법·공무원연금법·재해보상법·인재개발법·성과평가·통계법·소득세법(연말정산)·조세특례제한법, 인사혁신처 예규 2종(보수 업무지침, 복무·징계 예규) 색인, 조문 번호 인용, 업무 범위 밖 질문은 안내, 근거 없는 업무 질문은 에스컬레이션 |
 | 회의록 → 요약·결정사항·액션 아이템 추출 (기능 2) | 웹앱에 **임시 버전** 포함. 팀원이 구현 중인 기능 2(근거 인용 검증, 담당자 규칙, 캘린더·리마인더 등, PR #1)가 완성되면 필요한 부분을 웹앱에 통합 예정 |
 | Slack 알림 | 임시 버전: `SLACK_WEBHOOK_URL` 설정 시 실제 발송, 없으면 미리보기. 팀원 구현본 통합 시 교체 |
 | 일정 등록 | 임시 버전: .ics 파일 생성. Google Calendar API 연동은 기능 2 통합 때 반영 |
 | 기한 전 재알림 배치 | 예정 |
 
-검색 정확도는 `python -m tests.rag_eval`로 재현할 수 있습니다 (질문 46개 기준 재순위 포함 hit@3 96%, hit@5 98%).
+검색 정확도는 `python -m tests.rag_eval`로 재현할 수 있습니다 (질문 68개 기준 재순위 포함 hit@3 85%, hit@5 90%).
 
 ## 실행
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 cp .env.example .env                    # OPENAI_API_KEY, LAW_API_OC 입력
-.venv/bin/python -m backend.rag.build   # 법령 인덱스 재생성 (저장소에 포함돼 있어 생략 가능)
+.venv/bin/python -m backend.rag.build   # 인덱스 재생성 (저장소에 포함돼 있어 생략 가능, 첨부 PDF 변환에는 poppler의 pdftotext 필요)
 cd web && npm install && npm run build && cd ..
 .venv/bin/uvicorn backend.api:app --port 8000   # http://localhost:8000
 ```
