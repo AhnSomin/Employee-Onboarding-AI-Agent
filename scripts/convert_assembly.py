@@ -5,6 +5,9 @@ Run with:
     # a test set from meetings the dev set does not use:
     uv run python scripts/convert_assembly.py --dataset "<folder>" --prefix assembly_test_ --set test \
         --out data/external/assembly/test --exclude-manifest data/external/assembly/dev/manifest.json
+    # chosen meetings (e.g. the supplementary test set; criteria in docs/DECISIONS.md):
+    uv run python scripts/convert_assembly.py --dataset "<folder>" --split all --conference 012345 ... \
+        --prefix assembly_extra_ --set test_extra --out data/external/assembly/test_extra
 
 The dataset stays where it is and is only read (zip files, never extracted
 in place). Excerpts and their manifest are written only under
@@ -184,7 +187,7 @@ def pick(
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="국회 회의록 데이터셋에서 안건 단위 발췌를 만듭니다.")
     parser.add_argument("--dataset", type=Path, required=True, help="'023.국회 회의록 기반 지식검색 데이터' 폴더")
-    parser.add_argument("--split", default="Validation", choices=["Validation", "Training"])
+    parser.add_argument("--split", default="Validation", choices=["Validation", "Training", "all"])
     parser.add_argument("--count", type=int, default=5)
     parser.add_argument("--max-chars", type=int, default=MAX_CHARS)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
@@ -194,12 +197,17 @@ def main(argv: list[str] | None = None) -> int:
         "--exclude-manifest", type=Path, action="append", default=[],
         help="이 manifest에 있는 회의는 고르지 않음 (여러 번 지정 가능)",
     )
+    parser.add_argument(
+        "--conference", action="append", default=[],
+        help="이 회의번호의 안건만 발췌 (여러 번 지정 가능, 회의마다 길이 범위 안에서 표현이 가장 많은 안건)",
+    )
     args = parser.parse_args(argv)
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(errors="replace")
 
-    prefix = "VS_" if args.split == "Validation" else "TS_"
-    sources = sorted(args.dataset.rglob(f"{prefix}*.zip"))
+    prefixes = {"Validation": ["VS_"], "Training": ["TS_"], "all": ["VS_", "TS_"]}[args.split]
+    prefix = "/".join(prefixes)
+    sources = sorted(p for pre in prefixes for p in args.dataset.rglob(f"{pre}*.zip"))
     if not sources:
         print(f"원천데이터 zip({prefix}*.zip)을 찾지 못했습니다: {args.dataset}")
         return 1
@@ -218,10 +226,30 @@ def main(argv: list[str] | None = None) -> int:
     out.mkdir(parents=True, exist_ok=True)
 
     manifest = []
-    for zip_path in sources[: args.count]:
-        group = pick(load_groups(zip_path), args.max_chars, exclude)
-        if group is None:
-            continue
+    chosen = []
+    if args.conference:
+        # A meeting can have question/answer pairs in more than one zip (both splits):
+        # pick its best agenda across all of them.
+        wanted = set(args.conference) - exclude
+        found: dict[str, dict] = {}
+        origin: dict[int, Path] = {}
+        for zip_path in sources:
+            for key, group in load_groups(zip_path).items():
+                if group.meta["conference"] in wanted:
+                    found.setdefault(group.meta["conference"], {})[(zip_path.name, *key)] = group
+                    origin[id(group)] = zip_path
+        for conference in sorted(found):
+            group = pick(found[conference], args.max_chars)
+            if group is not None:
+                chosen.append((origin[id(group)], group))
+        for missing in sorted(set(args.conference) - set(found)):
+            print(f"- 회의번호 {missing}: 찾지 못했거나 제외 목록에 있습니다.")
+    else:
+        for zip_path in sources[: args.count]:
+            group = pick(load_groups(zip_path), args.max_chars, exclude)
+            if group is not None:
+                chosen.append((zip_path, group))
+    for zip_path, group in chosen:
         text, truncated = render(group, args.max_chars)
         meta = group.meta
         file_name = f"{args.prefix}{meta['meeting_type']}_{meta['conference']}.txt"

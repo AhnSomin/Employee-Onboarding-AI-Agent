@@ -122,3 +122,23 @@ def test_test_set_uses_other_meetings_and_its_own_prefix(convert, tmp_path, monk
     assert '"set": "test"' in (out / "manifest.json").read_text(encoding="utf-8")
     assert convert.main(args[:-6] + ["--prefix", "test_"]) == 1  # the DRY_RUN guard needs "assembly_"
     assert "assembly_로 시작" in capsys.readouterr().out
+
+
+def test_chosen_conferences_across_splits(convert, tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(convert, "REPO_ROOT", tmp_path)
+    dataset = tmp_path / "dataset"
+    dataset.mkdir()
+    plain = [row("Q", "000003", n, "가상 위원", "의견을 말씀드립니다. " * 60) for n in range(3)]
+    tasks = [row("Q", "000004", n, "가상 위원", "자료를 다음 주까지 제출해 주십시오. " * 40) for n in range(3)]
+    with zipfile.ZipFile(dataset / "VS_소위원회.zip", "w") as archive:
+        archive.writestr("SRC_a(000003).xlsx", xlsx([HEADER] + plain))
+    with zipfile.ZipFile(dataset / "TS_소위원회.zip", "w") as archive:
+        archive.writestr("SRC_b(000004).xlsx", xlsx([HEADER] + tasks))
+    out = tmp_path / "data" / "external" / "extra"
+    args = ["--dataset", str(dataset), "--out", str(out), "--split", "all", "--prefix", "assembly_extra_",
+            "--conference", "000004", "--conference", "000003", "--conference", "999999"]
+    assert convert.main(args) == 0
+    assert sorted(p.name for p in out.glob("*.txt")) == [
+        "assembly_extra_소위원회_000003.txt", "assembly_extra_소위원회_000004.txt",
+    ]
+    assert "회의번호 999999: 찾지 못했거나" in capsys.readouterr().out
