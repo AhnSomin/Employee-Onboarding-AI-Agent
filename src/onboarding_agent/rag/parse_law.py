@@ -16,7 +16,7 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import date
 from pathlib import Path
 
@@ -39,6 +39,11 @@ ANNEX_TITLE = re.compile(
 )
 RELATED = re.compile(r"\(제(\d+)조(?:의(\d+))?(?:제\d+항)?(?:제\d+호)?\s*관련\)")
 
+
+# The 법제처 PDF font maps ⑯-⑳ to a digit and a shifted digit key ("1^" = 16, "2)" = 20).
+SHIFTED_DIGIT = {"!": "1", "@": "2", "#": "3", "$": "4", "%": "5", "^": "6", "&": "7", "*": "8", "(": "9", ")": "0"}
+GARBLED_PARAGRAPH = re.compile(r"^(\s*)([12])([!@#$%^&*()])(?=\s)")
+CIRCLED_START = re.compile(r"^\s*([\u2460-\u2473])")
 
 IMAGE_MARKER = "[표·그림(이미지) — 텍스트로 추출되지 않아 미색인]"
 
@@ -254,11 +259,40 @@ def parse_lines(lines: list[Line]) -> ParsedLaw:
                 }
             )
         current.lines.append(line)
+    for article in articles:
+        repaired = repair_paragraph_marks(article.lines)
+        if repaired:
+            article.lines = repaired[0]
+            warnings.append(f"{article_label(article.article_no)}의 깨진 항 번호를 복원: {', '.join(repaired[1])}")
     if preamble:
         excluded.append({"kind": "머리말", "detail": f"제목·시행 정보·소관 부처 연락처 {preamble}줄(본문 아님)"})
     if not [a for a in articles if not a.deleted]:
         warnings.append("조문을 찾지 못했습니다.")
     return ParsedLaw(title, effective, promulgation, version_label, revision_kind, articles, excluded, warnings)
+
+
+def repair_paragraph_marks(lines: list[Line]) -> tuple[list[Line], list[str]] | None:
+    """Turn "1^ …" back into "⑯ …" when it is the next paragraph number after the last circled one.
+
+    Only the next number in sequence is repaired, so item markers such as "1)" or "2)" stay as they are.
+    """
+    last = 0
+    out: list[Line] = []
+    fixed: list[str] = []
+    for line in lines:
+        circled = CIRCLED_START.match(line.text)
+        garbled = GARBLED_PARAGRAPH.match(line.text)
+        if circled:
+            last = ord(circled.group(1)) - 0x2460 + 1
+        elif garbled and last >= 10:
+            number = int(garbled.group(2) + SHIFTED_DIGIT[garbled.group(3)])
+            if number == last + 1:
+                mark = chr(0x2460 + number - 1)
+                line = replace(line, text=garbled.group(1) + mark + line.text[garbled.end() :])
+                fixed.append(f"{garbled.group(2)}{garbled.group(3)}→{mark}")
+                last = number
+        out.append(line)
+    return (out, fixed) if fixed else None
 
 
 def _no(key: tuple[int, int]) -> str:

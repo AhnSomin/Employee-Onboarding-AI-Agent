@@ -103,6 +103,11 @@ class ConversationState:
         return " / ".join(f"{c.type}: {c.text}" for c in self.conditions) or "(없음)"
 
 
+def user_words(state: ConversationState) -> str:
+    """Everything the user said in the kept turns: questions and the conditions taken from them."""
+    return " ".join([*state.questions, state.describe()])
+
+
 def is_follow_up(question: str) -> bool:
     return len(question.strip()) <= 30 and bool(FOLLOW_UP.search(question.strip()))
 
@@ -193,7 +198,7 @@ class QAService:
                     model_answer = None
                 break
             result.generate_requests += 1
-            validation = validate_answer(model_answer, retrieved, self.doc_titles)
+            validation = validate_answer(model_answer, retrieved, self.doc_titles, user_words(state))
             result.attempts.append(
                 {
                     "attempt": attempt + 1,
@@ -303,7 +308,7 @@ class QAService:
             )
             return self._finish(answer, None, [], start, question, state, escalate=True, result=result)
         model_answer = _terminal_answer(final)
-        validation = validate_answer(model_answer, found, self.doc_titles)
+        validation = validate_answer(model_answer, found, self.doc_titles, user_words(state))
         hits = [Hit(chunk, "tool") for chunk in found.values()]
         retrieval = RetrievalResult(query=question, mode="tool", hits=hits)
         if not validation.ok:

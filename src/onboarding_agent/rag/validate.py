@@ -11,7 +11,10 @@ What is checked (each check reports passed / failed / warning / not_applicable):
    and every date in a point or condition appears in the text of the chunks
    that point cites (whitespace ignored). For a cited table or annex chunk the
    bare number is enough, because table cells carry the unit in the header. Korean number words (하루, 열흘…)
-   cannot be compared automatically and give a warning.
+   cannot be compared automatically and give a warning. A number that is not
+   in the source but is in the user's own words this conversation (question,
+   earlier question, stated conditions — e.g. "재직 12년") gives a warning,
+   not a failure: repeating the user's situation is not inventing a figure.
 5. 문서명 — every law or regulation name in the reply is the title of a cited
    chunk's document, or is named in a cited chunk's text.
 6. 단서·예외 — a cited chunk with a proviso or exception that no condition
@@ -57,8 +60,10 @@ def validate_answer(
     answer: ModelAnswer,
     retrieved: dict[str, RegChunk],
     doc_titles: dict[str, str],
+    user_text: str = "",
 ) -> Validation:
-    """`retrieved`: chunk id -> chunk for everything found this turn; `doc_titles`: doc id -> title."""
+    """`retrieved`: chunk id -> chunk for everything found this turn; `doc_titles`: doc id -> title;
+    `user_text`: what the user said this conversation (questions and stated conditions)."""
     checks: dict[str, str] = {}
     failures: list[str] = []
     warnings: list[str] = []
@@ -117,9 +122,14 @@ def validate_answer(
         for match in [*NUMBER_UNIT.finditer(item.text), *DATE.finditer(item.text)]:
             number_state = "passed" if number_state == "not_applicable" else number_state
             bare = match.re is NUMBER_UNIT and match.group(1) in table_numbers
-            if compact(match.group(0)) not in source and not bare:
-                number_state = "failed"
-                failures.append(f"{kind} '{_short(item.text)}'의 '{match.group(0).strip()}'가 근거 원문에 없습니다.")
+            if compact(match.group(0)) in source or bare:
+                continue
+            if user_text and compact(match.group(0)) in compact(user_text):
+                number_state = "warning" if number_state != "failed" else number_state
+                warnings.append(f"'{match.group(0).strip()}'는 근거 원문이 아니라 질문에 나온 수치입니다.")
+                continue
+            number_state = "failed"
+            failures.append(f"{kind} '{_short(item.text)}'의 '{match.group(0).strip()}'가 근거 원문에 없습니다.")
         if KOREAN_NUMBER.search(item.text):
             number_state = "warning" if number_state != "failed" else number_state
             warnings.append(f"한글 수사('{KOREAN_NUMBER.search(item.text).group(0)}')는 자동으로 비교하지 못했습니다.")

@@ -8,8 +8,9 @@ caps:
   embed_query: 40
   embed_doc_tokens: 20000  # 새로 생기거나 바뀐 청크만(추정 상한, 안전장치)
 generate_plan:
-  followup_check: 4   # C4 후속 질문 점검
+  # C4 후속 질문 점검 몫은 4회다. 점검 중 재생성 1회가 regenerate로 기록돼, 그 1회를 regenerate로 옮겼다(합계 20 그대로).
+  followup_check: 3   # C4 후속 질문 점검(재생성 1회는 regenerate에 기록)
   final_eval: 10      # C5 최종 세트 10문항
-  regenerate: 2       # 검증 실패 시 재생성 예비
+  regenerate: 3       # 검증 실패 시 재생성 예비(C4에서 1회 사용, C5용 2회)
   app_question: 2     # 앱 화면 확인
   spare: 2

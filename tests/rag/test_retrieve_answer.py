@@ -149,6 +149,27 @@ def test_follow_up_keeps_conditions_and_previous_question_not_answers(small_inde
     assert state.conditions == [] and len(state.questions) == 5  # older than five turns
 
 
+def test_repeating_the_users_own_number_is_a_warning_not_a_regeneration(small_index, tmp_path):
+    index, embedder = small_index
+    llm = FakeLLM(
+        [
+            answer([("병가가 7일이면 연간 6일을 초과하므로 의사의 진단서를 첨부해야 합니다.", ["dec36728:a5"])]),
+            answer([("병가가 9일이면 진단서가 필요합니다.", ["dec36728:a5"])]),
+            answer([("병가가 9일이면 진단서가 필요합니다.", ["dec36728:a5"])]),
+        ]
+    )
+    service = make_service(index, embedder, llm, tmp_path)
+    state = ConversationState()
+    state.add("병가는 며칠까지 쓸 수 있나요?")
+    result = service.answer("저는 병가를 7일 쓰면요?", state)
+    assert result.answer.status == "answered" and len(llm.prompts) == 1
+    assert result.answer.checks["수치·날짜"] == "warning"
+    assert any("질문에 나온 수치" in w for w in result.warnings)
+    # a number the user never said is still a failure: regenerate once, then source cards only
+    result = service.answer("그럼 8일이면요?", state)
+    assert result.answer.status == "escalation_required" and len(llm.prompts) == 3
+
+
 def test_instructions_inside_documents_are_data(index_dir, tmp_path):
     index, embedder = make_index(index_dir, texts=(LAW, RULE, INJECTION))
     llm = FakeLLM(

@@ -85,7 +85,13 @@ def run_retrieval(runtime, items: list[dict]) -> dict:
     titles = {d.doc_id: d.doc_title for d in runtime.index.docs.values()}
     rows = []
     for item in items:
-        row = {"id": item["id"], "question": item["question"], "expected": expected_pairs(item), "modes": {}}
+        row = {
+            "id": item["id"],
+            "question": item["question"],
+            "expected": expected_pairs(item),
+            "scope": scope_of(item),
+            "modes": {},
+        }
         for mode in MODES:
             result = runtime.retriever.search(item["question"], top_k=10, mode=mode, context=item.get("context") or [])
             row["modes"][mode] = {
@@ -98,24 +104,55 @@ def run_retrieval(runtime, items: list[dict]) -> dict:
         rows.append(row)
     scored = [r for r in rows if r["expected"]]
     metrics = {mode: retrieval_metrics([r["modes"][mode]["rank"] for r in scored]) for mode in MODES}
-    return {"rows": rows, "metrics": metrics, "scored": len(scored)}
+    in_scope = [r for r in scored if r["scope"] == "in"]
+    metrics_in = {mode: retrieval_metrics([r["modes"][mode]["rank"] for r in in_scope]) for mode in MODES}
+    return {
+        "rows": rows,
+        "metrics": metrics,
+        "scored": len(scored),
+        "metrics_in": metrics_in,
+        "scored_in": len(in_scope),
+    }
+
+
+def scope_of(item_or_row: dict) -> str:
+    """in | out | boundary. Without a `scope` field, a question with expected evidence is "in"."""
+    return item_or_row.get("scope") or (
+        "in" if item_or_row.get("expected") or item_or_row.get("expected_evidence") else "out"
+    )
 
 
 def suggest_threshold(rows: list[dict]) -> dict:
-    inside = [r["modes"]["vector"]["top_vector_score"] for r in rows if r["expected"]]
-    outside = [r["modes"]["vector"]["top_vector_score"] for r in rows if not r["expected"]]
-    inside = [s for s in inside if s is not None]
-    outside = [s for s in outside if s is not None]
-    if not inside or not outside:
-        return {"inside": inside, "outside": outside, "suggested": None}
-    low_in, high_out = min(inside), max(outside)
-    suggested = round((low_in + high_out) / 2, 3) if low_in > high_out else None
-    return {
-        "inside_min": round(low_in, 4),
-        "outside_max": round(high_out, 4),
+    """Highest vector score per question, split by scope; the suggestion is the middle of the gap
+    between the lowest in-scope score and the highest out-of-scope score. Boundary questions are
+    partly covered, so they are reported against the suggestion but do not set it."""
+    scores: dict[str, list[tuple[str, float]]] = {"in": [], "out": [], "boundary": []}
+    for r in rows:
+        score = r["modes"]["vector"]["top_vector_score"]
+        if score is not None:
+            scores[r["scope"]].append((r["id"], score))
+    if not scores["in"] or not scores["out"]:
+        return {"suggested": None, **{k: v for k, v in scores.items()}}
+    low_in = min(scores["in"], key=lambda x: x[1])
+    high_out = max(scores["out"], key=lambda x: x[1])
+    separable = low_in[1] > high_out[1]
+    suggested = round((low_in[1] + high_out[1]) / 2, 3) if separable else None
+    report = {
+        "inside_min": [low_in[0], round(low_in[1], 4)],
+        "outside_max": [high_out[0], round(high_out[1], 4)],
+        "gap": round(low_in[1] - high_out[1], 4),
+        "separable": separable,
         "suggested": suggested,
-        "separable": low_in > high_out,
+        "in": len(scores["in"]),
+        "out": len(scores["out"]),
     }
+    if scores["boundary"]:
+        low_b = min(scores["boundary"], key=lambda x: x[1])
+        report["boundary_min"] = [low_b[0], round(low_b[1], 4)]
+        report["boundary_held_at_suggested"] = (
+            [i for i, s in scores["boundary"] if s < suggested] if suggested is not None else None
+        )
+    return report
 
 
 def print_metrics(report: dict, title: str) -> None:
@@ -124,18 +161,26 @@ def print_metrics(report: dict, title: str) -> None:
     for mode in MODES:
         m = report["metrics"][mode]
         print(f"| {mode} | {m['hit@1']:.2f} | {m['hit@3']:.2f} | {m['hit@5']:.2f} | {m['MRR']:.3f} |")
+    if report.get("scored_in") and report["scored_in"] != report["scored"]:
+        print(f"\n범위 안(경계 제외) {report['scored_in']}문항:")
+        print("| 방식 | hit@1 | hit@3 | hit@5 | MRR |\n|---|---|---|---|---|")
+        for mode in MODES:
+            m = report["metrics_in"][mode]
+            print(f"| {mode} | {m['hit@1']:.2f} | {m['hit@3']:.2f} | {m['hit@5']:.2f} | {m['MRR']:.3f} |")
     print(
-        "\n| 문항 | 기대 근거 | vector 순위 | bm25 순위 | rrf 순위 | 최고 코사인 | rrf 상위 3 |"
-        "\n|---|---|---|---|---|---|---|"
+        "\n| 문항 | 범위 | 기대 근거 | vector 순위 | bm25 순위 | rrf 순위 | 최고 코사인 | 보류 | rrf 상위 3 |"
+        "\n|---|---|---|---|---|---|---|---|---|"
     )
     for r in report["rows"]:
         expected = ", ".join(evidence_label(t, a) for t, a in r["expected"]) or "(없음)"
         score = r["modes"]["vector"]["top_vector_score"]
+        held = "예" if r["modes"]["vector"]["gated"] else ""
         print(
-            f"| {r['id']} | {expected} | {r['modes']['vector']['rank']} | {r['modes']['bm25']['rank']} | "
-            f"{r['modes']['rrf']['rank']} | {score:.3f} | {', '.join(r['modes']['rrf']['top'][:3])} |"
+            f"| {r['id']} | {r.get('scope', '-')} | {expected} | {r['modes']['vector']['rank']} | "
+            f"{r['modes']['bm25']['rank']} | {r['modes']['rrf']['rank']} | {score:.3f} | {held} | "
+            f"{', '.join(r['modes']['rrf']['top'][:3])} |"
             if score is not None
-            else f"| {r['id']} | {expected} | - | - | - | - | - |"
+            else f"| {r['id']} | {r.get('scope', '-')} | {expected} | - | - | - | - | {held} | - |"
         )
 
 
@@ -303,7 +348,8 @@ def cmd_rescore(path: Path, items: list[dict], draft: bool, runtime, set_path: P
             if "output" not in attempt:
                 continue
             retrieved = {cid: runtime.index.chunk(cid) for cid in row.get("retrieved", []) if runtime.index.chunk(cid)}
-            validation = validate_answer(ModelAnswer.model_validate(attempt["output"]), retrieved, titles)
+            user_text = " ".join([*(by_id[row["id"]].get("context") or []), row.get("question", "")])
+            validation = validate_answer(ModelAnswer.model_validate(attempt["output"]), retrieved, titles, user_text)
             print(row["id"], attempt["attempt"], validation.checks, validation.failures[:2])
     saved = path.with_name(path.stem + "_summary.json")
     metrics = json.loads(saved.read_text(encoding="utf-8"))["retrieval_metrics"] if saved.is_file() else {}

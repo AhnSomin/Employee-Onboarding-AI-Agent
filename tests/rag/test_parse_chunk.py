@@ -143,3 +143,20 @@ def test_same_article_number_in_two_documents_stays_distinct():
     assert {c.chunk_id for c in firsts} == {"dec36728:a1", "pmo2161:a1"}
     assert len({d.doc_id for d in docs}) == 2
     assert parsed(RULE).effective_date == date(2026, 10, 2)
+
+
+def test_garbled_paragraph_numbers_after_fifteen_are_restored_but_item_markers_stay():
+    # The 법제처 PDF font prints ⑯-⑳ as "1^", "1&", "1*", "1(", "2)".
+    text = LAW.replace(
+        "② 연가 일수는 제5조에 따른 병가 일수와 따로 계산한다.",
+        "② 연가 일수는 제5조에 따른 병가 일수와 따로 계산한다.\n"
+        + "\n".join(f"{chr(0x2460 + n - 1)} 제{n}항이다." for n in range(3, 16))
+        + "\n1^ 여성공무원은 임신기간 중 검진을 위해 10일의 범위에서 임신검진휴가를 사용할 수 있다."
+        + "\n1& 제17항이다.\n1) 제17항의 항목이다.\n2) 다른 항목이다.",
+    )
+    law = parsed(text)
+    article = next(a for a in law.articles if a.article_no == "6")
+    starts = [line.text[:2] for line in article.lines]
+    assert "⑯ " in starts and "⑰ " in starts and "1^" not in starts
+    assert "1)" in starts and "2)" in starts  # not the next paragraph number, so left alone
+    assert any("1^→⑯" in w for w in law.warnings)

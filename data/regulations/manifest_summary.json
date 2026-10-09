@@ -7,7 +7,7 @@
       "effective_date": "2026-10-02",
       "promulgation_date": "2026-09-29",
       "source_sha256": "5b7f8cbddc129085048821895dc46d81bece3163b9a1b5bb56b6d9298865e2ef",
-      "chunks": 59,
+      "chunks": 64,
       "unverified": [
         "applies_to"
       ]
@@ -77,7 +77,7 @@
       ]
     }
   ],
-  "index_version": "v20261010T021520",
+  "index_version": "v20261010T022113",
   "embedding": {
     "model": "gemini-embedding-001",
     "dim": 3072,
@@ -86,8 +86,8 @@
     "input_format": "embed_text v1: [법령명] 제n조(제목) [제m항] 헤더 + search_text",
     "normalization": "L2 (float32)"
   },
-  "chunk_count": 154,
-  "est_input_tokens_upper_bound": 54012,
+  "chunk_count": 159,
+  "est_input_tokens_upper_bound": 54147,
   "excluded": [
     {
       "doc": "국가공무원 복무규정",
@@ -241,8 +241,8 @@
   "unindexed": [],
   "usage": {
     "document_requests": 1,
-    "document_est_tokens": 647,
-    "embedded_now": 3,
-    "from_cache": 151
+    "document_est_tokens": 1181,
+    "embedded_now": 6,
+    "from_cache": 153
   }
 }

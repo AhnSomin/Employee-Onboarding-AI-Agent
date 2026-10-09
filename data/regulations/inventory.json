@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-10T02:15:19+09:00",
+  "generated_at": "2026-10-10T02:21:12+09:00",
   "classes": [
     "법령·행정규칙",
     "기관 규정·업무 안내문",
@@ -194,8 +194,8 @@
     {
       "path": "data/regulations/eval/dev.yaml",
       "format": "yaml",
-      "size": 3000,
-      "sha256": "2f397a16a9e369dfcdefacc4e71cca7d482b3601d4c132500843f4b972c2cdf4",
+      "size": 6496,
+      "sha256": "088c5ddbadc26d308e5fa0634b12ea7c6a41ad3351e7bb51122dfedbaa3351ac",
       "text_extractable": "예",
       "category": "QA 예제·가상 자료",
       "external_send": "해당 없음(색인 제외)",

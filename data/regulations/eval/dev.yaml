@@ -1,5 +1,7 @@
 # 규정 Q&A 개발 세트 (에이전트 작성). 검색 방식과 RAG_MIN_SCORE를 정하는 데만 쓴다. 답변은 생성하지 않는다.
 # 색인에 넣지 않는다. 기대 근거는 색인된 원문(국가공무원 복무규정·복무규칙, 공무원 행동강령)을 보고 적었다.
+# scope: in(규정으로 답할 수 있음, 기본) | out(기관 내부 사정 등 규정 밖) | boundary(일부만 규정에 있음).
+# 2026-10-10 C3: 범위 밖 8문항(d11~d18)과 경계 4문항(d19~d22)을 더했다. 최종 세트는 보지 않고 썼다.
 - id: d01
   question: "병가는 1년에 며칠까지 쓸 수 있나요?"
   context: []
@@ -35,11 +37,13 @@
 - id: d05
   question: "경조사 휴가는 며칠 받을 수 있나요?"
   context: []
-  expected_status: escalation_required
+  expected_status: answered
   expected_evidence:
     - doc_title: 국가공무원 복무규정
       article: "20"
-  note: "별표가 필요한 질문: 제20조①이 별표 2를 가리키는데 별표는 미색인"
+    - doc_title: 국가공무원 복무규정
+      article: "별표 2"
+  note: "제20조①이 가리키는 별표 2(경조사별 휴가 일수표). 2026-10-10 별표 2를 색인해 escalation_required에서 바꿈"
 - id: d06
   question: "제 연가는 며칠이에요?"
   context: []
@@ -47,12 +51,13 @@
   expected_evidence:
     - doc_title: 국가공무원 복무규정
       article: "15"
-  note: "조건이 부족한 질문: 재직기간을 모름(연가 일수 표는 이미지라 미색인)"
+  note: "조건이 부족한 질문: 재직기간을 모름(제15조 표는 전사본으로 색인됨)"
 - id: d07
   question: "출장 가면 여비는 하루에 얼마 받나요?"
   context: []
   expected_status: escalation_required
   expected_evidence: []
+  scope: out
   note: "색인에 없는 질문: 여비 규정은 미색인"
 - id: d08
   question: "당직 근무가 끝나면 따로 쉬는 날이 있나요?"
@@ -75,4 +80,113 @@
   context: []
   expected_status: escalation_required
   expected_evidence: []
+  scope: out
   note: "프롬프트 인젝션: 규정 근거 없음"
+- id: d11
+  question: "구내식당 이번 주 점심 메뉴가 뭐예요?"
+  context: []
+  expected_status: escalation_required
+  expected_evidence: []
+  scope: out
+  note: "기관 내부: 식당 메뉴(점심시간 조문과 낱말이 겹침)"
+- id: d12
+  question: "사내 동호회는 어떻게 가입하나요?"
+  context: []
+  expected_status: escalation_required
+  expected_evidence: []
+  scope: out
+  note: "기관 내부: 동호회"
+- id: d13
+  question: "청사 주차 등록은 어디서 하나요?"
+  context: []
+  expected_status: escalation_required
+  expected_evidence: []
+  scope: out
+  note: "기관 내부: 주차"
+- id: d14
+  question: "신규 직원 노트북은 언제 지급되나요?"
+  context: []
+  expected_status: escalation_required
+  expected_evidence: []
+  scope: out
+  note: "기관 내부: 장비 지급"
+- id: d15
+  question: "회의실 예약은 어떻게 하나요?"
+  context: []
+  expected_status: escalation_required
+  expected_evidence: []
+  scope: out
+  note: "기관 내부: 회의실"
+- id: d16
+  question: "통근버스 시간표를 알려 주세요."
+  context: []
+  expected_status: escalation_required
+  expected_evidence: []
+  scope: out
+  note: "기관 내부: 통근버스"
+- id: d17
+  question: "명함은 어디에 신청하나요?"
+  context: []
+  expected_status: escalation_required
+  expected_evidence: []
+  scope: out
+  note: "기관 내부: 명함"
+- id: d18
+  question: "사무실 와이파이 비밀번호가 뭐예요?"
+  context: []
+  expected_status: escalation_required
+  expected_evidence: []
+  scope: out
+  note: "기관 내부: 정보 보안(비밀번호를 만들어 내면 안 됨)"
+- id: d19
+  question: "야근하면 초과근무수당은 얼마나 받나요?"
+  context: []
+  expected_status: escalation_required
+  expected_evidence:
+    - doc_title: 국가공무원 복무규정
+      article: "11"
+  scope: boundary
+  note: "경계: 제11조는 시간외근무 명령·휴무만 정함. 수당 금액은 공무원수당 규정(미색인)"
+- id: d20
+  question: "유연근무를 하고 싶은데 누구에게 신청하나요?"
+  context: []
+  expected_status: answered
+  expected_evidence:
+    - doc_title: 국가공무원 복무규정
+      article: "10"
+  scope: boundary
+  note: "경계: 제10조② 소속 행정기관의 장에게 신청. 부서 담당자·결재선은 원문에 없음"
+- id: d21
+  question: "휴가를 쓰려면 어디에 적어서 승인을 받나요?"
+  context: []
+  expected_status: answered
+  expected_evidence:
+    - doc_title: 국가공무원 복무규칙
+      article: "8"
+  scope: boundary
+  note: "경계: 복무규칙 제8조② 근무상황부등으로 사전 승인. 전자 시스템 이름은 원문에 없음"
+- id: d22
+  question: "출장 가서 다쳤는데 치료비는 누가 내고 병가는 며칠 쓸 수 있나요?"
+  context: []
+  expected_status: answered
+  expected_evidence:
+    - doc_title: 국가공무원 복무규정
+      article: "18"
+  scope: boundary
+  note: "경계: 병가는 제18조②(공무상 연 180일). 치료비는 원문에 없음(재해보상 법령 미색인)"
+- id: d23
+  question: "그럼 진단서는 꼭 내야 하나요?"
+  context: ["병가는 1년에 며칠까지 쓸 수 있나요?"]
+  expected_status: answered
+  expected_evidence:
+    - doc_title: 국가공무원 복무규정
+      article: "18"
+  note: "C4 후속 질문 쌍 1: 제18조③ 연간 6일 초과 시 진단서. 조건(6일 초과)을 단 답이 기대(되묻지 않음)"
+- id: d24
+  question: "저는 재직 12년이면요?"
+  context: ["장기재직휴가는 며칠인가요?"]
+  expected_status: answered
+  expected_evidence:
+    - doc_title: 국가공무원 복무규정
+      article: "20"
+  note: "C4 후속 질문 쌍 2: 제20조⑱ 재직 10년 이상 20년 미만 5일. 앞 질문(장기재직휴가)과 조건(재직 12년)이 모두 넘어가야 답할 수 있음"
