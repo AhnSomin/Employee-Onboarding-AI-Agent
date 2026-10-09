@@ -155,6 +155,28 @@ def test_budget_caps_purposes_and_429_halt(tmp_path):
     assert [r["status"] for r in records] == ["ok", "ok", "quota"]
 
 
+def test_budget_file_session_and_unenforced_calls_are_still_logged(tmp_path):
+    log, budget = tmp_path / "usage.jsonl", tmp_path / "budget.yaml"
+    log.write_text(
+        json.dumps({"at": "2026-10-09T10:00:00+09:00", "kind": "generate", "purpose": "spare", "model": "m",
+                    "requests": 5, "est_tokens": 0, "status": "ok"}) + "\n"
+    )
+    budget.write_text(
+        'since: "2026-10-10T02:03:00+09:00"\ncaps: {generate: 1, embed_query: 1, embed_doc_tokens: 1}\n'
+        "generate_plan: {app_question: 1}\n"
+    )
+    meter = UsageMeter.from_budget_file(log, budget, enforce=False)
+    counter = CountingGenai(SimpleNamespace(models=SimpleNamespace(generate_content=lambda **_: "ok")), meter,
+                            purpose="app_question")
+    for _ in range(3):  # over the cap and the share, but not enforced
+        counter.models.generate_content(model="m", contents="q")
+    assert meter.totals()["generate"] == 3  # this budget session only
+    assert meter.totals(lifetime=True)["generate"] == 8  # the older record counts in the lifetime view
+    enforced = UsageMeter.from_budget_file(log, budget, enforce=True)
+    with pytest.raises(BudgetExceeded):
+        enforced.check("generate", purpose="app_question")
+
+
 def test_query_embeddings_are_cached(tmp_path):
     api = FakeEmbedApi()
     embedder = GeminiEmbedder(api, config(), EmbeddingCache(tmp_path / "cache", config()))
