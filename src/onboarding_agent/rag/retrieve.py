@@ -32,10 +32,12 @@ from .models import RegChunk
 from .usage import BudgetExceeded
 
 Mode = Literal["vector", "bm25", "rrf"]
-# Chosen on the development set (docs/DECISIONS.md, 2026-10-10 규정 RAG): vector had the best
-# hit@1 and MRR; 0.705 sits between the lowest in-scope (0.716) and highest out-of-scope (0.696) top cosine.
+# Chosen on the development set (docs/DECISIONS.md, 2026-10-10 규정 RAG): vector had the best hit@1 and MRR.
+# v2 floor (D3): the score gate only drops clear out-of-scope questions without a model call; the model's
+# escalation and the checks decide the rest. 0.636 = the lower of (highest institution-internal out-of-scope
+# score 0.6429 + 0.02) and (lowest in-scope score with right retrieval 0.6460 − 0.01). v1 used 0.705.
 DEFAULT_MODE: Mode = "vector"
-DEFAULT_MIN_SCORE: float | None = 0.705
+DEFAULT_MIN_SCORE: float | None = 0.636
 CANDIDATES = 50  # per ranking before fusion
 REF_EXPANSION_FROM = 3  # refs of the top hits
 REF_EXPANSION_MAX = 4

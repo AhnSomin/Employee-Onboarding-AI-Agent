@@ -90,6 +90,7 @@ def run_retrieval(runtime, items: list[dict]) -> dict:
             "question": item["question"],
             "expected": expected_pairs(item),
             "scope": scope_of(item),
+            "group": group_of(item),
             "modes": {},
         }
         for mode in MODES:
@@ -122,37 +123,91 @@ def scope_of(item_or_row: dict) -> str:
     )
 
 
-def suggest_threshold(rows: list[dict]) -> dict:
-    """Highest vector score per question, split by scope; the suggestion is the middle of the gap
-    between the lowest in-scope score and the highest out-of-scope score. Boundary questions are
-    partly covered, so they are reported against the suggestion but do not set it."""
-    scores: dict[str, list[tuple[str, float]]] = {"in": [], "out": [], "boundary": []}
+GROUPS = {
+    "in_existing": "범위 안(기존)",
+    "in_everyday": "범위 안(새 일상어)",
+    "boundary": "경계",
+    "out_internal": "범위 밖(기관 내부)",
+    "out_other": "범위 밖(기타)",
+}
+
+
+def group_of(item: dict) -> str:
+    scope = scope_of(item)
+    if scope == "in":
+        return "in_everyday" if item.get("style") == "everyday" else "in_existing"
+    if scope == "out":
+        return "out_internal" if item.get("out_kind") == "internal" else "out_other"
+    return "boundary"
+
+
+def suggest_threshold(rows: list[dict], top_k: int) -> dict:
+    """v2 floor (2026-10-10, D3): the score gate only drops clear out-of-scope questions; the model's
+    escalation and the checks decide the rest. Floor = the lower of
+      - highest score among out-of-scope (institution-internal) questions + 0.02
+      - lowest score among in-scope questions (existing + everyday) whose retrieval is right − 0.01
+    "Retrieval is right" means an expected evidence chunk is in the vector top_k (RAG_TOP_K, what the model sees);
+    in-scope questions with wrong retrieval are left out of the floor and listed separately."""
+    groups: dict[str, list[dict]] = {key: [] for key in GROUPS}
     for r in rows:
         score = r["modes"]["vector"]["top_vector_score"]
         if score is not None:
-            scores[r["scope"]].append((r["id"], score))
-    if not scores["in"] or not scores["out"]:
-        return {"suggested": None, **{k: v for k, v in scores.items()}}
-    low_in = min(scores["in"], key=lambda x: x[1])
-    high_out = max(scores["out"], key=lambda x: x[1])
-    separable = low_in[1] > high_out[1]
-    suggested = round((low_in[1] + high_out[1]) / 2, 3) if separable else None
-    report = {
-        "inside_min": [low_in[0], round(low_in[1], 4)],
-        "outside_max": [high_out[0], round(high_out[1], 4)],
-        "gap": round(low_in[1] - high_out[1], 4),
-        "separable": separable,
-        "suggested": suggested,
-        "in": len(scores["in"]),
-        "out": len(scores["out"]),
+            groups[r["group"]].append(r)
+
+    def score(r: dict) -> float:
+        return r["modes"]["vector"]["top_vector_score"]
+
+    table = {
+        key: {
+            "n": len(members),
+            "min": [min(members, key=score)["id"], round(score(min(members, key=score)), 4)] if members else None,
+            "max": [max(members, key=score)["id"], round(score(max(members, key=score)), 4)] if members else None,
+        }
+        for key, members in groups.items()
     }
-    if scores["boundary"]:
-        low_b = min(scores["boundary"], key=lambda x: x[1])
-        report["boundary_min"] = [low_b[0], round(low_b[1], 4)]
-        report["boundary_held_at_suggested"] = (
-            [i for i, s in scores["boundary"] if s < suggested] if suggested is not None else None
-        )
+    in_rows = groups["in_existing"] + groups["in_everyday"]
+    right = [r for r in in_rows if r["modes"]["vector"]["rank"] and r["modes"]["vector"]["rank"] <= top_k]
+    wrong = [r for r in in_rows if r not in right]
+    report = {"groups": table, "retrieval_wrong": [r["id"] for r in wrong]}
+    if not right or not groups["out_internal"]:
+        return report | {"suggested": None}
+    out_max = max(groups["out_internal"], key=score)
+    in_min = min(right, key=score)
+    from_out = score(out_max) + 0.02
+    from_in = score(in_min) - 0.01
+    floor = int(min(from_out, from_in) * 1000) / 1000  # rounded down to 3 places
+    all_out = groups["out_internal"] + groups["out_other"]
+    report |= {
+        "out_internal_max": [out_max["id"], round(score(out_max), 4)],
+        "in_right_min": [in_min["id"], round(score(in_min), 4)],
+        "from_out": round(from_out, 4),
+        "from_in": round(from_in, 4),
+        "suggested": floor,
+        "below_out_max": floor < score(out_max),
+        "out_or_boundary_at_or_above_floor": [r["id"] for r in all_out + groups["boundary"] if score(r) >= floor],
+        "in_held_at_floor": [r["id"] for r in right if score(r) < floor],
+    }
     return report
+
+
+def print_groups(report: dict, rows: list[dict]) -> None:
+    threshold = report["threshold"]
+    print("\n### 집단별 최고 코사인 분포")
+    print("| 집단 | 문항 수 | 최저(문항) | 최고(문항) |\n|---|---|---|---|")
+    for key, label in GROUPS.items():
+        g = threshold["groups"][key]
+        low = f"{g['min'][1]:.4f} ({g['min'][0]})" if g["min"] else "-"
+        high = f"{g['max'][1]:.4f} ({g['max'][0]})" if g["max"] else "-"
+        print(f"| {label} | {g['n']} | {low} | {high} |")
+    print("\n검색이 틀린 범위 안 문항(하한 계산에서 뺌): " + (", ".join(threshold["retrieval_wrong"]) or "없음"))
+    for r in rows:
+        score = r["modes"]["vector"]["top_vector_score"]
+        if r["group"].startswith("in_") and score is not None and score < 0.705:
+            top = r["modes"]["vector"]["top"][0] if r["modes"]["vector"]["top"] else "-"
+            print(
+                f"- v1 기준 0.705 미만 범위 안 {r['id']}: {r['modes']['vector']['top_vector_score']:.4f}, "
+                f"벡터 1위 {top}, 기대 근거 순위 {r['modes']['vector']['rank']}"
+            )
 
 
 def print_metrics(report: dict, title: str) -> None:
@@ -292,7 +347,7 @@ def summarize(rows, retrieval_metrics_by_mode, before, after, draft, set_path) -
     evidence = [r["evidence_ok"] for r in generated if r["evidence_ok"] is not None]
     return {
         "label": "사용자 검수 전 — 공식 수치 아님" if draft else "사용자 검수 완료 세트",
-        "set": str(set_path.relative_to(REPO_ROOT)),
+        "set": str(set_path.relative_to(REPO_ROOT)) if set_path.is_relative_to(REPO_ROOT) else str(set_path),
         "questions": len(rows),
         "generated": len(generated),
         "held_before_generation": len(held),
@@ -398,13 +453,14 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "dev":
         runtime.embedder.query_purpose = "query:dev_eval"
         report = run_retrieval(runtime, items)
-        report["threshold"] = suggest_threshold(report["rows"])
+        report["threshold"] = suggest_threshold(report["rows"], runtime.service.top_k)
         RUNS.mkdir(parents=True, exist_ok=True)
         (RUNS / f"dev_{datetime.now():%Y%m%dT%H%M%S}.json").write_text(
             json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8"
         )
         print_metrics(report, "개발 세트")
-        print("\n최소 점수 제안: " + json.dumps(report["threshold"], ensure_ascii=False))
+        print_groups(report, report["rows"])
+        print("\n하한 계산: " + json.dumps(report["threshold"], ensure_ascii=False))
         print("질문 임베딩 누계: " + str(runtime.meter.totals().get("embed_query", 0)))
         return 0
     return cmd_final(items, draft, runtime, set_path, args.save_raw)

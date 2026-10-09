@@ -1,7 +1,10 @@
-# 규정 Q&A 개발 세트 (에이전트 작성). 검색 방식과 RAG_MIN_SCORE를 정하는 데만 쓴다. 답변은 생성하지 않는다.
+# 규정 Q&A 개발 세트 (에이전트 작성). 검색 방식과 RAG_MIN_SCORE를 정하는 데 쓴다(검색만, 생성 없음). 생성 점검(C3 d07, C4 d23·d24, D4 회색 구간 d07·d11·d17·d19와 d25·d28)에도 썼다.
 # 색인에 넣지 않는다. 기대 근거는 색인된 원문(국가공무원 복무규정·복무규칙, 공무원 행동강령)을 보고 적었다.
 # scope: in(규정으로 답할 수 있음, 기본) | out(기관 내부 사정 등 규정 밖) | boundary(일부만 규정에 있음).
 # 2026-10-10 C3: 범위 밖 8문항(d11~d18)과 경계 4문항(d19~d22)을 더했다. 최종 세트는 보지 않고 썼다.
+# 2026-10-10 D3: 범위 안 일상어 10문항(d25~d34, style: everyday)을 더했다. 신입이 실제로 물을 말투로, 조문 용어·휴가 이름 없이 상황으로 묻는다.
+#   최종 세트 문항을 바꿔 말한 질문은 넣지 않았다(검토에서 f02와 겹친다고 본 임신 검진 질문은 휴가 중 주말 질문으로 바꿨다).
+# out_kind: internal(기관 내부 사정) | other(여비·인젝션). 하한 계산은 internal만 쓴다(D3).
 - id: d01
   question: "병가는 1년에 며칠까지 쓸 수 있나요?"
   context: []
@@ -58,6 +61,7 @@
   expected_status: escalation_required
   expected_evidence: []
   scope: out
+  out_kind: other
   note: "색인에 없는 질문: 여비 규정은 미색인"
 - id: d08
   question: "당직 근무가 끝나면 따로 쉬는 날이 있나요?"
@@ -81,6 +85,7 @@
   expected_status: escalation_required
   expected_evidence: []
   scope: out
+  out_kind: other
   note: "프롬프트 인젝션: 규정 근거 없음"
 - id: d11
   question: "구내식당 이번 주 점심 메뉴가 뭐예요?"
@@ -88,6 +93,7 @@
   expected_status: escalation_required
   expected_evidence: []
   scope: out
+  out_kind: internal
   note: "기관 내부: 식당 메뉴(점심시간 조문과 낱말이 겹침)"
 - id: d12
   question: "사내 동호회는 어떻게 가입하나요?"
@@ -95,6 +101,7 @@
   expected_status: escalation_required
   expected_evidence: []
   scope: out
+  out_kind: internal
   note: "기관 내부: 동호회"
 - id: d13
   question: "청사 주차 등록은 어디서 하나요?"
@@ -102,6 +109,7 @@
   expected_status: escalation_required
   expected_evidence: []
   scope: out
+  out_kind: internal
   note: "기관 내부: 주차"
 - id: d14
   question: "신규 직원 노트북은 언제 지급되나요?"
@@ -109,6 +117,7 @@
   expected_status: escalation_required
   expected_evidence: []
   scope: out
+  out_kind: internal
   note: "기관 내부: 장비 지급"
 - id: d15
   question: "회의실 예약은 어떻게 하나요?"
@@ -116,6 +125,7 @@
   expected_status: escalation_required
   expected_evidence: []
   scope: out
+  out_kind: internal
   note: "기관 내부: 회의실"
 - id: d16
   question: "통근버스 시간표를 알려 주세요."
@@ -123,6 +133,7 @@
   expected_status: escalation_required
   expected_evidence: []
   scope: out
+  out_kind: internal
   note: "기관 내부: 통근버스"
 - id: d17
   question: "명함은 어디에 신청하나요?"
@@ -130,6 +141,7 @@
   expected_status: escalation_required
   expected_evidence: []
   scope: out
+  out_kind: internal
   note: "기관 내부: 명함"
 - id: d18
   question: "사무실 와이파이 비밀번호가 뭐예요?"
@@ -137,6 +149,7 @@
   expected_status: escalation_required
   expected_evidence: []
   scope: out
+  out_kind: internal
   note: "기관 내부: 정보 보안(비밀번호를 만들어 내면 안 됨)"
 - id: d19
   question: "야근하면 초과근무수당은 얼마나 받나요?"
@@ -190,3 +203,111 @@
     - doc_title: 국가공무원 복무규정
       article: "20"
   note: "C4 후속 질문 쌍 2: 제20조⑱ 재직 10년 이상 20년 미만 5일. 앞 질문(장기재직휴가)과 조건(재직 12년)이 모두 넘어가야 답할 수 있음"
+- id: d25
+  question: "감기 때문에 며칠 못 나갈 것 같아요. 어떻게 해요?"
+  context: []
+  expected_status: answered
+  expected_evidence:
+    - doc_title: 국가공무원 복무규정
+      article: "18"
+  scope: in
+  style: everyday
+  note: "제18조① 질병으로 직무를 수행할 수 없을 때 연 60일 범위 병가, ③ 연간 6일 초과 시 진단서"
+- id: d26
+  question: "병원 들렀다가 두 시간 늦게 출근했는데 어떻게 처리돼요?"
+  context: []
+  expected_status: answered
+  expected_evidence:
+    - doc_title: 국가공무원 복무규정
+      article: "18"
+    - doc_title: 국가공무원 복무규칙
+      article: "8"
+    - doc_title: 국가공무원 복무규정
+      article: "17"
+  scope: in
+  style: everyday
+  note: "제18조① 질병·부상으로 인한 지각은 누계 8시간을 병가 1일로 계산, 복무규칙 제8조② 지각은 사전(불가피하면 사후) 승인. 질병이 아니면 제17조④(연가로 계산) — 조건을 단 답"
+- id: d27
+  question: "주말에 나와서 일하면 대신 쉬는 날 있어요?"
+  context: []
+  expected_status: answered
+  expected_evidence:
+    - doc_title: 국가공무원 복무규정
+      article: "11"
+  scope: in
+  style: everyday
+  note: "제11조② 토요일·공휴일 근무 뒤 다음 정상근무일 휴무(할 수 있다). 당직으로 읽으면 복무규칙 제14조②"
+- id: d28
+  question: "예비군 훈련 가는 날은 어떻게 해요?"
+  context: []
+  expected_status: answered
+  expected_evidence:
+    - doc_title: 국가공무원 복무규정
+      article: "19"
+  scope: in
+  style: everyday
+  note: "제19조 제1호 병역법 등에 따른 소집·훈련은 공가. 원문에 '예비군'이라는 말은 없음"
+- id: d29
+  question: "건강검진 받으러 가는 날도 휴가 내야 해요?"
+  context: []
+  expected_status: answered
+  expected_evidence:
+    - doc_title: 국가공무원 복무규정
+      article: "19"
+  scope: in
+  style: everyday
+  note: "제19조 제7호 국민건강보험법 제52조 건강검진은 공가로 승인"
+- id: d30
+  question: "아이 어린이집 데려다주느라 출근이 늦어져도 되나요?"
+  context: []
+  expected_status: answered
+  expected_evidence:
+    - doc_title: 국가공무원 복무규정
+      article: "20"
+    - doc_title: 국가공무원 복무규정
+      article: "10"
+  scope: in
+  style: everyday
+  note: "제20조⑤ 8세 이하(초2 이하) 자녀 육아시간 1일 최대 2시간·36개월. 제10조 유연근무도 관련. 아이 나이에 따른 조건을 단 답"
+- id: d31
+  question: "휴가 중에 주말이 끼면 그것도 휴가 일수로 빠져요?"
+  context: []
+  expected_status: answered
+  expected_evidence:
+    - doc_title: 국가공무원 복무규정
+      article: "22"
+  scope: in
+  style: everyday
+  note: "제22조 휴가기간 중 토요일·공휴일은 휴가 일수에 넣지 않음. 단서: 같은 사유 30일 이상 등은 넣음"
+- id: d32
+  question: "퇴근하고 다른 데서 알바해도 돼요?"
+  context: []
+  expected_status: answered
+  expected_evidence:
+    - doc_title: 국가공무원 복무규정
+      article: "25"
+    - doc_title: 국가공무원 복무규정
+      article: "26"
+  scope: in
+  style: everyday
+  note: "제25조 영리 업무 금지, 제26조 다른 직무 겸직은 소속 기관의 장 사전 허가"
+- id: d33
+  question: "출장 다녀와서 꼭 해야 하는 일이 있어요?"
+  context: []
+  expected_status: answered
+  expected_evidence:
+    - doc_title: 국가공무원 복무규정
+      article: "6"
+  scope: in
+  style: everyday
+  note: "제6조③ 돌아오면 지체 없이 결과 보고서 제출(경미하면 말로). 여비 정산은 원문에 없음"
+- id: d34
+  question: "외부에서 강의하고 강의료 받아도 되나요?"
+  context: []
+  expected_status: answered
+  expected_evidence:
+    - doc_title: 공무원 행동강령
+      article: "15"
+  scope: in
+  style: everyday
+  note: "행동강령 제15조 정한 금액 초과 사례금 금지, 마친 날부터 10일 이내 서면 신고(국가·지자체 요청은 제외)"
