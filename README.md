@@ -16,7 +16,7 @@
 ### 1. 규정 기반 질의응답 (RAG + LLM)
 - 신입이 채팅으로 질문하면 규정·법령에서 근거 조문을 찾아 **조문 번호와 함께 쉬운 말로 풀어서** 답합니다.
 - 근거를 찾지 못하거나 확신이 낮으면 추측하지 않고 "담당자에게 물어볼게요"로 에스컬레이션합니다.
-- 지식 소스: 국가법령정보센터에서 받은 법령 PDF(국가공무원 복무규정·복무규칙, 공무원 행동강령, 복무규정 별표 2)와 이미지 표 전사본 2개(검수 대기). 법제처 Open API는 아직 연동하지 않았습니다.
+- 지식 소스: 법령 PDF(로컬 파일 — 국가공무원 복무규정·복무규칙, 공무원 행동강령, 복무규정 별표 2)와 이미지 표 전사본 2개(검수 완료). 법제처 Open API는 미연동(향후 과제)입니다.
 - 구축·실행 방법, 검증 범위와 한계: [docs/regulations/RAG.md](docs/regulations/RAG.md)
 
 ### 2. 회의록 → 액션 자동화
@@ -30,7 +30,7 @@
 
 ```
 사용자 ↔ Streamlit 웹앱 ↔ Agent (Gemini function calling)
-                              ├─ 법령·규정 검색 (RAG, 법제처 Open API)
+                              ├─ 법령·규정 검색 (RAG, 법령 PDF(로컬 파일) · 법제처 Open API 미연동(향후 과제))
                               ├─ Google Calendar (일정 등록)
                               └─ Slack (알림)
 배치 스케줄러 (GitHub Actions) ↔ 상태 저장소 ← Agent  → 기한 전 재알림
@@ -41,7 +41,7 @@
 | UI | Streamlit |
 | LLM | Gemini (function calling), 장애 시 모델 자동 전환 + 규칙 기반 폴백 |
 | 검색 | 문서 임베딩 + 벡터 검색 |
-| 법령 데이터 | 법제처 국가법령정보센터 Open API |
+| 법령 데이터 | 법령 PDF(로컬 파일). 법제처 Open API는 미연동(향후 과제) |
 | 일정 / 알림 | Google Calendar API / Slack API |
 | 상태 저장소 | 경량 DB(SQLite) 또는 Google Sheets |
 | 배치 | GitHub Actions |

@@ -149,25 +149,57 @@ def test_follow_up_keeps_conditions_and_previous_question_not_answers(small_inde
     assert state.conditions == [] and len(state.questions) == 5  # older than five turns
 
 
-def test_repeating_the_users_own_number_is_a_warning_not_a_regeneration(small_index, tmp_path):
+def test_repeating_the_users_condition_value_is_a_warning_not_a_regeneration(small_index, tmp_path):
     index, embedder = small_index
     llm = FakeLLM(
         [
-            answer([("병가가 7일이면 연간 6일을 초과하므로 의사의 진단서를 첨부해야 합니다.", ["dec36728:a5"])]),
-            answer([("병가가 9일이면 진단서가 필요합니다.", ["dec36728:a5"])]),
-            answer([("병가가 9일이면 진단서가 필요합니다.", ["dec36728:a5"])]),
+            answer([("재직 3년이어도 병가는 연 60일의 범위에서 승인할 수 있습니다.", ["dec36728:a5"])]),
+            answer([("병가가 8일이면 진단서가 필요합니다.", ["dec36728:a5"])]),
+            answer([("병가가 8일이면 진단서가 필요합니다.", ["dec36728:a5"])]),
         ]
     )
     service = make_service(index, embedder, llm, tmp_path)
     state = ConversationState()
-    state.add("병가는 며칠까지 쓸 수 있나요?")
-    result = service.answer("저는 병가를 7일 쓰면요?", state)
+    result = service.answer("재직 3년인데 병가는 며칠까지 쓸 수 있나요?", state)
     assert result.answer.status == "answered" and len(llm.prompts) == 1
     assert result.answer.checks["수치·날짜"] == "warning"
-    assert any("질문에 나온 수치" in w for w in result.warnings)
-    # a number the user never said is still a failure: regenerate once, then source cards only
+    assert any("조건 값" in w for w in result.warnings)
+    # "8일" was said by the user, but it is not a condition value and days are a conclusion unit
     result = service.answer("그럼 8일이면요?", state)
     assert result.answer.status == "escalation_required" and len(llm.prompts) == 3
+
+
+def test_numbers_match_whole_numbers_and_a_restated_condition_stays(small_index, tmp_path):
+    index, embedder = small_index
+    llm = FakeLLM([answer([("병가는 연 0일입니다.", ["dec36728:a5"])])] * 2)
+    service = make_service(index, embedder, llm, tmp_path)
+    result = service.answer("병가는 며칠까지 쓸 수 있나요?", ConversationState())
+    assert result.answer.status == "escalation_required"  # "0일" is not found inside "60일"
+    state = ConversationState()
+    state.add("재직 12년인데 연가는 며칠인가요?")  # turn 1
+    state.add("질문 하나")
+    state.add("재직 12년인데 반일 연가는요?")  # turn 3: said again, so it now counts from turn 3
+    for number in range(4):
+        state.add(f"질문 {number}")  # turns 4-7: turn 1 is out of the last five, turn 3 is not
+    assert [(c.text, c.turn) for c in state.conditions] == [("재직 12년인데", 3)]
+
+
+def test_a_reply_that_is_not_answered_shows_no_headline_or_points(small_index, tmp_path):
+    index, embedder = small_index
+    llm = FakeLLM(
+        [
+            {
+                "status": "needs_clarification",
+                "one_line": "병가는 100일입니다.",
+                "points": [{"text": "병가는 100일입니다.", "evidence_ids": ["dec36728:a5"]}],
+                "clarification_question": "어떤 병가인지 알려 주세요.",
+                "missing_conditions": ["병가 종류"],
+            }
+        ]
+    )
+    result = make_service(index, embedder, llm, tmp_path).answer("병가는 며칠인가요?", ConversationState())
+    assert result.answer.status == "needs_clarification"
+    assert result.answer.one_line is None and result.answer.points == [] and result.answer.conditions == []
 
 
 def test_instructions_inside_documents_are_data(index_dir, tmp_path):

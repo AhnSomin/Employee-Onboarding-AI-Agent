@@ -56,11 +56,10 @@
       "version_label": "대통령령 제36728호",
       "effective_date": "2026-10-02",
       "promulgation_date": null,
-      "source_sha256": "112ebf115894d63501d2d533b7320a04791cf4680c3088d4ea84a13121dbeb48",
+      "source_sha256": "9e491326d49c983321f071a8821b89f897e5a82ab69e64d1e042ef4e6ec945b6",
       "chunks": 1,
       "unverified": [
-        "applies_to",
-        "manual_transcription"
+        "applies_to"
       ]
     },
     {
@@ -69,15 +68,14 @@
       "version_label": "대통령령 제36728호",
       "effective_date": "2026-10-02",
       "promulgation_date": null,
-      "source_sha256": "5e11564da9cba78b3a94858b6faabc3714654df86d4afcb92b78435487de6785",
+      "source_sha256": "6166334d543c6a94966c05d37742e5cad57d10c55141e5fdb0bc2a8fceb66e0d",
       "chunks": 1,
       "unverified": [
-        "applies_to",
-        "manual_transcription"
+        "applies_to"
       ]
     }
   ],
-  "index_version": "v20261010T022113",
+  "index_version": "v20261010T030342",
   "embedding": {
     "model": "gemini-embedding-001",
     "dim": 3072,
@@ -240,9 +238,9 @@
   ],
   "unindexed": [],
   "usage": {
-    "document_requests": 1,
-    "document_est_tokens": 1181,
-    "embedded_now": 6,
-    "from_cache": 153
+    "document_requests": 0,
+    "document_est_tokens": 0,
+    "embedded_now": 0,
+    "from_cache": 159
   }
 }

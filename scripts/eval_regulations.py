@@ -254,6 +254,9 @@ def cmd_final(items: list[dict], draft: bool, runtime, set_path: Path, save_raw:
     after = runtime.meter.totals()
     RUNS.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now().strftime("%Y%m%dT%H%M%S")
+    run_path = RUNS / f"final_{stamp}.jsonl"
+    if save_raw:  # first, so a later failure cannot lose outputs that cost model calls
+        run_path.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
     summary = summarize(rows, retrieval["metrics"], before, after, draft, set_path)
     (RUNS / f"final_{stamp}_summary.json").write_text(
         json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8"
@@ -261,8 +264,6 @@ def cmd_final(items: list[dict], draft: bool, runtime, set_path: Path, save_raw:
     print_final(summary, rows)
     print_metrics(retrieval, "최종 세트")
     if save_raw:
-        run_path = RUNS / f"final_{stamp}.jsonl"
-        run_path.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
         print(f"\n원 출력: {run_path.relative_to(REPO_ROOT)} (다시 채점: final --rescore 이 파일)")
     else:
         print("\n--save-raw 없이 실행해 원 출력을 남기지 않았습니다. 다시 채점할 수 없습니다.")
@@ -348,8 +349,11 @@ def cmd_rescore(path: Path, items: list[dict], draft: bool, runtime, set_path: P
             if "output" not in attempt:
                 continue
             retrieved = {cid: runtime.index.chunk(cid) for cid in row.get("retrieved", []) if runtime.index.chunk(cid)}
-            user_text = " ".join([*(by_id[row["id"]].get("context") or []), row.get("question", "")])
-            validation = validate_answer(ModelAnswer.model_validate(attempt["output"]), retrieved, titles, user_text)
+            state = ConversationState()
+            for said in [*(by_id[row["id"]].get("context") or []), row.get("question", "")]:
+                state.add(said)
+            conditions = [(c.type, c.text) for c in state.conditions]
+            validation = validate_answer(ModelAnswer.model_validate(attempt["output"]), retrieved, titles, conditions)
             print(row["id"], attempt["attempt"], validation.checks, validation.failures[:2])
     saved = path.with_name(path.stem + "_summary.json")
     metrics = json.loads(saved.read_text(encoding="utf-8"))["retrieval_metrics"] if saved.is_file() else {}
@@ -380,7 +384,7 @@ def main(argv: list[str] | None = None) -> int:
     except IndexUnavailable as exc:
         print(f"색인이 없어 평가할 수 없습니다: {exc}")
         return 1
-    set_path = args.set or EVAL_DIR / ("dev.yaml" if args.command == "dev" else "final.yaml")
+    set_path = (args.set or EVAL_DIR / ("dev.yaml" if args.command == "dev" else "final.yaml")).resolve()
     items, draft = load_set(set_path)
     rescore = args.rescore or (args.run if args.command == "rescore" else None)
     if rescore:

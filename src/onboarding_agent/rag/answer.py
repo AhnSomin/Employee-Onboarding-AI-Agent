@@ -91,7 +91,10 @@ class ConversationState:
         for kind, pattern in CONDITION_PATTERNS:
             for match in pattern.finditer(question):
                 text = match.group(0).strip()
-                if not any(c.type == kind and c.text == text for c in self.conditions):
+                same = next((c for c in self.conditions if c.type == kind and c.text == text), None)
+                if same:
+                    same.turn = self.turn  # said again: keep it as fresh as the latest mention
+                else:
                     self.conditions.append(Condition(kind, text, self.turn))
         oldest = self.turn - MAX_TURNS_KEPT + 1
         self.conditions = [c for c in self.conditions if c.turn >= oldest]
@@ -101,11 +104,6 @@ class ConversationState:
 
     def describe(self) -> str:
         return " / ".join(f"{c.type}: {c.text}" for c in self.conditions) or "(없음)"
-
-
-def user_words(state: ConversationState) -> str:
-    """Everything the user said in the kept turns: questions and the conditions taken from them."""
-    return " ".join([*state.questions, state.describe()])
 
 
 def is_follow_up(question: str) -> bool:
@@ -198,7 +196,8 @@ class QAService:
                     model_answer = None
                 break
             result.generate_requests += 1
-            validation = validate_answer(model_answer, retrieved, self.doc_titles, user_words(state))
+            conditions = [(c.type, c.text) for c in state.conditions]
+            validation = validate_answer(model_answer, retrieved, self.doc_titles, conditions)
             result.attempts.append(
                 {
                     "attempt": attempt + 1,
@@ -308,7 +307,7 @@ class QAService:
             )
             return self._finish(answer, None, [], start, question, state, escalate=True, result=result)
         model_answer = _terminal_answer(final)
-        validation = validate_answer(model_answer, found, self.doc_titles, user_words(state))
+        validation = validate_answer(model_answer, found, self.doc_titles, [(c.type, c.text) for c in state.conditions])
         hits = [Hit(chunk, "tool") for chunk in found.values()]
         retrieval = RetrievalResult(query=question, mode="tool", hits=hits)
         if not validation.ok:
@@ -422,6 +421,9 @@ class QAService:
             )
         ]
         data = model_answer.model_dump()
+        if model_answer.status != "answered":
+            # Only an answered reply is checked point by point, so no headline or points are shown otherwise.
+            data.update(one_line=None, points=[], conditions=[])
         data.update(base)
         data.update(
             model_used=model,
