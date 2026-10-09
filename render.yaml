@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: onboarding-agent
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ACCESS_CODE
+        sync: false
+      - key: SLACK_WEBHOOK_URL
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-4.1-mini

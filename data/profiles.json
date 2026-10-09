@@ -1,0 +1,48 @@
+[
+  {
+    "emp_id": "2026-0101",
+    "name": "김하늘",
+    "org": "국가데이터처",
+    "dept": "기획조정관 정책기획과",
+    "rank": "9급",
+    "job": "통계직",
+    "hire_date": "2026-09-14",
+    "slack_id": "",
+    "email": "haneul@example.com",
+    "approvers": [
+      {
+        "role": "과장",
+        "name": "박정훈"
+      },
+      {
+        "role": "기획조정관",
+        "name": "이서연"
+      }
+    ],
+    "leave_total": 3,
+    "leave_used": 0
+  },
+  {
+    "emp_id": "2026-0102",
+    "name": "최도윤",
+    "org": "국가데이터인재개발원",
+    "dept": "교육운영과",
+    "rank": "9급",
+    "job": "행정직",
+    "hire_date": "2026-09-28",
+    "slack_id": "",
+    "email": "doyun@example.com",
+    "approvers": [
+      {
+        "role": "과장",
+        "name": "정민아"
+      },
+      {
+        "role": "원장",
+        "name": "한지석"
+      }
+    ],
+    "leave_total": 3,
+    "leave_used": 0
+  }
+]

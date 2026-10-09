@@ -1,0 +1,8 @@
+.venv/
+.env
+data/state.db
+data/law_cache/
+__pycache__/
+.pytest_cache/
+web/node_modules/
+web/dist/

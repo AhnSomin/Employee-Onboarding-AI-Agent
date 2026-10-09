@@ -1,6 +1,6 @@
 # 신입사원 온보딩 AI Agent
 
-신규 임용 공무원(통계청 및 소속기관)의 반복 질문과 회의 후속 업무를 AI Agent가 대신 처리해, 인사담당자의 수작업을 줄이는 업무용 Agent입니다.
+신규 임용 공무원(국가데이터처(구 통계청) 및 소속기관)의 반복 질문과 회의 후속 업무를 AI Agent가 대신 처리해, 인사담당자의 수작업을 줄이는 업무용 Agent입니다.
 
 > Seoul National University KDT 13기 팀 프로젝트 (Category C: 업무용 AI Agent)
 > 과제물 제출 10/13 · 최종 발표 10/15
@@ -27,7 +27,7 @@
 ## 아키텍처
 
 ```
-사용자 ↔ Streamlit 웹앱 ↔ Agent (Gemini function calling)
+사용자 ↔ Streamlit 웹앱 ↔ Agent (OpenAI function calling)
                               ├─ 법령·규정 검색 (RAG, 법제처 Open API)
                               ├─ Google Calendar (일정 등록)
                               └─ Slack (알림)
@@ -36,9 +36,9 @@
 
 | 구성 | 기술 |
 |---|---|
-| UI | Streamlit |
-| LLM | Gemini (function calling), 장애 시 모델 자동 전환 + 규칙 기반 폴백 |
-| 검색 | 문서 임베딩 + 벡터 검색 |
+| UI / 서버 | React + Vite / FastAPI |
+| LLM | OpenAI (function calling), 장애 시 모델 자동 전환 + 규칙 기반 폴백 |
+| 검색 | OpenAI 임베딩 + 키워드 하이브리드 검색 (조·항·별표 단위 660청크) |
 | 법령 데이터 | 법제처 국가법령정보센터 Open API |
 | 일정 / 알림 | Google Calendar API / Slack API |
 | 상태 저장소 | 경량 DB(SQLite) 또는 Google Sheets |
@@ -76,7 +76,31 @@
 
 ## 개발 현황
 
-기획 단계입니다. 구현은 이 저장소에 순차적으로 추가됩니다.
+| 기능 | 상태 |
+|---|---|
+| 규정 질의응답 (RAG) | 구현 완료. 복무규정·여비 규정·보수규정·국가데이터처 직제 시행규칙 색인, 조문 번호 인용, 근거 없으면 에스컬레이션 |
+| 회의록 → 요약·결정사항·액션 아이템 추출 | 구현 완료. 담당자·기한은 회의록에 있을 때만 채우고 사용자가 수정 후 승인 |
+| Slack 알림 | 코드 완료. `SLACK_WEBHOOK_URL` 설정 시 실제 발송, 없으면 미리보기 |
+| 일정 등록 | .ics 파일 생성. Google Calendar API 직접 연동은 예정 |
+| 기한 전 재알림 배치 | 예정 |
+
+검색 정확도는 `python -m tests.rag_eval`로 재현할 수 있습니다 (질문 26개 기준 하이브리드 hit@5 96%).
+
+## 실행
+
+```bash
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+cp .env.example .env                    # OPENAI_API_KEY, LAW_API_OC 입력
+.venv/bin/python -m backend.rag.build   # 법령 인덱스 재생성 (저장소에 포함돼 있어 생략 가능)
+cd web && npm install && npm run build && cd ..
+.venv/bin/uvicorn backend.api:app --port 8000   # http://localhost:8000
+```
+
+프론트 개발 중에는 위 서버와 `cd web && npm run dev`(5173)를 함께 실행합니다. 테스트는 `python -m pytest`.
+
+## 배포 (Render)
+
+`render.yaml`과 `Dockerfile`이 포함돼 있습니다. Render에서 **New → Blueprint**로 이 저장소를 연결하고 환경변수 `OPENAI_API_KEY`, `ACCESS_CODE`(접근 코드), 선택으로 `SLACK_WEBHOOK_URL`을 입력합니다. 공개 URL이므로 `ACCESS_CODE`는 반드시 설정하세요. 무료 플랜은 15분간 요청이 없으면 잠들어 첫 접속이 느립니다.
 
 ## 팀
 

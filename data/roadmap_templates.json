@@ -1,0 +1,15 @@
+{
+  "common": [
+    {"id": "c1", "title": "인사담당관실 오리엔테이션 참석", "due_offset_days": 0, "phase": "D-day"},
+    {"id": "c2", "title": "보안서약서·개인정보 동의서 제출", "due_offset_days": 1, "phase": "Week1"},
+    {"id": "c3", "title": "복지포인트·복리후생 안내 확인", "due_offset_days": 7, "phase": "Week1"},
+    {"id": "c4", "title": "조직도 확인 및 부서 인사", "due_offset_days": 7, "phase": "Week1"},
+    {"id": "c5", "title": "연가·복무 규정 숙지", "due_offset_days": 14, "phase": "Week2"},
+    {"id": "c6", "title": "비품 신청 (필요 시)", "due_offset_days": 14, "phase": "Week2"},
+    {"id": "c7", "title": "신규자 교육 이수", "due_offset_days": 30, "phase": "Month1"}
+  ],
+  "by_job": {
+    "통계직": [{"id": "j1", "title": "통계 DB·시스템 계정 신청", "due_offset_days": 3, "phase": "Week1"}],
+    "행정직": [{"id": "j2", "title": "나라장터·e-사람 계정 신청", "due_offset_days": 3, "phase": "Week1"}]
+  }
+}

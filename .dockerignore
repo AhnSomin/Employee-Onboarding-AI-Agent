@@ -1,0 +1,11 @@
+.venv
+.env
+web/node_modules
+web/dist
+data/state.db
+data/law_cache
+__pycache__
+.pytest_cache
+app
+tests
+scheduler
