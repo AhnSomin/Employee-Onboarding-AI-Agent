@@ -20,3 +20,11 @@ dist/
 .DS_Store
 .idea/
 .vscode/
+# Regulation Q&A — index, caches, usage, drafts and raw law files stay local
+data/index/
+data/raw/
+data/manual/
+data/regulations/usage.jsonl
+data/regulations/pending_escalations.jsonl
+data/regulations/eval/runs/
+data/regulations/logs/

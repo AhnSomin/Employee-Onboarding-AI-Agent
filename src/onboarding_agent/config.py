@@ -63,6 +63,19 @@ class Settings(BaseModel):
     meeting_max_chars: int = 100_000
     roster_path: Path = Path("data/roster.yaml")
 
+    # Embeddings (separate from the generation model chain) and regulation Q&A
+    gemini_embed_model: str = "gemini-embedding-001"
+    gemini_embed_dim: int = 3072
+    gemini_embed_query_task: Literal["QUESTION_ANSWERING", "RETRIEVAL_QUERY"] = "QUESTION_ANSWERING"
+    rag_top_k: int = 6
+    rag_min_score: float | None = None  # None: the default chosen on the dev set (rag.retrieve)
+    rag_retrieval_mode: Literal["vector", "bm25", "rrf"] | None = None  # None: the dev-set choice
+    rag_max_agent_steps: int = 4
+    rag_enforce_budget: bool = True  # block calls past the build-task budget (usage is logged either way)
+    reg_index_dir: Path = Path("data/index/regulations")
+    law_api_oc: SecretStr | None = None
+    law_api_base: str = "https://www.law.go.kr/DRF"
+
     @field_validator("gemini_model_fallbacks", "reminder_stages", mode="before")
     @classmethod
     def _split_csv(cls, value: Any) -> Any:
@@ -70,7 +83,7 @@ class Settings(BaseModel):
             return [part.strip() for part in value.split(",") if part.strip()]
         return value
 
-    @field_validator("sqlite_path", "roster_path")
+    @field_validator("sqlite_path", "roster_path", "reg_index_dir")
     @classmethod
     def _resolve_from_repo_root(cls, value: Path) -> Path:
         return value if value.is_absolute() else REPO_ROOT / value

@@ -1,0 +1,203 @@
+{
+  "generated_at": "2026-10-10T01:39:34+09:00",
+  "classes": [
+    "법령·행정규칙",
+    "기관 규정·업무 안내문",
+    "별표·서식",
+    "회의록",
+    "QA 예제·가상 자료",
+    "손상·미지원·권한 미확인"
+  ],
+  "source_folders": {
+    "regulations_raw": "있음"
+  },
+  "entries": [
+    {
+      "path": "regulations_raw/공무원 행동강령(대통령령)(제32661호)(20220602).pdf",
+      "format": "pdf",
+      "size": 134017,
+      "sha256": "7bff7d4e5a55176b6e27290a2bd5b239eab88555bd06b8d2042a6bf84542929f",
+      "text_extractable": "예 (7/7쪽)",
+      "category": "법령·행정규칙",
+      "external_send": "허가(공개 법령)",
+      "indexed": true,
+      "reason": "공개 법령 원문",
+      "title": "공무원 행동강령",
+      "effective_date": "2022-06-02",
+      "version_label": "대통령령 제32661호",
+      "notes": [
+        "법제처 국가법령정보센터 인쇄본(머리말 '법제처 n 국가법령정보센터' 제거)"
+      ]
+    },
+    {
+      "path": "regulations_raw/국가공무원 복무규정(대통령령)(제36728호)(20261002).pdf",
+      "format": "pdf",
+      "size": 183664,
+      "sha256": "5b7f8cbddc129085048821895dc46d81bece3163b9a1b5bb56b6d9298865e2ef",
+      "text_extractable": "예 (14/14쪽)",
+      "category": "법령·행정규칙",
+      "external_send": "허가(공개 법령)",
+      "indexed": true,
+      "reason": "공개 법령 원문",
+      "title": "국가공무원 복무규정",
+      "effective_date": "2026-10-02",
+      "version_label": "대통령령 제36728호",
+      "notes": [
+        "법제처 국가법령정보센터 인쇄본(머리말 '법제처 n 국가법령정보센터' 제거)",
+        "이미지로 된 표가 있음(OCR하지 않고 미색인)"
+      ]
+    },
+    {
+      "path": "regulations_raw/국가공무원 복무규칙(총리령)(제02161호)(20261002).pdf",
+      "format": "pdf",
+      "size": 161426,
+      "sha256": "c3217ed8f475f76b9253332bbe39f0ecd1a252e63e221e0d6ee04e6cfd7e3d54",
+      "text_extractable": "예 (12/12쪽)",
+      "category": "법령·행정규칙",
+      "external_send": "허가(공개 법령)",
+      "indexed": true,
+      "reason": "공개 법령 원문",
+      "title": "국가공무원 복무규칙",
+      "effective_date": "2026-10-02",
+      "version_label": "총리령 제2161호",
+      "notes": [
+        "법제처 국가법령정보센터 인쇄본(머리말 '법제처 n 국가법령정보센터' 제거)"
+      ]
+    },
+    {
+      "path": "data/samples/01_structured_minutes.txt",
+      "format": "txt",
+      "size": 1495,
+      "sha256": "dcdff528095690030786c2f5ce9f5cdf7502cdc0a2ae1701158946cb07500610",
+      "text_extractable": "예",
+      "category": "회의록",
+      "external_send": "해당 없음(색인 제외)",
+      "indexed": false,
+      "reason": "가상 회의록 — 회의 기능 전용",
+      "title": null,
+      "effective_date": null,
+      "version_label": null,
+      "notes": []
+    },
+    {
+      "path": "data/samples/02_transcript.txt",
+      "format": "txt",
+      "size": 1497,
+      "sha256": "af1e7ef8b85440ff43e39857c20d26d3644aa6fecd382e1c775de0ca9b7125eb",
+      "text_extractable": "예",
+      "category": "회의록",
+      "external_send": "해당 없음(색인 제외)",
+      "indexed": false,
+      "reason": "가상 회의록 — 회의 기능 전용",
+      "title": null,
+      "effective_date": null,
+      "version_label": null,
+      "notes": []
+    },
+    {
+      "path": "data/samples/03_edge_cases.txt",
+      "format": "txt",
+      "size": 1198,
+      "sha256": "7e267f38f381a20cdb94153dfa729175073ec5b4b3527c80016adb24a7da181b",
+      "text_extractable": "예",
+      "category": "회의록",
+      "external_send": "해당 없음(색인 제외)",
+      "indexed": false,
+      "reason": "가상 회의록 — 회의 기능 전용",
+      "title": null,
+      "effective_date": null,
+      "version_label": null,
+      "notes": []
+    },
+    {
+      "path": "data/eval/meeting_gold.jsonl",
+      "format": "jsonl",
+      "size": 2476,
+      "sha256": "f2a2558422afc611fc27df4953b179df92850633b60ed384bf96aa46a97aeb08",
+      "text_extractable": "예",
+      "category": "QA 예제·가상 자료",
+      "external_send": "해당 없음(색인 제외)",
+      "indexed": false,
+      "reason": "회의 추출 평가 정답 — 평가 폴더 전용",
+      "title": null,
+      "effective_date": null,
+      "version_label": null,
+      "notes": []
+    },
+    {
+      "path": "data/roster.yaml",
+      "format": "yaml",
+      "size": 940,
+      "sha256": "416d600a8fe36b7fe1b9efa708139c95b2cd5f01b0993085c76ebf8ba333a599",
+      "text_extractable": "예",
+      "category": "QA 예제·가상 자료",
+      "external_send": "해당 없음(색인 제외)",
+      "indexed": false,
+      "reason": "가상 명단 — 회의 기능 전용",
+      "title": null,
+      "effective_date": null,
+      "version_label": null,
+      "notes": []
+    },
+    {
+      "path": "data/regulations/eval/dev.yaml",
+      "format": "yaml",
+      "size": 3000,
+      "sha256": "2f397a16a9e369dfcdefacc4e71cca7d482b3601d4c132500843f4b972c2cdf4",
+      "text_extractable": "예",
+      "category": "QA 예제·가상 자료",
+      "external_send": "해당 없음(색인 제외)",
+      "indexed": false,
+      "reason": "규정 Q&A 평가 질문·기대 근거 — 평가 전용, 색인 금지",
+      "title": null,
+      "effective_date": null,
+      "version_label": null,
+      "notes": []
+    },
+    {
+      "path": "data/regulations/eval/final.yaml",
+      "format": "yaml",
+      "size": 3589,
+      "sha256": "8e1195deeafc5d26bf170e323e8c995cd8cdebea51556b83ce3d9c4207bebff9",
+      "text_extractable": "예",
+      "category": "QA 예제·가상 자료",
+      "external_send": "해당 없음(색인 제외)",
+      "indexed": false,
+      "reason": "규정 Q&A 평가 질문·기대 근거 — 평가 전용, 색인 금지",
+      "title": null,
+      "effective_date": null,
+      "version_label": null,
+      "notes": []
+    },
+    {
+      "path": "data/external/ (요약)",
+      "format": "여러 형식",
+      "size": 298690,
+      "sha256": null,
+      "text_extractable": "예",
+      "category": "회의록",
+      "external_send": "해당 없음(색인 제외)",
+      "indexed": false,
+      "reason": "공개 국회 회의록 데이터셋 발췌·라벨 40개 — 회의 평가 전용, 파일명은 적지 않음",
+      "title": null,
+      "effective_date": null,
+      "version_label": null,
+      "notes": []
+    },
+    {
+      "path": "data/state.db",
+      "format": "sqlite",
+      "size": 40960,
+      "sha256": null,
+      "text_extractable": "해당 없음",
+      "category": "손상·미지원·권한 미확인",
+      "external_send": "해당 없음(색인 제외)",
+      "indexed": false,
+      "reason": "업무 상태 DB — 자료 아님, 읽지 않음",
+      "title": null,
+      "effective_date": null,
+      "version_label": null,
+      "notes": []
+    }
+  ]
+}

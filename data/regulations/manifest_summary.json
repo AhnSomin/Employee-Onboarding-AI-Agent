@@ -1,0 +1,218 @@
+{
+  "documents": [
+    {
+      "doc_id": "dec36728",
+      "title": "국가공무원 복무규정",
+      "version_label": "대통령령 제36728호",
+      "effective_date": "2026-10-02",
+      "promulgation_date": "2026-09-29",
+      "source_sha256": "5b7f8cbddc129085048821895dc46d81bece3163b9a1b5bb56b6d9298865e2ef",
+      "chunks": 59,
+      "unverified": [
+        "applies_to"
+      ]
+    },
+    {
+      "doc_id": "pmo2161",
+      "title": "국가공무원 복무규칙",
+      "version_label": "총리령 제2161호",
+      "effective_date": "2026-10-02",
+      "promulgation_date": "2026-10-01",
+      "source_sha256": "c3217ed8f475f76b9253332bbe39f0ecd1a252e63e221e0d6ee04e6cfd7e3d54",
+      "chunks": 61,
+      "unverified": [
+        "applies_to"
+      ]
+    },
+    {
+      "doc_id": "dec32661",
+      "title": "공무원 행동강령",
+      "version_label": "대통령령 제32661호",
+      "effective_date": "2022-06-02",
+      "promulgation_date": "2022-06-02",
+      "source_sha256": "7bff7d4e5a55176b6e27290a2bd5b239eab88555bd06b8d2042a6bf84542929f",
+      "chunks": 31,
+      "unverified": [
+        "applies_to"
+      ]
+    }
+  ],
+  "index_version": "v20261010T013558",
+  "embedding": {
+    "model": "gemini-embedding-001",
+    "dim": 3072,
+    "doc_task": "RETRIEVAL_DOCUMENT",
+    "query_task": "QUESTION_ANSWERING",
+    "input_format": "embed_text v1: [법령명] 제n조(제목) [제m항] 헤더 + search_text",
+    "normalization": "L2 (float32)"
+  },
+  "chunk_count": 151,
+  "est_input_tokens_upper_bound": 53365,
+  "excluded": [
+    {
+      "doc": "국가공무원 복무규정",
+      "kind": "삭제 조문",
+      "detail": "제13조의4"
+    },
+    {
+      "doc": "국가공무원 복무규정",
+      "kind": "이미지 표·그림",
+      "detail": "제15조 (파일 7쪽, OCR하지 않음)"
+    },
+    {
+      "doc": "국가공무원 복무규정",
+      "kind": "삭제 조문",
+      "detail": "제15조의2"
+    },
+    {
+      "doc": "국가공무원 복무규정",
+      "kind": "이미지 표·그림",
+      "detail": "제16조 (파일 8쪽, OCR하지 않음)"
+    },
+    {
+      "doc": "국가공무원 복무규정",
+      "kind": "삭제 조문",
+      "detail": "제21조"
+    },
+    {
+      "doc": "국가공무원 복무규정",
+      "kind": "부칙",
+      "detail": "부칙 <제36728호,2026. 9. 29.>(「공소청법」 및 「중대범죄수사청 조직 및 운영에 관한 법률」의 제정과 「형사소송법」",
+      "chars": 172
+    },
+    {
+      "doc": "국가공무원 복무규정",
+      "kind": "머리말",
+      "detail": "제목·시행 정보·소관 부처 연락처 7줄(본문 아님)"
+    },
+    {
+      "doc": "국가공무원 복무규정",
+      "kind": "삭제 항",
+      "detail": "국가공무원 복무규정 제20조 제7항"
+    },
+    {
+      "doc": "국가공무원 복무규정",
+      "kind": "삭제 항",
+      "detail": "국가공무원 복무규정 제20조 제8항"
+    },
+    {
+      "doc": "국가공무원 복무규칙",
+      "kind": "삭제 조문",
+      "detail": "제9조"
+    },
+    {
+      "doc": "국가공무원 복무규칙",
+      "kind": "삭제 조문",
+      "detail": "제48조"
+    },
+    {
+      "doc": "국가공무원 복무규칙",
+      "kind": "삭제 조문",
+      "detail": "제49조"
+    },
+    {
+      "doc": "국가공무원 복무규칙",
+      "kind": "삭제 조문",
+      "detail": "제50조"
+    },
+    {
+      "doc": "국가공무원 복무규칙",
+      "kind": "삭제 조문",
+      "detail": "제51조"
+    },
+    {
+      "doc": "국가공무원 복무규칙",
+      "kind": "삭제 조문",
+      "detail": "제52조"
+    },
+    {
+      "doc": "국가공무원 복무규칙",
+      "kind": "삭제 조문",
+      "detail": "제53조"
+    },
+    {
+      "doc": "국가공무원 복무규칙",
+      "kind": "삭제 조문",
+      "detail": "제54조"
+    },
+    {
+      "doc": "국가공무원 복무규칙",
+      "kind": "삭제 조문",
+      "detail": "제55조"
+    },
+    {
+      "doc": "국가공무원 복무규칙",
+      "kind": "삭제 조문",
+      "detail": "제56조"
+    },
+    {
+      "doc": "국가공무원 복무규칙",
+      "kind": "부칙",
+      "detail": "부칙 <제2161호,2026. 10. 1.>",
+      "chars": 50
+    },
+    {
+      "doc": "국가공무원 복무규칙",
+      "kind": "머리말",
+      "detail": "제목·시행 정보·소관 부처 연락처 4줄(본문 아님)"
+    },
+    {
+      "doc": "공무원 행동강령",
+      "kind": "삭제 조문",
+      "detail": "제5조"
+    },
+    {
+      "doc": "공무원 행동강령",
+      "kind": "삭제 조문",
+      "detail": "제5조의2"
+    },
+    {
+      "doc": "공무원 행동강령",
+      "kind": "삭제 조문",
+      "detail": "제5조의3"
+    },
+    {
+      "doc": "공무원 행동강령",
+      "kind": "삭제 조문",
+      "detail": "제5조의4"
+    },
+    {
+      "doc": "공무원 행동강령",
+      "kind": "삭제 조문",
+      "detail": "제5조의5"
+    },
+    {
+      "doc": "공무원 행동강령",
+      "kind": "삭제 조문",
+      "detail": "제5조의6"
+    },
+    {
+      "doc": "공무원 행동강령",
+      "kind": "삭제 조문",
+      "detail": "제13조"
+    },
+    {
+      "doc": "공무원 행동강령",
+      "kind": "삭제 조문",
+      "detail": "제16조"
+    },
+    {
+      "doc": "공무원 행동강령",
+      "kind": "부칙",
+      "detail": "부칙 <제32661호,2022. 6. 2.>",
+      "chars": 175
+    },
+    {
+      "doc": "공무원 행동강령",
+      "kind": "머리말",
+      "detail": "제목·시행 정보·소관 부처 연락처 4줄(본문 아님)"
+    }
+  ],
+  "unindexed": [],
+  "usage": {
+    "document_requests": 1,
+    "document_est_tokens": 240,
+    "embedded_now": 1,
+    "from_cache": 150
+  }
+}
