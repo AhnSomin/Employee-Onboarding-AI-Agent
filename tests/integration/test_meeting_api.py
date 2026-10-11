@@ -49,7 +49,7 @@ def test_extract_approve_execute_list(client):
 
 
 def test_unconfirmed_blocks_approval_unless_excluded(client):
-    ex = client.post("/api/meeting/extract", data={"sample": "03_edge_cases.txt"}).json()
+    ex = client.post("/api/meeting/extract", data={"sample": "01_structured_minutes.txt"}).json()
     rows = _rows(ex)
     assert any(not (r["owner_ok"] and r["due_ok"]) for r in rows)
     blocked = client.post("/api/meeting/approve", json={
@@ -58,7 +58,7 @@ def test_unconfirmed_blocks_approval_unless_excluded(client):
 
 
 def test_user_edit_confirms_owner_and_due(client):
-    ex = client.post("/api/meeting/extract", data={"sample": "03_edge_cases.txt"}).json()
+    ex = client.post("/api/meeting/extract", data={"sample": "01_structured_minutes.txt"}).json()
     rows = _rows(ex)
     for r in rows:
         r["owner"], r["owner_ok"] = (ex["owner_options"][1], True)

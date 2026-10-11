@@ -30,6 +30,8 @@ def main() -> None:
     out = ROOT / "data" / "demo"
     (out / "samples").mkdir(parents=True, exist_ok=True)
     for src in sorted((ROOT / "data" / "samples").glob("*.txt")):
+        if src.name.startswith("03_"):     # 예외 사례 샘플은 데모에서 뺀다 (원본·평가용으로만 유지)
+            continue
         (out / "samples" / src.name).write_text(convert(src.read_text(encoding="utf-8")), encoding="utf-8")
     (out / "roster.yaml").write_text(convert((ROOT / "data" / "roster.yaml").read_text(encoding="utf-8")), encoding="utf-8")
     gold = (ROOT / "data" / "eval" / "meeting_gold.jsonl").read_text(encoding="utf-8")
