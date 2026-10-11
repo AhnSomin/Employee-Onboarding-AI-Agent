@@ -180,7 +180,7 @@ def test_invalid_arguments_are_dropped_with_warning():
     assert [i.task for i in result.action_items] == ["오리엔테이션 자료 보완하기"]
     assert any("evidence_quote" in w for w in result.warnings)
     assert any("send_slack_message" in w for w in result.warnings)
-    assert any("항목 수(2)와 실제 제안 수(1)" in w for w in result.warnings)
+    assert not any("항목 수" in w for w in result.warnings)  # 모델의 건수 착오는 화면 경고로 내지 않는다
 
 
 def test_invalid_overview_falls_back_to_structured():

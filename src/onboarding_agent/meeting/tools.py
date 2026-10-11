@@ -7,6 +7,8 @@ data and are validated against the LLM output schemas.
 
 from __future__ import annotations
 
+import logging
+
 from collections import Counter
 from collections.abc import Sequence
 from dataclasses import dataclass, field
@@ -17,6 +19,8 @@ from pydantic import BaseModel, ValidationError
 from ..llm.client import ToolCallRecord, ToolLoopResult, declare_function
 from .models import LLMActionItem, LLMExtraction, LLMFinish, LLMOverview, ToolCallSummary
 from .roster import compact
+
+log = logging.getLogger(__name__)
 
 OVERVIEW = "record_meeting_overview"
 PROPOSE = "propose_action_item"
@@ -190,9 +194,8 @@ def collect(calls: Sequence[ToolCallRecord]) -> CollectedCalls:
     if out.merged_duplicates:
         out.warnings.append(f"같은 내용의 제안 {out.merged_duplicates}건을 하나로 합쳤습니다.")
     # The model counts every proposal it made, so duplicates we merged are an explained
-    # difference. Rejected proposals are real losses and stay flagged.
+    # difference. Anything else is a miscount by the model (e.g. counting an ignored injection
+    # line); the items themselves are validated and human-reviewed, so only log it.
     if out.finished and out.finish_count not in (len(out.items), len(out.items) + out.merged_duplicates):
-        out.warnings.append(
-            f"{FINISH}에 적힌 항목 수({out.finish_count})와 실제 제안 수({len(out.items)})가 다릅니다."
-        )
+        log.info("%s count %s != proposals %s", FINISH, out.finish_count, len(out.items))
     return out

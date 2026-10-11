@@ -11,9 +11,9 @@ services:
         sync: false
       - key: OPENAI_MODEL
         value: gpt-4.1-mini
-      # 회의록 기능: true면 Calendar·Slack으로 보내지 않고 내용만 보여 준다. 실제 전송은 아래 값을 모두 넣은 뒤 false로
+      # 회의 정리: false면 Slack으로 실제 전송한다 (SLACK_BOT_TOKEN·SLACK_CHANNEL_ID 필요). true면 내용만 보여 준다
       - key: ACTIONS_DRY_RUN
-        value: "true"
+        value: "false"
       - key: SLACK_BOT_TOKEN
         sync: false
       - key: SLACK_CHANNEL_ID
