@@ -142,9 +142,6 @@ main { padding: 28px 32px; max-width: 1040px; width: 100%; margin: 0 auto; }
 .pill.okp, .pill.done { background: var(--ok-soft); color: var(--ok); }
 .pill.warnp { background: var(--warn-soft); color: var(--warn); }
 .pill.approved { background: var(--accent-soft); color: var(--accent); }
-.board { list-style: none; margin: 6px 0 12px; padding: 0; display: grid; gap: 8px; }
-.board li { display: flex; gap: 10px; align-items: center; }
-.grow { flex: 1; } .row-actions { display: flex; gap: 6px; } .meeting-block { margin-top: 10px; }
 
 /* ── 입장 화면 ─────────────────────────────────────────────────────────── */
 .gate { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
@@ -163,7 +160,6 @@ main { padding: 28px 32px; max-width: 1040px; width: 100%; margin: 0 auto; }
 }
 
 .samples { display: grid; gap: 8px; margin-top: 4px; padding-top: 14px; border-top: 1px solid var(--line); }
-.meeting-line { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
 .ics-box { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
 
 /* 액션 아이템: 항목마다 이름표가 붙은 카드 */
@@ -178,3 +174,30 @@ main { padding: 28px 32px; max-width: 1040px; width: 100%; margin: 0 auto; }
 .field .warn { border-color: var(--warn-line); background: var(--warn-soft); }
 .item-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
 .item .evidence { margin: -4px 0 0; }
+
+/* 액션 현황: 회의 머리줄 + 항목 카드 (글줄은 넓게, 상태·버튼은 옆 또는 아래에 정렬) */
+.meeting-block { margin-top: 18px; }
+.meeting-block:first-of-type { margin-top: 8px; }
+.meeting-line { display: flex; justify-content: space-between; align-items: center; gap: 8px 12px; flex-wrap: wrap; }
+.meeting-title { display: flex; align-items: baseline; gap: 4px 10px; flex-wrap: wrap; min-width: 0; }
+.card ul.board { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; }
+.board-item { display: flex; align-items: center; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+.board-item.done, .board-item.cancelled { background: var(--soft); }
+.board-item.done .board-task, .board-item.cancelled .board-task { color: var(--muted); text-decoration: line-through; }
+.board-main { display: grid; gap: 2px; flex: 1 1 260px; min-width: 0; }
+.board-task { font-weight: 500; line-height: 1.5; overflow-wrap: anywhere; }
+.board-side { display: flex; align-items: center; gap: 8px; flex: none; margin-left: auto; }
+.row-actions { display: flex; gap: 6px; }
+@media (max-width: 520px) {
+  .board-side { margin-left: 0; width: 100%; justify-content: space-between; }
+}
+
+/* 실행 결과: 항목마다 제목 + 상태 칩 */
+.card ul.results { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; }
+.result-row { display: grid; gap: 6px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+.result-task { font-weight: 500; line-height: 1.5; overflow-wrap: anywhere; }
+.result-states { display: flex; flex-wrap: wrap; gap: 6px 8px; }
+.state { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; padding: 2px 10px; border-radius: 99px; background: var(--soft); border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.state b { font-weight: 600; color: var(--ink); }
+.state.sent, .state.created, .state.file { background: var(--ok-soft); border-color: transparent; color: var(--ok); }
+.state.failed { background: var(--err-soft); border-color: transparent; color: var(--err); }

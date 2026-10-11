@@ -144,19 +144,30 @@ export default function Meeting() {
               <h3>액션 현황</h3>
               {board.map((m) => (
                 <div key={m.meeting_id} className="meeting-block">
-                  <div className="meeting-line"><span><strong>{m.title}</strong> <span className="muted">· {m.meeting_date}</span></span>
-                    {m.items.some((i) => i.status === "approved") && <button className="ghost small-btn btn-icon" onClick={() => api.calendarFile(m.meeting_id).then((r) => download(icsName(m.title), r.ics)).catch((e) => setErr((e as Error).message))}><Icon name="calendar" size={14} />캘린더 파일</button>}</div>
+                  <div className="meeting-line">
+                    <div className="meeting-title"><strong>{m.title}</strong><span className="muted small">{m.meeting_date}</span></div>
+                    {m.items.some((i) => i.status === "approved") && (
+                      <button className="ghost small-btn btn-icon" onClick={() => api.calendarFile(m.meeting_id).then((r) => download(icsName(m.title), r.ics)).catch((e) => setErr((e as Error).message))}>
+                        <Icon name="calendar" size={14} />캘린더 파일
+                      </button>
+                    )}
+                  </div>
                   <ul className="board">
                     {m.items.map((i) => (
-                      <li key={i.item_id}>
-                        <span className={`pill ${i.status}`}>{STATUS_LABEL[i.status] ?? i.status}</span>
-                        <span className="grow">{i.task} <span className="muted">· {i.owner} · {i.due || "기한 없음"}</span></span>
-                        {i.status === "approved" && (
-                          <span className="row-actions">
-                            <button className="ghost small-btn" onClick={() => api.complete([i.item_id]).then(loadBoard)}>완료</button>
-                            <button className="ghost small-btn" onClick={() => api.cancel([i.item_id]).then(loadBoard)}>취소</button>
-                          </span>
-                        )}
+                      <li key={i.item_id} className={`board-item ${i.status}`}>
+                        <div className="board-main">
+                          <span className="board-task">{i.task}</span>
+                          <span className="board-meta muted small">{i.owner} · {i.due || "기한 없음"}</span>
+                        </div>
+                        <div className="board-side">
+                          <span className={`pill ${i.status}`}>{STATUS_LABEL[i.status] ?? i.status}</span>
+                          {i.status === "approved" && (
+                            <span className="row-actions">
+                              <button className="ghost small-btn" onClick={() => api.complete([i.item_id]).then(loadBoard)}>완료</button>
+                              <button className="ghost small-btn" onClick={() => api.cancel([i.item_id]).then(loadBoard)}>취소</button>
+                            </span>
+                          )}
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -254,16 +265,18 @@ export default function Meeting() {
           <div className="card ok">
             <h3>{done.report?.dry_run ? "내용만 확인했어요 (Slack으로 보내지 않음)" : done.report?.failed ? "일부만 처리됐어요" : "Slack으로 보냈어요"} — {done.approved}건 승인{done.excluded ? `, ${done.excluded}건 제외` : ""}</h3>
             {done.report?.warnings.map((w, i) => <p key={i} className="hint">{w}</p>)}
-            <div className="table">
-              <div className="tr3 th"><span>할 일</span><span>Calendar</span><span>Slack</span></div>
+            <ul className="results">
               {done.report?.results.map((r) => (
-                <div key={r.item_id} className="tr3">
-                  <span>{itemName(r.item_id)}{r.error && <small className="evidence error">{r.error}</small>}</span>
-                  <span>{STATE_LABEL[r.calendar] ?? r.calendar}</span>
-                  <span>{STATE_LABEL[r.slack] ?? r.slack}</span>
-                </div>
+                <li key={r.item_id} className="result-row">
+                  <span className="result-task">{itemName(r.item_id)}</span>
+                  <span className="result-states">
+                    <span className={`state ${r.calendar}`}><b>캘린더</b>{STATE_LABEL[r.calendar] ?? r.calendar}</span>
+                    <span className={`state ${r.slack}`}><b>Slack</b>{STATE_LABEL[r.slack] ?? r.slack}</span>
+                  </span>
+                  {r.error && <small className="evidence error">{r.error}</small>}
+                </li>
               ))}
-            </div>
+            </ul>
             {done.report?.slack_text && (<><h3 style={{ marginTop: 14 }}>Slack 메시지{done.report.dry_run ? " (미리보기)" : ""}</h3><pre>{done.report.slack_text}</pre></>)}
             {done.ics && (done.ics_events ?? 0) > 0 && (
               <div className="ics-box">
