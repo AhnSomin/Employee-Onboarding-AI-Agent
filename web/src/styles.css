@@ -200,4 +200,6 @@ main { padding: 28px 32px; max-width: 1040px; width: 100%; margin: 0 auto; }
 .state { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; padding: 2px 10px; border-radius: 99px; background: var(--soft); border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
 .state b { font-weight: 600; color: var(--ink); }
 .state.sent, .state.created, .state.file { background: var(--ok-soft); border-color: transparent; color: var(--ok); }
+.result-row.skipped { background: var(--soft); }
+.result-row.skipped .result-task { color: var(--muted); }
 .state.failed { background: var(--err-soft); border-color: transparent; color: var(--err); }

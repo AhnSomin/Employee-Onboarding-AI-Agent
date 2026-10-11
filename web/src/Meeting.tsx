@@ -99,6 +99,9 @@ export default function Meeting() {
   }
 
   const reset = () => { setStage("input"); setEx(null); setDone(null); setErr(""); };
+  const sentIds = new Set(done?.report?.results.map((r) => r.item_id) ?? []);
+  const skipped = rows.filter((r) => r.task.trim() && !sentIds.has(r.item_id));
+  const skipReason = (r: Row) => !r.include ? "직접 제외한 항목" : unconfirmed(r) ? "담당자·기한이 미확정이라 제외" : "승인되지 않음";
   const itemName = (id: string) => rows.find((r) => r.item_id === id)?.task ?? id;
 
   return (
@@ -274,6 +277,16 @@ export default function Meeting() {
                     <span className={`state ${r.slack}`}><b>Slack</b>{STATE_LABEL[r.slack] ?? r.slack}</span>
                   </span>
                   {r.error && <small className="evidence error">{r.error}</small>}
+                </li>
+              ))}
+              {skipped.map((r) => (
+                <li key={r.item_id} className="result-row skipped">
+                  <span className="result-task">{r.task}</span>
+                  <span className="result-states">
+                    <span className="state"><b>캘린더</b>등록 안 함</span>
+                    <span className="state"><b>Slack</b>발송 안 함</span>
+                  </span>
+                  <small className="muted">{skipReason(r)}</small>
                 </li>
               ))}
             </ul>
