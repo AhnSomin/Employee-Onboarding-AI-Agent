@@ -1,5 +1,6 @@
 """온보딩 상태 저장소 (SQLite). 배치 스케줄러와 대화 에이전트가 이 모듈 하나를 공유한다."""
 import json
+import uuid
 import sqlite3
 from contextlib import contextmanager
 from datetime import date, timedelta
@@ -140,3 +141,22 @@ def update_request_payload(req_id: int, payload: dict):
     with conn() as c:
         c.execute("UPDATE leave_requests SET payload=? WHERE req_id=?",
                   (json.dumps(payload, ensure_ascii=False), req_id))
+
+
+CUSTOM_PREFIX = "u-"   # 사용자가 직접 추가한 할 일의 task_id 접두사 (템플릿 항목과 구분)
+
+
+def add_task(emp_id: str, title: str, due_date: str | None = None, phase: str = "내 할 일") -> dict:
+    task_id = CUSTOM_PREFIX + uuid.uuid4().hex[:8]
+    with conn() as c:
+        c.execute("INSERT INTO tasks (emp_id,task_id,title,phase,due_date) VALUES (?,?,?,?,?)",
+                  (emp_id, task_id, title, phase, due_date))
+    return {"task_id": task_id}
+
+
+def delete_task(emp_id: str, task_id: str) -> bool:
+    """직접 추가한 할 일만 지울 수 있다 (온보딩 기본 항목은 완료 체크만 가능)."""
+    if not task_id.startswith(CUSTOM_PREFIX):
+        return False
+    with conn() as c:
+        return c.execute("DELETE FROM tasks WHERE emp_id=? AND task_id=?", (emp_id, task_id)).rowcount > 0

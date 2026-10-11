@@ -1,4 +1,4 @@
-export type Task = { task_id: string; title: string; phase: string; due_date: string; done: number };
+export type Task = { task_id: string; title: string; phase: string; due_date: string | null; done: number; custom: boolean };
 export type Me = { name: string; org: string; dept: string; done: number; total: number; tasks: Task[] };
 export type ChatOut = { reply: string; mode: string; escalated: boolean };
 export type Row = {
@@ -44,6 +44,9 @@ const json = (body: unknown): RequestInit => ({
 
 export const api = {
   me: () => call<Me>("/api/me"),
+  addTodo: (title: string, due_date: string | null) => call<{ task_id: string }>("/api/todos", json({ title, due_date })),
+  todoDone: (id: string, done: boolean) => call<{ done: number; total: number }>(`/api/todos/${id}/done`, json({ done })),
+  deleteTodo: (id: string) => call<{ ok: boolean }>(`/api/todos/${id}`, { method: "DELETE" }),
   health: () => call<{ ok: boolean; llm: boolean; needs_code: boolean; rag_chunks: number }>("/api/health"),
   chat: (session_id: string, message: string) => call<ChatOut>("/api/chat", json({ session_id, message })),
   reset: (session_id: string) => call<{ ok: boolean }>("/api/chat/reset", json({ session_id, message: "-" })),

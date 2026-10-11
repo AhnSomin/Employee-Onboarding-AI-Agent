@@ -112,3 +112,21 @@ h2 { margin: 0 0 2px; font-size: 20px; } h3 { margin: 0 0 8px; font-size: 15px; 
   .tr5 { grid-template-columns: 24px 1fr; } .tr5 > :nth-child(n+3) { grid-column: 2; }
   .tr3 { grid-template-columns: 1fr 70px 70px; }
 }
+
+.todo { display: grid; gap: 8px; margin-top: 4px; }
+.todo-head { display: flex; justify-content: space-between; align-items: baseline; }
+.todo-list { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 4px; }
+.todo-list li { display: flex; gap: 8px; align-items: flex-start; padding: 4px 2px; border-radius: 8px; }
+.todo-list li:hover { background: var(--bg); }
+.todo-list .box { flex: none; width: 20px; height: 20px; margin-top: 1px; border: 1.5px solid var(--muted); border-radius: 6px; background: none; display: grid; place-items: center; font-size: 13px; line-height: 1; padding: 0; color: #fff; }
+.todo-list .box.on { background: var(--accent); border-color: var(--accent); }
+.todo-title { flex: 1; font-size: 13.5px; display: grid; }
+.todo-title small { color: var(--muted); font-size: 12px; }
+.todo-title small.late { color: var(--err); font-weight: 600; }
+.todo-list .done .todo-title { color: var(--muted); text-decoration: line-through; }
+.todo-list .x { flex: none; border: 0; background: none; color: var(--muted); padding: 0 4px; opacity: 0; }
+.todo-list li:hover .x, .todo-list .x:focus { opacity: 1; }
+.todo-add { display: grid; grid-template-columns: 1fr auto; gap: 6px; margin-top: 4px; }
+.todo-add input[type=text], .todo-add input:not([type]) { grid-column: 1 / -1; }
+.todo-add input { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 6px 9px; min-width: 0; font-size: 13.5px; }
+.todo-add button { border: 0; background: var(--accent); color: #fff; border-radius: 8px; padding: 6px 12px; font-weight: 600; }

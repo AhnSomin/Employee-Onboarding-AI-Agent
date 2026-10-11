@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { api, Me, setCode } from "./api";
 import Chat from "./Chat";
+import Checklist from "./Checklist";
 import Meeting from "./Meeting";
 
 type Tab = "chat" | "meeting";
@@ -41,7 +42,6 @@ function Main() {
   const [me, setMe] = useState<Me | null>(null);
   const refresh = useCallback(() => { api.me().then(setMe).catch(() => {}); }, []);
   useEffect(refresh, [refresh]);
-  const pct = me && me.total ? Math.round((me.done / me.total) * 100) : 0;
 
   return (
     <div className="shell">
@@ -54,11 +54,7 @@ function Main() {
         {me && (
           <div className="me">
             <div className="who"><strong>{me.name}</strong><span className="muted">{me.org} · {me.dept}</span></div>
-            <div className="bar" aria-label={`온보딩 진행률 ${pct}%`}><i style={{ width: `${pct}%` }} /></div>
-            <div className="muted small">온보딩 진행률 {me.done}/{me.total}</div>
-            <ul className="tasks">
-              {me.tasks.map((t) => <li key={t.task_id} className={t.done ? "done" : ""}>{t.done ? "✅" : "⬜"} {t.title}</li>)}
-            </ul>
+            <Checklist me={me} onChange={refresh} />
           </div>
         )}
       </aside>

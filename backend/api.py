@@ -55,6 +55,15 @@ def _agent(sid: str) -> OnboardingAgent:
     return _sessions[sid]
 
 
+class TodoIn(BaseModel):
+    title: str
+    due_date: str | None = None
+
+
+class DoneIn(BaseModel):
+    done: bool = True
+
+
 class ChatIn(BaseModel):
     session_id: str
     message: str
@@ -90,8 +99,40 @@ def reset(body: ChatIn):
 def me():
     p = store.get_employee(DEFAULT_EMP)
     done, total = store.progress(DEFAULT_EMP)
-    return {"name": p["name"], "org": p["org"], "dept": p["dept"], "done": done, "total": total,
-            "tasks": store.get_tasks(DEFAULT_EMP)}
+    tasks = [{**t, "custom": t["task_id"].startswith(store.CUSTOM_PREFIX)} for t in store.get_tasks(DEFAULT_EMP)]
+    return {"name": p["name"], "org": p["org"], "dept": p["dept"], "done": done, "total": total, "tasks": tasks}
+
+
+@api.post("/todos")
+def add_todo(body: TodoIn):
+    title = body.title.strip()
+    if not title:
+        raise HTTPException(400, "할 일을 입력해 주세요.")
+    if len(title) > 120:
+        raise HTTPException(400, "할 일은 120자 이하로 입력해 주세요.")
+    due = None
+    if body.due_date:
+        try:
+            due = date.fromisoformat(body.due_date).isoformat()
+        except ValueError:
+            raise HTTPException(400, "날짜 형식이 올바르지 않아요.")
+    return store.add_task(DEFAULT_EMP, title, due)
+
+
+@api.post("/todos/{task_id}/done")
+def todo_done(task_id: str, body: DoneIn):
+    if not any(t["task_id"] == task_id for t in store.get_tasks(DEFAULT_EMP)):
+        raise HTTPException(404, "할 일을 찾을 수 없어요.")
+    store.set_task_done(DEFAULT_EMP, task_id, body.done)
+    done, total = store.progress(DEFAULT_EMP)
+    return {"done": done, "total": total}
+
+
+@api.delete("/todos/{task_id}")
+def todo_delete(task_id: str):
+    if not store.delete_task(DEFAULT_EMP, task_id):
+        raise HTTPException(404, "직접 추가한 할 일만 지울 수 있어요.")
+    return {"ok": True}
 
 
 # --- 회의록 → 액션 (팀원 엔진) ---
