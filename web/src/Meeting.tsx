@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { api, Approved, Extraction, MeetingConfig, MeetingRow, Row } from "./api";
+import Icon from "./Icons";
 
 const PATH_LABEL: Record<string, string> = {
   function_calling: "AI 추출 (함수 호출)", structured: "AI 추출 (구조화 출력)", rule_based: "규칙 기반 (AI 사용 불가)",
@@ -99,7 +100,7 @@ export default function Meeting() {
       {cfg?.dry_run && (
         <p className="hint">시뮬레이션 모드예요. Google Calendar와 Slack으로 실제 전송하지 않고, 보낼 내용만 보여 줘요.</p>
       )}
-      {err && <p className="error">⚠️ {err}</p>}
+      {err && <p className="error"><Icon name="alert" size={16} />{err}</p>}
 
       {stage === "input" && (
         <>
@@ -108,7 +109,7 @@ export default function Meeting() {
             onDrop={(e) => { e.preventDefault(); setDrag(false); const f = e.dataTransfer.files[0]; if (f) run({ file: f }); }}>
             <p><strong>회의록 텍스트 파일(.txt)을 끌어다 놓으세요</strong></p>
             <div className="row">
-              <button className="primary" onClick={() => input.current?.click()} disabled={busy}>파일 선택</button>
+              <button className="primary btn-icon" onClick={() => input.current?.click()} disabled={busy}><Icon name="upload" size={16} />파일 선택</button>
               {samples.map((s) => (
                 <button key={s} className="ghost" onClick={() => run({ sample: s })} disabled={busy}>샘플: {s.replace(/\.txt$/, "")}</button>
               ))}
@@ -175,7 +176,7 @@ export default function Meeting() {
                   <div>
                     <input value={r.task} onChange={(e) => patch(i, { task: e.target.value })} />
                     {r.evidence && <small className="evidence">“{r.evidence}”</small>}
-                    {r.notes && <small className="evidence">🔎 {r.notes}</small>}
+                    {r.notes && <small className="evidence">검토 메모: {r.notes}</small>}
                   </div>
                   <select className={r.owner_ok ? "" : "warn"} value={r.owner}
                     onChange={(e) => patch(i, { owner: e.target.value, owner_ok: e.target.value !== "미확정" })}>
@@ -192,10 +193,10 @@ export default function Meeting() {
               ))}
             </div>
             <div className="row" style={{ justifyContent: "flex-start", marginTop: 10 }}>
-              <button className="ghost" onClick={() => setRows((rs) => [...rs, {
+              <button className="ghost btn-icon" onClick={() => setRows((rs) => [...rs, {
                 item_id: crypto.randomUUID(), include: true, task: "", owner: "미확정", owner_ok: false,
                 due_date: null, due_time: null, due_ok: false,
-              }])}>+ 항목 추가</button>
+              }])}><Icon name="plus" size={15} />항목 추가</button>
             </div>
             {nOpen > 0 && <p className="hint">담당자나 기한이 미확정인 항목이 {nOpen}건 있어요. 회의록에 없어서 추측하지 않고 비워 뒀어요.</p>}
           </div>
@@ -219,7 +220,7 @@ export default function Meeting() {
       {stage === "done" && done && (
         <div className="result">
           <div className="card ok">
-            <h3>{done.report?.dry_run ? "📝 시뮬레이션 결과" : "✅ 실행했어요"} — {done.approved}건 승인{done.excluded ? `, ${done.excluded}건 제외` : ""}</h3>
+            <h3>{done.report?.dry_run ? "시뮬레이션 결과" : "실행했어요"} — {done.approved}건 승인{done.excluded ? `, ${done.excluded}건 제외` : ""}</h3>
             {done.report?.warnings.map((w, i) => <p key={i} className="hint">{w}</p>)}
             <div className="table">
               <div className="tr3 th"><span>할 일</span><span>Calendar</span><span>Slack</span></div>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { api, Me, Task } from "./api";
+import Icon from "./Icons";
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -55,12 +56,12 @@ export default function Checklist({ me, onChange }: { me: Me; onChange: () => vo
           return (
             <li key={t.task_id} className={t.done ? "done" : ""}>
               <button className={`box ${t.done ? "on" : ""}`} onClick={() => toggle(t)}
-                aria-label={t.done ? "완료 취소" : "완료로 표시"} aria-pressed={!!t.done}>{t.done ? "✓" : ""}</button>
+                aria-label={t.done ? "완료 취소" : "완료로 표시"} aria-pressed={!!t.done}>{t.done && <Icon name="check" size={13} />}</button>
               <span className="todo-title">
                 {t.title}
                 {d && <small className={d.late ? "late" : ""}>{d.text}</small>}
               </span>
-              {t.custom && <button className="x" onClick={() => remove(t)} aria-label="삭제" title="삭제">✕</button>}
+              {t.custom && <button className="x" onClick={() => remove(t)} aria-label="삭제" title="삭제"><Icon name="x" size={14} /></button>}
             </li>
           );
         })}
