@@ -58,9 +58,16 @@ def test_strip_titles_and_group_references():
     assert not is_group_reference("김민준 주무관")
 
 
-def test_slack_id_can_be_missing(roster):
+def test_slack_id_can_be_missing(tmp_path):
+    # 저장소의 데모 명단은 Slack ID를 비워 두므로, ID가 있는 사람과 없는 사람을 임시 명단으로 직접 만들어 확인한다
+    path = tmp_path / "roster.yaml"
+    path.write_text(
+        "members:\n  - {name: 김민준, slack_user_id: U0TEST0001}\n  - {name: 이서연, slack_user_id: null}\n",
+        encoding="utf-8",
+    )
+    roster = load_roster(path)
     assert roster.match("이서연").member.slack_user_id is None
-    assert roster.match("김민준").member.slack_user_id.startswith("U")
+    assert roster.match("김민준").member.slack_user_id == "U0TEST0001"
 
 
 def test_missing_and_broken_roster_files(tmp_path):

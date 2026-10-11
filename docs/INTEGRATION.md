@@ -19,8 +19,10 @@
 - OpenAI(gpt-4.1-mini)로 `scripts/eval_meeting.py --repeat 2` 실행: 항목 재현율·정밀도·담당자·기한 정확도 30/30, 거짓 확정 0/20.
   가상 샘플은 개발용이라 낙관적인 세트입니다. 공개 회의록 시험 세트(Gemini 기준 공식 수치는 `docs/meeting/EVALUATION.md`)는 저장소에 없어서 OpenAI로 다시 재지 못했습니다.
 
-## 시뮬레이션과 실제 전송
-`ACTIONS_DRY_RUN=true`(기본)면 Calendar·Slack을 부르지 않고 보낼 내용만 화면에 보여 줍니다. 실제 전송에 필요한 값은 `.env.example`의 Google·Slack 항목이며, 설정 방법은 `docs/meeting/SETUP.md`를 따릅니다.
+## Slack, 캘린더 동작
+- **Slack:** `ACTIONS_DRY_RUN=false`이고 `SLACK_BOT_TOKEN`·`SLACK_CHANNEL_ID`가 있으면 실제로 보냅니다. `true`면 보낼 내용만 화면에 보여 줍니다(결과 화면에만 표시).
+- **캘린더:** Google 서비스 계정과 캘린더 ID가 설정돼 있으면 Google Calendar에 만들고, 없으면 승인한 항목을 **.ics 파일**로 내려받게 합니다. 파일을 열면 Google·Outlook·Apple 캘린더에 등록됩니다. (`meeting/ics.py`, 설정과 관계없이 항상 내려받을 수 있음)
+- 멘션은 `data/roster.yaml`의 `slack_user_id`가 있을 때만 걸립니다. 지금은 모두 비어 있어 이름만 표시합니다. Slack 멤버 ID는 워크스페이스마다 달라서 다른 곳의 ID를 넣으면 멘션이 깨집니다.
 
 ## 아직 연결하지 않은 것
 - 팀원이 만든 규정 Q&A(`src/onboarding_agent/rag`)는 웹앱에 연결하지 않았습니다. 웹앱의 규정 질의응답은 `backend/rag`를 사용합니다.

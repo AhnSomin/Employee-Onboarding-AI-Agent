@@ -161,3 +161,7 @@ main { padding: 28px 32px; max-width: 1040px; width: 100%; margin: 0 auto; }
   .tr3 { grid-template-columns: 1fr 70px 70px; }
   .bubble { max-width: 94%; }
 }
+
+.samples { display: grid; gap: 8px; margin-top: 4px; padding-top: 14px; border-top: 1px solid var(--line); }
+.meeting-line { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ics-box { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }

@@ -18,6 +18,7 @@ from onboarding_agent.actions.executor import execute_meeting
 from onboarding_agent.actions.item_status import mark_cancelled, mark_done
 from onboarding_agent.config import ConfigError, REPO_ROOT, get_settings
 from onboarding_agent.meeting import review
+from onboarding_agent.meeting.ics import build_ics
 from onboarding_agent.meeting.dates import format_due
 from onboarding_agent.meeting.extract import extract_meeting
 from onboarding_agent.meeting.loader import MeetingInputError, load_meeting
@@ -120,15 +121,45 @@ def _put(result: ExtractionResult) -> None:
             _cache.popitem(last=False)
 
 
-def _ser_report(report) -> dict[str, Any]:
+class _FileCalendar:
+    """Google Calendar가 설정되지 않았을 때 쓰는 대역. 외부로 보내지 않고 일정은 .ics 파일로 내려받게 한다."""
+
+    def insert_event(self, body: dict[str, Any]) -> tuple[str, str]:
+        return body["id"], "created"
+
+
+def _google_ready(settings) -> bool:
+    return bool(settings.google_service_account_json and settings.gcal_calendar_id)
+
+
+def _run(meeting_id: str, store, settings):
+    """실행: Slack은 설정대로 보내고, 캘린더는 Google이 설정돼 있으면 Google로, 아니면 .ics 파일로 처리한다."""
+    file_mode = not _google_ready(settings)
+    report = execute_meeting(meeting_id, store=store, settings=settings, calendar=_FileCalendar() if file_mode else None)
+    return report, file_mode
+
+
+def _ics(store, meeting_id: str, settings) -> tuple[str, int]:
+    meeting = store.get_meeting(meeting_id)
+    items = store.list_items(meeting_id=meeting_id, status="approved")
+    return build_ics(meeting, items, settings.timezone)
+
+
+def _ser_report(report, file_mode: bool = False) -> dict[str, Any]:
+    results = [r.model_dump() for r in report.results]
+    if file_mode:   # 파일로 처리한 일정은 '파일'로 표시
+        for r in results:
+            if r["calendar"] in ("created", "skipped_existing"):
+                r["calendar"] = "file"
     return {
         "dry_run": report.dry_run,
         "failed": report.failed,
+        "calendar_via": "file" if file_mode else "google",
         "warnings": report.warnings,
         "slack_text": report.slack_message.text if report.slack_message else None,
         "slack_thread_reply": report.slack_thread_reply,
         "calendar_payloads": report.calendar_payloads,
-        "results": [r.model_dump() for r in report.results],
+        "results": results,
     }
 
 
@@ -141,7 +172,7 @@ def register(api: APIRouter) -> None:
     def config():
         s = get_settings()
         return {"dry_run": s.actions_dry_run, "provider": s.provider,
-                "calendar_ready": bool(s.google_service_account_json and s.gcal_calendar_id),
+                "calendar_ready": _google_ready(s),
                 "slack_ready": bool(s.slack_bot_token and s.slack_channel_id)}
 
     @api.post("/meeting/extract")
@@ -204,7 +235,9 @@ def register(api: APIRouter) -> None:
             "excluded": len(approval.plan.exclude), "report": None,
         }
         if body.execute:
-            out["report"] = _ser_report(execute_meeting(approval.meeting.meeting_id, store=store, settings=settings))
+            report, file_mode = _run(approval.meeting.meeting_id, store, settings)
+            out["report"] = _ser_report(report, file_mode)
+            out["ics"], out["ics_events"] = _ics(store, approval.meeting.meeting_id, settings)
         return out
 
     @api.post("/meeting/{meeting_id}/execute")
@@ -213,7 +246,18 @@ def register(api: APIRouter) -> None:
         store = get_store(settings)
         if store.get_meeting(meeting_id) is None:
             raise HTTPException(404, "회의를 찾을 수 없어요.")
-        return _ser_report(execute_meeting(meeting_id, store=store, settings=settings))
+        report, file_mode = _run(meeting_id, store, settings)
+        return _ser_report(report, file_mode)
+
+    @api.get("/meeting/{meeting_id}/calendar")
+    def calendar_file(meeting_id: str):
+        """승인된 일정을 .ics 텍스트로 돌려준다 (화면이 접근 코드와 함께 받아 파일로 저장한다)."""
+        settings = get_settings()
+        store = get_store(settings)
+        if store.get_meeting(meeting_id) is None:
+            raise HTTPException(404, "회의를 찾을 수 없어요.")
+        ics, n = _ics(store, meeting_id, settings)
+        return {"ics": ics, "events": n}
 
     @api.get("/meeting/list")
     def list_meetings():

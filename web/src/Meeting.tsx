@@ -6,8 +6,22 @@ const PATH_LABEL: Record<string, string> = {
   function_calling: "AI 추출 (함수 호출)", structured: "AI 추출 (구조화 출력)", rule_based: "규칙 기반 (AI 사용 불가)",
 };
 const STATE_LABEL: Record<string, string> = {
-  created: "생성", sent: "발송", skipped_existing: "이미 처리됨", failed: "실패", dry_run: "시뮬레이션",
+  created: "등록", sent: "발송", skipped_existing: "이미 처리됨", failed: "실패", dry_run: "보내지 않음", file: "파일(.ics)",
 };
+const SAMPLE_INFO: Record<string, { label: string; hint: string }> = {
+  "01_structured_minutes": { label: "정리된 회의록", hint: "안건·결정사항·액션 아이템이 정리된 일반적인 회의록" },
+  "02_transcript": { label: "대화 녹취록", hint: "참석자 발언이 시간순으로 이어진 녹취 형태" },
+  "03_edge_cases": { label: "예외 상황 포함", hint: "담당자·기한이 없거나 모호한 항목, 주말 기한, AI를 향한 지시문이 섞인 어려운 사례" },
+};
+
+function download(name: string, text: string) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], { type: "text/calendar;charset=utf-8" }));
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+const icsName = (title: string) => `${title.replace(/[^\w가-힣]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "회의"}-액션.ics`;
 const STATUS_LABEL: Record<string, string> = { approved: "진행 중", done: "완료", cancelled: "취소", draft: "초안" };
 
 type Stage = "input" | "review" | "done";
@@ -97,9 +111,6 @@ export default function Meeting() {
         {stage !== "input" && <button className="ghost" onClick={reset}>새 회의록</button>}
       </header>
 
-      {cfg?.dry_run && (
-        <p className="hint">시뮬레이션 모드예요. Google Calendar와 Slack으로 실제 전송하지 않고, 보낼 내용만 보여 줘요.</p>
-      )}
       {err && <p className="error"><Icon name="alert" size={16} />{err}</p>}
 
       {stage === "input" && (
@@ -110,10 +121,19 @@ export default function Meeting() {
             <p><strong>회의록 텍스트 파일(.txt)을 끌어다 놓으세요</strong></p>
             <div className="row">
               <button className="primary btn-icon" onClick={() => input.current?.click()} disabled={busy}><Icon name="upload" size={16} />파일 선택</button>
-              {samples.map((s) => (
-                <button key={s} className="ghost" onClick={() => run({ sample: s })} disabled={busy}>샘플: {s.replace(/\.txt$/, "")}</button>
-              ))}
             </div>
+            {samples.length > 0 && (
+              <div className="samples">
+                <span className="muted small">회의록이 없다면 샘플로 체험해 보세요</span>
+                <div className="row">
+                  {samples.map((n) => {
+                    const key = n.replace(/\.txt$/, "");
+                    const info = SAMPLE_INFO[key];
+                    return <button key={n} className="ghost small-btn" title={info?.hint} onClick={() => run({ sample: n })} disabled={busy}>{info?.label ?? key}</button>;
+                  })}
+                </div>
+              </div>
+            )}
             <input ref={input} type="file" accept=".txt,.md,text/plain" hidden
               onChange={(e) => { const f = e.target.files?.[0]; if (f) run({ file: f }); e.target.value = ""; }} />
           </div>
@@ -124,7 +144,8 @@ export default function Meeting() {
               <h3>액션 현황</h3>
               {board.map((m) => (
                 <div key={m.meeting_id} className="meeting-block">
-                  <strong>{m.title}</strong> <span className="muted">· {m.meeting_date}</span>
+                  <div className="meeting-line"><span><strong>{m.title}</strong> <span className="muted">· {m.meeting_date}</span></span>
+                    {m.items.some((i) => i.status === "approved") && <button className="ghost small-btn btn-icon" onClick={() => api.calendarFile(m.meeting_id).then((r) => download(icsName(m.title), r.ics)).catch((e) => setErr((e as Error).message))}><Icon name="calendar" size={14} />캘린더 파일</button>}</div>
                   <ul className="board">
                     {m.items.map((i) => (
                       <li key={i.item_id}>
@@ -211,7 +232,7 @@ export default function Meeting() {
               미확정 항목은 빼고 확정된 것만 승인
             </label>
             <button className="primary" onClick={approve} disabled={busy || included.length === 0}>
-              {busy ? "처리 중…" : "승인하고 실행"}
+              {busy ? "처리 중…" : cfg && !cfg.dry_run && cfg.slack_ready ? "승인하고 Slack으로 보내기" : "승인하고 실행"}
             </button>
           </div>
         </div>
@@ -220,7 +241,7 @@ export default function Meeting() {
       {stage === "done" && done && (
         <div className="result">
           <div className="card ok">
-            <h3>{done.report?.dry_run ? "시뮬레이션 결과" : "실행했어요"} — {done.approved}건 승인{done.excluded ? `, ${done.excluded}건 제외` : ""}</h3>
+            <h3>{done.report?.dry_run ? "내용만 확인했어요 (Slack으로 보내지 않음)" : done.report?.failed ? "일부만 처리됐어요" : "Slack으로 보냈어요"} — {done.approved}건 승인{done.excluded ? `, ${done.excluded}건 제외` : ""}</h3>
             {done.report?.warnings.map((w, i) => <p key={i} className="hint">{w}</p>)}
             <div className="table">
               <div className="tr3 th"><span>할 일</span><span>Calendar</span><span>Slack</span></div>
@@ -233,6 +254,12 @@ export default function Meeting() {
               ))}
             </div>
             {done.report?.slack_text && (<><h3 style={{ marginTop: 14 }}>Slack 메시지{done.report.dry_run ? " (미리보기)" : ""}</h3><pre>{done.report.slack_text}</pre></>)}
+            {done.ics && (done.ics_events ?? 0) > 0 && (
+              <div className="ics-box">
+                <button className="primary btn-icon" onClick={() => download(icsName(ex?.title ?? "회의"), done.ics!)}><Icon name="calendar" size={16} />캘린더에 추가 (.ics 파일, {done.ics_events}건)</button>
+                <span className="muted small">내려받은 파일을 열면 Google Calendar·Outlook·Apple 캘린더에 일정이 등록돼요.</span>
+              </div>
+            )}
             <div className="row" style={{ justifyContent: "flex-start" }}>
               {done.report?.failed && <button className="primary" onClick={retry} disabled={busy}>실패한 항목 다시 실행</button>}
               <button className="ghost" onClick={reset}>새 회의록</button>

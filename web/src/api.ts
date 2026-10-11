@@ -14,9 +14,9 @@ export type Extraction = {
 export type ExecResult = { item_id: string; calendar: string; slack: string; error: string | null };
 export type Report = {
   dry_run: boolean; failed: boolean; warnings: string[]; slack_text: string | null;
-  slack_thread_reply: boolean; calendar_payloads: Record<string, unknown>[]; results: ExecResult[];
+  slack_thread_reply: boolean; calendar_payloads: Record<string, unknown>[]; results: ExecResult[]; calendar_via: string;
 };
-export type Approved = { meeting_id: string; approved: number; excluded: number; report: Report | null };
+export type Approved = { meeting_id: string; approved: number; excluded: number; report: Report | null; ics?: string; ics_events?: number };
 export type MeetingConfig = { dry_run: boolean; provider: string; calendar_ready: boolean; slack_ready: boolean };
 export type MeetingRow = {
   meeting_id: string; title: string; meeting_date: string;
@@ -63,6 +63,7 @@ export const api = {
   }) => call<Approved>("/api/meeting/approve", json({ ...body, execute: true })),
   execute: (id: string) => call<Report>(`/api/meeting/${id}/execute`, { method: "POST" }),
   meetings: () => call<MeetingRow[]>("/api/meeting/list"),
+  calendarFile: (id: string) => call<{ ics: string; events: number }>(`/api/meeting/${id}/calendar`),
   complete: (item_ids: string[]) => call<{ updated: number }>("/api/meeting/items/complete", json({ item_ids })),
   cancel: (item_ids: string[]) => call<{ updated: number }>("/api/meeting/items/cancel", json({ item_ids })),
 };
