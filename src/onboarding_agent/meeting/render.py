@@ -16,12 +16,9 @@ from typing import Any
 from .dates import format_due
 from .models import CREATED_BY, ActionItem, Meeting, ReminderStage
 
-APP_FOOTER = "회의록 승인 후 온보딩 Agent가 보낸 메시지입니다."
-CALENDAR_FOOTER = "이 일정은 신입사원 온보딩 AI Agent가 회의록 승인 후 만들었습니다."
 EVENT_DURATION = timedelta(hours=1)
-_SECTION_LIMIT = 2900  # Slack section text limit is 3000 characters
-STAGE_LABELS: dict[str, str] = {"D-1": "D-1", "D-day": "D-day", "overdue": "기한 지남"}
-REMINDER_HINT = "완료했다면 앱의 '액션 현황'에서 완료 처리해 주세요."
+STAGE_LABELS: dict[str, str] = {"D-1": "D-1", "D-day": "D-day", "overdue": "기한 지남"}  # 화면·CLI 표시용 (Slack 문구에는 쓰지 않음)
+CLOSING = "빠진 내용이나 고칠 부분 있으면 편하게 말씀해 주세요. 감사합니다."
 
 
 @dataclass(frozen=True)
@@ -50,14 +47,12 @@ def calendar_event(item: ActionItem, meeting: Meeting, timezone: str = "Asia/Seo
         raise ValueError("an approved item needs a due date")
     body: dict[str, Any] = {
         "id": calendar_event_id(item.item_id),
-        "summary": f"[액션] {item.task} ({owner_label(item)})",
+        "summary": f"{item.task} ({owner_label(item)})",
         "description": "\n".join(
             [
-                f"회의: {meeting.title} ({format_due(meeting.meeting_date)})",
+                f"{meeting.title} ({format_due(meeting.meeting_date)})에서 정해진 일입니다.",
                 f"담당: {owner_label(item)}",
-                f"근거: “{item.evidence_quote}”",
-                f"item_id: {item.item_id}",
-                CALENDAR_FOOTER,
+                f"회의록 메모: “{item.evidence_quote}”",
             ]
         ),
         "extendedProperties": {
@@ -87,72 +82,49 @@ def _escape(text: str) -> str:
     return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
-def _due_label(item: ActionItem) -> str:
-    return "~" + format_due(item.due_date, item.due_time) if item.due_date else "기한 미정"
-
-
-def _mention(item: ActionItem) -> str:
+def _person(item: ActionItem) -> str:
+    """'<@U123> 님' (Slack 멘션) 또는 명단에 없으면 '김민준 님'."""
     if item.owner_slack_id:
-        return f"<@{item.owner_slack_id}>"
+        return f"<@{item.owner_slack_id}> 님"
     if item.owner_name:
-        return f"{_escape(item.owner_name)}(Slack 미등록)"
-    return "담당 미정"
+        return f"{_escape(item.owner_name)} 님"
+    return "담당자"
+
+
+def _until(item: ActionItem) -> str:
+    return f"{format_due(item.due_date, item.due_time)}까지" if item.due_date else "기한은 추후 정하기로"
 
 
 def item_line(item: ActionItem) -> str:
-    """'• 할 일 — <@U…> · ~10/16(금)' or '• 할 일 — 이서연(Slack 미등록) · ~10/12(월) 14:00'."""
-    return f"• {_escape(item.task)} — {_mention(item)} · {_due_label(item)}"
-
-
-def _section(title: str, lines: list[str]) -> list[dict[str, Any]]:
-    """One or more section blocks, split to stay under Slack's text limit."""
-    blocks: list[dict[str, Any]] = []
-    chunk = f"*{title}*"
-    for line in lines:
-        if len(chunk) + len(line) + 1 > _SECTION_LIMIT:
-            blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": chunk}})
-            chunk = ""
-        chunk = f"{chunk}\n{line}" if chunk else line
-    blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": chunk}})
-    return blocks
+    """'• 자료 보완하기: <@U123> 님, 10/16(금)까지'"""
+    return f"• {_escape(item.task)}: {_person(item)}, {_until(item)}"
 
 
 def slack_summary(meeting: Meeting, items: list[ActionItem]) -> SlackMessage:
-    """One message per meeting: summary, decisions and the approved tasks."""
-    header = f"📋 회의 액션 아이템 | {meeting.title} ({format_due(meeting.meeting_date)})"
-    summary = [f"• {_escape(s)}" for s in meeting.summary] or ["• (요약 없음)"]
-    decisions = [f"• {_escape(d.text)}" for d in meeting.decisions] or ["• (결정사항 없음)"]
-    tasks = [item_line(i) for i in items]
-    text = "\n".join([header, "요약", *summary, "결정사항", *decisions, "할 일", *tasks, APP_FOOTER])
-    blocks = [
-        {"type": "header", "text": {"type": "plain_text", "text": header[:150], "emoji": True}},
-        *_section("요약", summary),
-        *_section("결정사항", decisions),
-        *_section("할 일", tasks),
-        {"type": "context", "elements": [{"type": "mrkdwn", "text": APP_FOOTER}]},
-    ]
-    return SlackMessage(text=text, blocks=blocks)
+    """회의 한 건당 메시지 하나. 사람이 정리해 올린 것처럼 인사로 시작해 부탁으로 맺는다 (블록·이모지·꼬리말 없음)."""
+    lines = [f"안녕하세요, {format_due(meeting.meeting_date)} {_escape(meeting.title)} 내용 정리해서 공유드립니다.", ""]
+    if meeting.summary:
+        lines += ["*논의한 내용*", *(f"• {_escape(s)}" for s in meeting.summary), ""]
+    if meeting.decisions:
+        lines += ["*정해진 내용*", *(f"• {_escape(d.text)}" for d in meeting.decisions), ""]
+    lines += ["*앞으로 할 일*", *(item_line(i) for i in items), "", CLOSING]
+    return SlackMessage(text="\n".join(lines))
 
 
 def slack_followup(meeting: Meeting, items: list[ActionItem]) -> SlackMessage:
-    """Thread reply for items approved after the summary was sent."""
-    header = f"➕ 추가로 승인된 할 일 | {meeting.title}"
-    tasks = [item_line(i) for i in items]
-    text = "\n".join([header, *tasks, APP_FOOTER])
-    blocks = [
-        *_section(header, tasks),
-        {"type": "context", "elements": [{"type": "mrkdwn", "text": APP_FOOTER}]},
-    ]
-    return SlackMessage(text=text, blocks=blocks)
+    """요약을 올린 뒤 새로 확정된 할 일 (스레드 답글)."""
+    lines = ["회의 이후에 확정된 할 일이 있어서 추가로 공유드립니다.", *(item_line(i) for i in items), "확인 부탁드립니다."]
+    return SlackMessage(text="\n".join(lines))
+
+
+_REMINDERS: dict[str, str] = {
+    "D-1": "{who}, '{task}' 마감이 내일이에요 ({due}). 진행은 잘 되고 계실까요? 도움이 필요하면 말씀해 주세요.",
+    "D-day": "{who}, '{task}' 오늘까지예요 ({due}). 마무리되면 한 줄만 남겨 주세요.",
+    "overdue": "{who}, '{task}' 기한이 지났어요 ({due}). 진행 상황 알려 주실 수 있을까요? 일정 조정이 필요하면 말씀해 주세요.",
+}
 
 
 def reminder_message(item: ActionItem, stage: ReminderStage) -> SlackMessage:
-    """'⏰ [D-1] 할 일 — <@U…> 기한 10/16(금)' plus how to stop the reminders (spec 10.2)."""
-    due = format_due(item.due_date, item.due_time) if item.due_date else "미정"
-    line = f"⏰ [{STAGE_LABELS[stage]}] {_escape(item.task)} — {_mention(item)} 기한 {due}"
-    text = "\n".join([line, REMINDER_HINT, APP_FOOTER])
-    blocks = [
-        {"type": "section", "text": {"type": "mrkdwn", "text": f"{line}\n{REMINDER_HINT}"}},
-        {"type": "context", "elements": [{"type": "mrkdwn", "text": APP_FOOTER}]},
-    ]
-    return SlackMessage(text=text, blocks=blocks)
+    """기한 전후 재알림. 담당자를 부르는 짧은 안부 한 줄 (스레드 답글)."""
+    due = format_due(item.due_date, item.due_time) if item.due_date else "기한 미정"
+    return SlackMessage(text=_REMINDERS[stage].format(who=_person(item), task=_escape(item.task), due=due))

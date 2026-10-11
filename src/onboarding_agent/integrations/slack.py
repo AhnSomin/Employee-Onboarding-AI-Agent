@@ -79,7 +79,7 @@ def post_message(
         response = client.chat_postMessage(
             channel=channel,
             text=text,
-            blocks=blocks,
+            blocks=blocks or None,
             thread_ts=thread_ts,
             unfurl_links=False,
             unfurl_media=False,

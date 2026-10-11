@@ -153,7 +153,7 @@ def test_items_approved_later_go_to_a_thread_reply(store):
     assert [r.slack for r in report.results] == ["skipped_existing", "sent"]
     assert report.slack_thread_reply
     assert slack.messages[1]["thread_ts"] == slack.messages[0]["ts"]
-    assert slack.messages[1]["text"].startswith("➕ 추가로 승인된 할 일")
+    assert slack.messages[1]["text"].startswith("회의 이후에 확정된 할 일이 있어서 추가로 공유드립니다.")
 
 
 def test_drafts_are_never_executed(store):

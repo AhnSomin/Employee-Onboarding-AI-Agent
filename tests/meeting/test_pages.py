@@ -252,7 +252,7 @@ def test_status_page_previews_reminders_without_sending():
     app = AppTest.from_file(str(APP / "views" / "status.py"), default_timeout=TIMEOUT).run()
     app.date_input(key="meeting.status.preview_day").set_value(date(2026, 10, 9)).run()  # Friday before a Monday
     assert not app.exception
-    assert app.code[0].value.startswith("⏰ [D-1] 자료 보완 — <@U00000001> 기한 10/12(월)")
+    assert app.code[0].value.startswith("<@U00000001> 님, '자료 보완' 마감이 내일이에요 (10/12(월))")
     assert "회의 요약 스레드에 답글" in app.markdown[0].value
     assert status_store.get_item("a").reminders == []
     app.date_input(key="meeting.status.preview_day").set_value(date(2026, 10, 1)).run()

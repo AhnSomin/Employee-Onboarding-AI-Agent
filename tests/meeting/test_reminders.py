@@ -126,14 +126,14 @@ def test_reminders_are_ordered_by_due_date():
     assert [i.item_id for i, _ in select_reminders(items, at(FRI))] == ["early", "late"]
 
 
-def test_reminder_message_follows_the_spec():
-    message = reminder_message(item(due=date(2026, 10, 16)), "D-1")
-    assert message.text.splitlines()[:2] == [
-        "⏰ [D-1] 할 일 a — <@U00000001> 기한 10/16(금)",
-        "완료했다면 앱의 '액션 현황'에서 완료 처리해 주세요.",
-    ]
-    unregistered = reminder_message(item(owner_slack_id=None, due_time=time(15)), "overdue")
-    assert unregistered.text.startswith("⏰ [기한 지남] 할 일 a — 김민준(Slack 미등록) 기한 10/12(월) 15:00")
+def test_reminder_message_is_a_short_polite_checkin():
+    d1 = reminder_message(item(due=date(2026, 10, 16)), "D-1")
+    assert d1.text == "<@U00000001> 님, '할 일 a' 마감이 내일이에요 (10/16(금)). 진행은 잘 되고 계실까요? 도움이 필요하면 말씀해 주세요."
+    assert d1.blocks == []                                       # 블록 없이 일반 메시지로 보낸다
+    late = reminder_message(item(owner_slack_id=None, due_time=time(15)), "overdue")
+    assert late.text.startswith("김민준 님, '할 일 a' 기한이 지났어요 (10/12(월) 15:00).")
+    for text in (d1.text, late.text):
+        assert "Agent" not in text and "⏰" not in text and "Slack 미등록" not in text
 
 
 # --- sending -------------------------------------------------------------------
