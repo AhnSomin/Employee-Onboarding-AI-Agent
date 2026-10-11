@@ -333,7 +333,12 @@ def get_client() -> LLMClient:
     global _default_client
     with _default_lock:
         if _default_client is None:
-            _default_client = LLMClient()
+            if get_settings().provider == "openai":
+                from .openai_client import OpenAIClient
+
+                _default_client = OpenAIClient()
+            else:
+                _default_client = LLMClient()
         return _default_client
 
 

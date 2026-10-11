@@ -37,3 +37,4 @@ data/regulations/usage.jsonl
 data/regulations/pending_escalations.jsonl
 data/regulations/eval/runs/
 data/regulations/logs/
+data/meetings.db

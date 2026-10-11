@@ -44,6 +44,11 @@ class Settings(BaseModel):
     gemini_model_fallbacks: list[str] = []
     llm_timeout_sec: float = 60.0
     force_fallback: bool = False
+    # Which LLM the meeting feature uses: auto = OpenAI when OPENAI_API_KEY is set, else Gemini.
+    llm_provider: Literal["auto", "gemini", "openai"] = "auto"
+    openai_api_key: SecretStr | None = None
+    openai_model: str = "gpt-4.1-mini"
+    openai_model_fallbacks: list[str] = ["gpt-4o-mini", "gpt-4.1"]
 
     # Google
     google_service_account_json: SecretStr | None = None
@@ -76,7 +81,7 @@ class Settings(BaseModel):
     law_api_oc: SecretStr | None = None
     law_api_base: str = "https://www.law.go.kr/DRF"
 
-    @field_validator("gemini_model_fallbacks", "reminder_stages", mode="before")
+    @field_validator("gemini_model_fallbacks", "openai_model_fallbacks", "reminder_stages", mode="before")
     @classmethod
     def _split_csv(cls, value: Any) -> Any:
         if isinstance(value, str):
@@ -100,6 +105,18 @@ class Settings(BaseModel):
     @property
     def tz(self) -> ZoneInfo:
         return ZoneInfo(self.timezone)
+
+    @property
+    def provider(self) -> str:
+        """Resolved provider: 'openai' or 'gemini'."""
+        if self.llm_provider != "auto":
+            return self.llm_provider
+        return "openai" if self.openai_api_key is not None else "gemini"
+
+    @property
+    def openai_models(self) -> list[str]:
+        chain = [self.openai_model, *self.openai_model_fallbacks]
+        return list(dict.fromkeys(name for name in chain if name))
 
     @property
     def gemini_models(self) -> list[str]:

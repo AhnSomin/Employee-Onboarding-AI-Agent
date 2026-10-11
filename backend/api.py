@@ -1,7 +1,9 @@
 """웹앱 백엔드 (FastAPI). 실행: uvicorn backend.api:app --reload --port 8000"""
 import hmac
 import os
+import sys
 import time
+from datetime import date, datetime, time as dtime
 from collections import defaultdict, deque
 from pathlib import Path
 
@@ -13,9 +15,11 @@ from pydantic import BaseModel
 
 from backend import config
 from backend.agent.agent import OnboardingAgent
-from backend.meeting import extract, notify
 from backend.rag import index as rag
 from backend.state import store
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))  # 팀원 회의록 엔진(onboarding_agent)
+os.environ.setdefault("SQLITE_PATH", "data/meetings.db")  # 온보딩 진행률 DB(state.db)와 파일을 분리
 
 DEFAULT_EMP = "2026-0101"
 ACCESS_CODE = os.getenv("ACCESS_CODE", "")          # 비어 있으면 누구나 접근 (로컬 개발용)
@@ -56,18 +60,6 @@ class ChatIn(BaseModel):
     message: str
 
 
-class Item(BaseModel):
-    task: str
-    owner: str | None = None
-    due: str | None = None
-
-
-class ConfirmIn(BaseModel):
-    title: str
-    items: list[Item]
-    send_slack: bool = True
-
-
 @app.get("/api/health")
 def health():
     idx = rag.load_index()
@@ -102,41 +94,10 @@ def me():
             "tasks": store.get_tasks(DEFAULT_EMP)}
 
 
-@api.post("/meeting/analyze")
-async def meeting_analyze(file: UploadFile = File(...)):
-    raw = await file.read()
-    if len(raw) > 1_000_000:
-        raise HTTPException(413, "파일이 너무 큽니다 (1MB 이하).")
-    for enc in ("utf-8-sig", "cp949"):
-        try:
-            text = raw.decode(enc)
-            break
-        except UnicodeDecodeError:
-            continue
-    else:
-        raise HTTPException(400, "텍스트 파일(UTF-8 또는 CP949)만 올릴 수 있어요.")
-    try:
-        return extract.analyze(text)
-    except ValueError as e:
-        raise HTTPException(400, str(e))
-    except RuntimeError as e:
-        raise HTTPException(502, str(e))
+# --- 회의록 → 액션 (팀원 엔진) ---
+from backend import meeting_api  # noqa: E402
 
-
-@api.post("/meeting/confirm")
-def meeting_confirm(body: ConfirmIn):
-    items = [i.model_dump() for i in body.items]
-    if not items:
-        raise HTTPException(400, "등록할 항목이 없습니다.")
-    text = notify.slack_text(body.title, items)
-    slack = notify.send_slack(text) if body.send_slack else {"sent": False, "reason": "알림 보내기를 선택하지 않았어요.", "preview": text}
-    ics = notify.calendar_ics(body.title, items)
-    return {"slack": slack, "ics": ics, "events": sum(1 for i in items if i["due"])}
-
-
-@api.get("/team")
-def team():
-    return notify.load_team()
+meeting_api.register(api)
 
 
 app.include_router(api)
