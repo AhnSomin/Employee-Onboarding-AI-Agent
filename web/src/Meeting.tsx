@@ -189,27 +189,38 @@ export default function Meeting() {
 
           <div className="card">
             <h3>액션 아이템 <span className="muted">· 담당자와 기한을 직접 고르면 확정으로 바뀌어요</span></h3>
-            <div className="table">
-              <div className="tr5 th"><span /><span>할 일</span><span>담당자</span><span>기한</span><span>상태</span></div>
+            <div className="items">
               {rows.map((r, i) => (
-                <div key={r.item_id} className={`tr5 ${r.include ? "" : "off"}`}>
-                  <input type="checkbox" checked={r.include} onChange={(e) => patch(i, { include: e.target.checked })} aria-label="포함" />
-                  <div>
+                <div key={r.item_id} className={`item ${r.include ? "" : "off"} ${unconfirmed(r) ? "open" : ""}`}>
+                  <div className="item-head">
+                    <label className="check small"><input type="checkbox" checked={r.include} onChange={(e) => patch(i, { include: e.target.checked })} />이 항목 포함</label>
+                    <span className={`pill ${unconfirmed(r) ? "warnp" : "okp"}`}>{unconfirmed(r) ? "미확정" : "확정"}</span>
+                  </div>
+                  <label className="field wide">
+                    <span className="field-label">할 일</span>
                     <input value={r.task} onChange={(e) => patch(i, { task: e.target.value })} />
-                    {r.evidence && <small className="evidence">“{r.evidence}”</small>}
-                    {r.notes && <small className="evidence">검토 메모: {r.notes}</small>}
+                  </label>
+                  {r.evidence && <small className="evidence">회의록 원문: “{r.evidence}”</small>}
+                  {r.notes && <small className="evidence">검토 메모: {r.notes}</small>}
+                  <div className="item-fields">
+                    <label className="field">
+                      <span className="field-label">담당자</span>
+                      <select className={r.owner_ok ? "" : "warn"} value={r.owner}
+                        onChange={(e) => patch(i, { owner: e.target.value, owner_ok: e.target.value !== "미확정" })}>
+                        {[...new Set([...ex.owner_options, r.owner])].map((o) => <option key={o}>{o}</option>)}
+                      </select>
+                    </label>
+                    <label className="field">
+                      <span className="field-label">기한 날짜</span>
+                      <input type="date" className={r.due_ok ? "" : "warn"} value={r.due_date ?? ""}
+                        onChange={(e) => patch(i, { due_date: e.target.value || null, due_ok: !!e.target.value, due_time: e.target.value ? r.due_time : null })} />
+                    </label>
+                    <label className="field">
+                      <span className="field-label">시각 <span className="muted">(선택, 비우면 종일)</span></span>
+                      <input type="time" value={r.due_time ?? ""} disabled={!r.due_date}
+                        onChange={(e) => patch(i, { due_time: e.target.value || null })} />
+                    </label>
                   </div>
-                  <select className={r.owner_ok ? "" : "warn"} value={r.owner}
-                    onChange={(e) => patch(i, { owner: e.target.value, owner_ok: e.target.value !== "미확정" })}>
-                    {[...new Set([...ex.owner_options, r.owner])].map((o) => <option key={o}>{o}</option>)}
-                  </select>
-                  <div className="due">
-                    <input type="date" className={r.due_ok ? "" : "warn"} value={r.due_date ?? ""}
-                      onChange={(e) => patch(i, { due_date: e.target.value || null, due_ok: !!e.target.value, due_time: e.target.value ? r.due_time : null })} />
-                    <input type="time" value={r.due_time ?? ""} disabled={!r.due_date}
-                      onChange={(e) => patch(i, { due_time: e.target.value || null })} />
-                  </div>
-                  <span className={`pill ${unconfirmed(r) ? "warnp" : "okp"}`}>{unconfirmed(r) ? "미확정" : "확정"}</span>
                 </div>
               ))}
             </div>

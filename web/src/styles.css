@@ -165,3 +165,16 @@ main { padding: 28px 32px; max-width: 1040px; width: 100%; margin: 0 auto; }
 .samples { display: grid; gap: 8px; margin-top: 4px; padding-top: 14px; border-top: 1px solid var(--line); }
 .meeting-line { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
 .ics-box { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+
+/* 액션 아이템: 항목마다 이름표가 붙은 카드 */
+.items { display: grid; gap: 12px; }
+.item { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: grid; gap: 10px; background: var(--panel); }
+.item.open { border-color: var(--warn-line); }
+.item.off { opacity: .5; }
+.item-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.field { display: grid; gap: 4px; min-width: 0; }
+.field-label { font-size: 12.5px; font-weight: 600; color: var(--muted); }
+.field input, .field select { width: 100%; }
+.field .warn { border-color: var(--warn-line); background: var(--warn-soft); }
+.item-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.item .evidence { margin: -4px 0 0; }
