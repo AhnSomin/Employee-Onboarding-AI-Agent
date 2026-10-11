@@ -59,7 +59,7 @@ function Main() {
         </div>
         <nav>
           <button className={tab === "chat" ? "nav on" : "nav"} onClick={() => setTab("chat")}><Icon name="chat" />규정 질문하기</button>
-          <button className={tab === "meeting" ? "nav on" : "nav"} onClick={() => setTab("meeting")}><Icon name="doc" />회의록 → 액션</button>
+          <button className={tab === "meeting" ? "nav on" : "nav"} onClick={() => setTab("meeting")}><Icon name="doc" />회의 정리</button>
         </nav>
         {me && (
           <div className="me">

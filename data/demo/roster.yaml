@@ -1,0 +1,28 @@
+# 데모용 가상 명단입니다. 실제 인물이 아닙니다.
+# slack_user_id: 모두 null입니다(이름만 표시). 멘션하려면 쓰는 Slack 워크스페이스의 멤버 ID(프로필 → ⋮ → 멤버 ID 복사)를 넣으세요. ID는 워크스페이스마다 달라 다른 곳의 ID를 넣으면 멘션이 깨집니다.
+# 이 명단은 LLM에 보내지 않고, 회의록에서 뽑은 담당자 이름을 코드가 매칭할 때만 씁니다.
+members:
+  - name: 김재환
+    aliases: [김 주무관, 재환]
+    team: 운영지원과
+    slack_user_id: null
+  - name: 이지영
+    aliases: [이 사무관]
+    team: 운영지원과
+    slack_user_id: null
+  - name: 최정
+    aliases: []
+    team: 인사기획팀
+    slack_user_id: null
+  - name: 최지훈
+    aliases: []
+    team: 인사기획팀
+    slack_user_id: null
+  - name: 오태곤
+    aliases: [오 주무관]
+    team: 정보화담당관실
+    slack_user_id: null
+  - name: 정준재
+    aliases: []
+    team: 운영지원과
+    slack_user_id: null

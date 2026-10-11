@@ -105,8 +105,8 @@ export default function Meeting() {
     <section className="panel">
       <header className="panel-head">
         <div>
-          <h2>회의록 → 액션</h2>
-          <p className="muted">회의 텍스트에서 결정사항·담당자·기한을 뽑고, 사람이 확인한 뒤 일정과 Slack 알림으로 실행해요.</p>
+          <h2>회의 정리</h2>
+          <p className="muted">회의록을 올리면 결정사항·담당자·기한을 정리해 주고, 확인하면 Slack 공유와 캘린더 일정까지 만들어요.</p>
         </div>
         {stage !== "input" && <button className="ghost" onClick={reset}>새 회의록</button>}
       </header>

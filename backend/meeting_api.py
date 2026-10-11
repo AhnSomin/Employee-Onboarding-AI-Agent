@@ -27,7 +27,7 @@ from onboarding_agent.meeting.models import ExtractionResult
 from onboarding_agent.meeting.roster import Roster, RosterError, load_roster
 from onboarding_agent.store import StoreUnavailable, get_store
 
-SAMPLES_DIR = REPO_ROOT / "data" / "samples"
+SAMPLES_DIR = REPO_ROOT / "data" / "demo" / "samples"
 MAX_UPLOAD = 1_000_000
 _CACHE_SIZE = 40
 _cache: OrderedDict[str, ExtractionResult] = OrderedDict()   # 승인 전 추출 결과
@@ -65,8 +65,10 @@ def _roster(settings) -> Roster:
         return Roster()
 
 
-def _ser_row(row: dict[str, Any]) -> dict[str, Any]:
+def _ser_row(row: dict[str, Any], hide_slack_note: bool = False) -> dict[str, Any]:
     out = dict(row)
+    if hide_slack_note and out.get("notes"):   # 명단에 Slack ID가 하나도 없으면 'Slack 미등록'은 모든 항목에 붙는 소음이다
+        out["notes"] = " / ".join(n for n in out["notes"].split(" / ") if not n.startswith("Slack 미등록"))
     d, t = row.get("due_date"), row.get("due_time")
     out["due_date"] = d.isoformat() if isinstance(d, date) else None
     out["due_time"] = t.strftime("%H:%M") if isinstance(t, time) else None
@@ -207,7 +209,7 @@ def register(api: APIRouter) -> None:
         return {
             "extraction_id": m.meeting_id, "title": m.title, "meeting_date": m.meeting_date.isoformat(),
             "summary": m.summary, "decisions": [d.text for d in m.decisions], "open_issues": m.open_issues,
-            "rows": [_ser_row(r) for r in rows], "owner_options": review.owner_options(roster, rows),
+            "rows": [_ser_row(r, not any(m.slack_user_id for m in roster.members)) for r in rows], "owner_options": review.owner_options(roster, rows),
             "path": result.extraction_path, "model": result.model_used, "fallback_used": result.fallback_used,
             "warnings": result.warnings, "injection_blocked": result.injection_blocked,
             "dry_run": settings.actions_dry_run,

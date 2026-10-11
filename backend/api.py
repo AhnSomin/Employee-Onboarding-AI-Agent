@@ -19,7 +19,8 @@ from backend.rag import index as rag
 from backend.state import store
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))  # 팀원 회의록 엔진(onboarding_agent)
-os.environ.setdefault("SQLITE_PATH", "data/meetings.db")  # 온보딩 진행률 DB(state.db)와 파일을 분리
+os.environ.setdefault("SQLITE_PATH", "data/meetings.db")
+os.environ.setdefault("ROSTER_PATH", "data/demo/roster.yaml")   # 데모 명단(SSG 랜더스 선수 이름). 원본 data/roster.yaml은 테스트용  # 온보딩 진행률 DB(state.db)와 파일을 분리
 
 DEFAULT_EMP = "2026-0101"
 ACCESS_CODE = os.getenv("ACCESS_CODE", "")          # 비어 있으면 누구나 접근 (로컬 개발용)

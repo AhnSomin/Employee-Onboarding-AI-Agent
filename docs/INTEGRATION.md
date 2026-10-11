@@ -24,6 +24,9 @@
 - **캘린더:** Google 서비스 계정과 캘린더 ID가 설정돼 있으면 Google Calendar에 만들고, 없으면 승인한 항목을 **.ics 파일**로 내려받게 합니다. 파일을 열면 Google·Outlook·Apple 캘린더에 등록됩니다. (`meeting/ics.py`, 설정과 관계없이 항상 내려받을 수 있음)
 - 멘션은 `data/roster.yaml`의 `slack_user_id`가 있을 때만 걸립니다. 지금은 모두 비어 있어 이름만 표시합니다. Slack 멤버 ID는 워크스페이스마다 달라서 다른 곳의 ID를 넣으면 멘션이 깨집니다.
 
+## 데모 데이터 (SSG 랜더스 선수 이름)
+웹앱은 `data/demo/`의 명단과 샘플 회의록을 씁니다. 팀원이 만든 원본(`data/roster.yaml`, `data/samples`, `data/eval`)과 테스트는 그대로 두고, `python scripts/make_demo_data.py`가 인물 이름만 바꿔 복사본을 만듭니다(성이 같은 사람끼리의 구분 사례도 최정·최지훈으로 유지). 정답 라벨도 같은 규칙으로 변환돼 `scripts/eval_meeting.py --gold data/demo/meeting_gold.jsonl --samples data/demo/samples`로 같은 평가를 돌릴 수 있습니다. 이름만 바꾼 같은 문제이므로 담당자·기한 정확도(100%)와 거짓 확정(0)은 그대로이고, 모델이 경계 사례("담당자 미정 작업")를 할 일로 뽑을지가 실행마다 달라 재현율은 76~100% 사이에서 흔들립니다(원본 데이터도 93~100%).
+
 ## 아직 연결하지 않은 것
 - 팀원이 만든 규정 Q&A(`src/onboarding_agent/rag`)는 웹앱에 연결하지 않았습니다. 웹앱의 규정 질의응답은 `backend/rag`를 사용합니다.
 - 팀원 Streamlit 화면(`app/`)은 참고용으로 남겨 두었고 배포 이미지에는 넣지 않습니다.
