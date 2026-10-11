@@ -130,3 +130,14 @@ def test_summary_lines_repeated_in_decisions_appear_once():
     assert text.count("FAQ는 위키에 올린다.") == 1 and "자료를 보완한다." in text
     only_decisions = MEETING.model_copy(update={"summary": ["FAQ는 위키에 올린다."]})
     assert "논의한 내용" not in slack_summary(only_decisions, [item()]).text
+
+
+def test_honorific_adds_nim_to_bare_names_only():
+    from onboarding_agent.meeting.render import honorific
+
+    names = ["오태곤", "정준재"]
+    assert honorific("오태곤이 월요일까지 만들기로 했습니다.", names) == "오태곤 님이 월요일까지 만들기로 했습니다."
+    assert honorific("정준재 주무관과 오태곤님이 협의", names) == "정준재 주무관과 오태곤님이 협의"
+    assert honorific("한오태곤이", names) == "한오태곤이"          # 다른 이름의 일부는 건드리지 않는다
+    assert honorific("인사팀이 확인", names) == "인사팀이 확인"
+    assert honorific("정준재가 작성, 정준재는 검토, 정준재를 지정", names) == "정준재 님이 작성, 정준재 님은 검토, 정준재 님을 지정"
