@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { api, Approved, Extraction, MeetingConfig, MeetingRow, Row } from "./api";
 
 const PATH_LABEL: Record<string, string> = {
@@ -10,6 +10,23 @@ const STATE_LABEL: Record<string, string> = {
 const STATUS_LABEL: Record<string, string> = { approved: "진행 중", done: "완료", cancelled: "취소", draft: "초안" };
 
 type Stage = "input" | "review" | "done";
+
+/** 내용 길이에 맞춰 높이가 자동으로 늘어나는 입력칸 (줄이 잘려 보이지 않게) */
+function AutoTextarea({ value, onChange, min = 3 }: { value: string; onChange: (v: string) => void; min?: number }) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  const fit = () => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight + 2}px`;
+  };
+  useLayoutEffect(fit, [value]);
+  useEffect(() => {
+    window.addEventListener("resize", fit);
+    return () => window.removeEventListener("resize", fit);
+  }, []);
+  return <textarea ref={ref} rows={min} value={value} onChange={(e) => onChange(e.target.value)} style={{ overflow: "hidden" }} />;
+}
 
 export default function Meeting() {
   const [stage, setStage] = useState<Stage>("input");
@@ -140,11 +157,11 @@ export default function Meeting() {
           <div className="grid2">
             <div className="card">
               <h3>요약 <span className="muted">· 한 줄에 하나, 고칠 수 있어요</span></h3>
-              <textarea rows={5} value={summary} onChange={(e) => setSummary(e.target.value)} />
+              <AutoTextarea value={summary} onChange={setSummary} />
             </div>
             <div className="card">
               <h3>결정사항</h3>
-              <textarea rows={5} value={decisions} onChange={(e) => setDecisions(e.target.value)} />
+              <AutoTextarea value={decisions} onChange={setDecisions} />
             </div>
           </div>
 
