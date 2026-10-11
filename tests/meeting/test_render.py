@@ -122,3 +122,11 @@ def test_reminders_are_short_checkins_per_stage():
     for text in (d1, day, late):
         assert text.startswith("<@U123> 님,") and "10/16(금) 15:00" in text
         assert "Agent" not in text and "⏰" not in text and "액션 현황" not in text
+
+
+def test_summary_lines_repeated_in_decisions_appear_once():
+    both = MEETING.model_copy(update={"summary": ["FAQ는 위키에 올린다.", "자료를 보완한다."]})
+    text = slack_summary(both, [item()]).text
+    assert text.count("FAQ는 위키에 올린다.") == 1 and "자료를 보완한다." in text
+    only_decisions = MEETING.model_copy(update={"summary": ["FAQ는 위키에 올린다."]})
+    assert "논의한 내용" not in slack_summary(only_decisions, [item()]).text

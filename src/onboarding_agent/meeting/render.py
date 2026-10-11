@@ -103,8 +103,10 @@ def item_line(item: ActionItem) -> str:
 def slack_summary(meeting: Meeting, items: list[ActionItem]) -> SlackMessage:
     """회의 한 건당 메시지 하나. 사람이 정리해 올린 것처럼 인사로 시작해 부탁으로 맺는다 (블록·이모지·꼬리말 없음)."""
     lines = [f"안녕하세요, {format_due(meeting.meeting_date)} {_escape(meeting.title)} 내용 정리해서 공유드립니다.", ""]
-    if meeting.summary:
-        lines += ["*논의한 내용*", *(f"• {_escape(s)}" for s in meeting.summary), ""]
+    decided = {" ".join(d.text.split()) for d in meeting.decisions}
+    discussed = [t for t in meeting.summary if " ".join(t.split()) not in decided]   # 결정사항과 같은 문장은 한 번만
+    if discussed:
+        lines += ["*논의한 내용*", *(f"• {_escape(t)}" for t in discussed), ""]
     if meeting.decisions:
         lines += ["*정해진 내용*", *(f"• {_escape(d.text)}" for d in meeting.decisions), ""]
     lines += ["*앞으로 할 일*", *(item_line(i) for i in items), "", CLOSING]
