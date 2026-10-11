@@ -24,6 +24,7 @@ from ..integrations.gcal import CalendarClient, CalendarError
 from ..integrations.slack import SlackError, post_message
 from ..meeting import render
 from ..meeting.models import ActionItem, ExecutionResult, Meeting
+from ..meeting.roster import load_roster
 from ..store.base import NotFoundError, StateStore
 from .dry_run import DRY_RUN_PREFIX, EXTERNAL_SOURCE_PREFIXES, is_done, is_external_source
 
@@ -96,6 +97,14 @@ def _calendar_step(
         state["calendar"] = status
 
 
+def _roster_names(settings: Settings) -> list[str]:
+    """요약 문장에서 '님'을 붙일 이름들 (명단을 못 읽으면 빈 목록)."""
+    try:
+        return [m.name for m in load_roster(settings.roster_path).members]
+    except Exception:  # noqa: BLE001 - 호칭은 꾸밈일 뿐이라 명단 오류로 전송을 막지 않는다
+        return []
+
+
 def _slack_step(
     meeting_id: str,
     store: StateStore,
@@ -117,7 +126,9 @@ def _slack_step(
 
     followup = is_done(meeting.slack_ts, dry_run)
     message = (
-        render.slack_followup(meeting, pending) if followup else render.slack_summary(meeting, items)
+        render.slack_followup(meeting, pending)
+        if followup
+        else render.slack_summary(meeting, items, _roster_names(settings))
     )
     report.slack_message, report.slack_thread_reply = message, followup
     if dry_run:

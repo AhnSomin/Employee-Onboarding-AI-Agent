@@ -9,12 +9,15 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import re
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from collections.abc import Iterable
 from typing import Any
 
 from .dates import format_due
 from .models import CREATED_BY, ActionItem, Meeting, ReminderStage
+from .roster import TITLES
 
 EVENT_DURATION = timedelta(hours=1)
 STAGE_LABELS: dict[str, str] = {"D-1": "D-1", "D-day": "D-day", "overdue": "기한 지남"}  # 화면·CLI 표시용 (Slack 문구에는 쓰지 않음)
@@ -100,15 +103,32 @@ def item_line(item: ActionItem) -> str:
     return f"• {_escape(item.task)}: {_person(item)}, {_until(item)}"
 
 
-def slack_summary(meeting: Meeting, items: list[ActionItem]) -> SlackMessage:
+_HONORIFIC_AFTER = ("님", "씨", *TITLES)
+_JOSA_AFTER_NIM = {"가": "이", "는": "은", "를": "을", "와": "과"}   # '님'은 받침이 있어서 조사가 바뀐다
+
+
+def honorific(text: str, names: Iterable[str]) -> str:
+    """문장 속 이름 뒤에 ' 님'을 붙인다 ('오태곤이' → '오태곤 님이', '정준재가' → '정준재 님이'). 이미 님·씨·직함이 붙은 이름은 그대로 둔다."""
+    for name in sorted({n for n in names if n and len(n) >= 2}, key=len, reverse=True):
+        after = "|".join(re.escape(t) for t in _HONORIFIC_AFTER)
+        text = re.sub(
+            rf"(?<![가-힣]){re.escape(name)}(?!\s?(?:{after}))([가는를와])?",
+            lambda m, n=name: f"{n} 님{_JOSA_AFTER_NIM.get(m.group(1) or '', m.group(1) or '')}",
+            text,
+        )
+    return text
+
+
+def slack_summary(meeting: Meeting, items: list[ActionItem], names: Iterable[str] = ()) -> SlackMessage:
     """회의 한 건당 메시지 하나. 사람이 정리해 올린 것처럼 인사로 시작해 부탁으로 맺는다 (블록·이모지·꼬리말 없음)."""
     lines = [f"안녕하세요, {format_due(meeting.meeting_date)} {_escape(meeting.title)} 내용 정리해서 공유드립니다.", ""]
+    people = {*names, *(i.owner_name for i in items if i.owner_name), *(c for i in items for c in i.co_owners)}
     decided = {" ".join(d.text.split()) for d in meeting.decisions}
     discussed = [t for t in meeting.summary if " ".join(t.split()) not in decided]   # 결정사항과 같은 문장은 한 번만
     if discussed:
-        lines += ["*논의한 내용*", *(f"• {_escape(t)}" for t in discussed), ""]
+        lines += ["*논의한 내용*", *(f"• {honorific(_escape(t), people)}" for t in discussed), ""]
     if meeting.decisions:
-        lines += ["*정해진 내용*", *(f"• {_escape(d.text)}" for d in meeting.decisions), ""]
+        lines += ["*정해진 내용*", *(f"• {honorific(_escape(d.text), people)}" for d in meeting.decisions), ""]
     lines += ["*앞으로 할 일*", *(item_line(i) for i in items), "", CLOSING]
     return SlackMessage(text="\n".join(lines))
 
