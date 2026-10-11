@@ -21,6 +21,7 @@ from onboarding_agent.meeting import review
 from onboarding_agent.meeting.dates import format_due
 from onboarding_agent.meeting.extract import extract_meeting
 from onboarding_agent.meeting.loader import MeetingInputError, load_meeting
+from onboarding_agent.meeting.polish import polish_overview
 from onboarding_agent.meeting.models import ExtractionResult
 from onboarding_agent.meeting.roster import Roster, RosterError, load_roster
 from onboarding_agent.store import StoreUnavailable, get_store
@@ -99,6 +100,19 @@ def _from_client(original: list[dict[str, Any]], incoming: list[RowIn]) -> list[
     return rows
 
 
+def _polish(result: ExtractionResult) -> ExtractionResult:
+    """요약·결정사항·미결 사항의 말투만 공손하게 다듬는다. 할 일(담당자·기한)과 근거 인용은 건드리지 않는다."""
+    m = result.meeting
+    if result.extraction_path == "rule_based":          # 규칙 기반은 회의록 원문 문장이라 그대로 둔다
+        return result
+    out = polish_overview(m.summary, [d.text for d in m.decisions], m.open_issues)
+    if not out.changed:
+        return result
+    decisions = [d.model_copy(update={"text": t}) for d, t in zip(m.decisions, out.decisions)]
+    meeting = m.model_copy(update={"summary": out.summary, "decisions": decisions, "open_issues": out.open_issues})
+    return result.model_copy(update={"meeting": meeting})
+
+
 def _put(result: ExtractionResult) -> None:
     with _lock:
         _cache[result.meeting.meeting_id] = result
@@ -155,6 +169,7 @@ def register(api: APIRouter) -> None:
             raise HTTPException(400, str(exc))
         except ConfigError as exc:
             raise HTTPException(500, str(exc))
+        result = _polish(result)
         _put(result)
         rows = review.rows_from_result(result)
         m = result.meeting

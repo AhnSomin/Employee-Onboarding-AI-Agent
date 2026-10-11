@@ -57,9 +57,10 @@ def describe_settings(settings: Settings) -> list[str]:
     for name in Settings.model_fields:
         key = name.upper()
         value: Any = getattr(settings, name)
-        if isinstance(value, SecretStr):
+        secret = isinstance(value, SecretStr)   # 비밀값 타입이면 이름과 상관없이 항상 가린다
+        if secret:
             value = value.get_secret_value()
-        if key in MASKED_VARS:
+        if secret or key in MASKED_VARS:
             shown = f"설정됨 ({mask(value)})" if value else "(없음)"
         elif value is None or value == []:
             shown = "(없음)"
