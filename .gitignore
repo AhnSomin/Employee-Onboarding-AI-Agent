@@ -1,9 +1,40 @@
-.venv/
+# Secrets and local state — never commit
 .env
+secrets/
+.streamlit/secrets.toml
 data/state.db
 data/law_cache/
+data/attachments/
+# Public dataset copies, conversions and labels — never commit
+data/external/
+logs/
+
+# Python
 __pycache__/
+*.py[cod]
+.venv/
 .pytest_cache/
+*.egg-info/
+build/
+dist/
+
+# Web app
 web/node_modules/
 web/dist/
-data/attachments/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
+
+# Regulation Q&A (팀원 구현) — index, caches, usage, drafts and raw law files stay local
+data/index/
+data/raw/
+data/manual/*
+# 공개 법령의 이미지 표를 옮겨 적은 전사본은 커밋한다
+!data/manual/tables/
+data/regulations/usage.jsonl
+data/regulations/pending_escalations.jsonl
+data/regulations/eval/runs/
+data/regulations/logs/
+data/meetings.db

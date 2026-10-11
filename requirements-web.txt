@@ -5,3 +5,13 @@ openai>=1.50
 numpy>=1.26
 requests>=2.32
 python-dotenv>=1.0
+# 회의록 엔진(onboarding_agent)
+pydantic>=2.13
+pyyaml>=6.0
+tenacity>=9.1
+slack-sdk>=3.45
+google-genai>=2.29
+google-api-python-client>=2.201
+google-auth>=2.61
+gspread>=6.2
+tzdata>=2026.5

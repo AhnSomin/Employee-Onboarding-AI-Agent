@@ -9,3 +9,7 @@ __pycache__
 app
 tests
 scheduler
+data/meetings.db
+data/attachments
+data/index
+data/external

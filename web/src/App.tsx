@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { api, Me, setCode } from "./api";
 import Chat from "./Chat";
+import Checklist from "./Checklist";
+import Icon from "./Icons";
+import { getTheme, setTheme, Theme } from "./theme";
 import Meeting from "./Meeting";
 
 type Tab = "chat" | "meeting";
@@ -16,7 +19,7 @@ function Gate({ onOk }: { onOk: () => void }) {
   return (
     <div className="gate">
       <form className="panel" onSubmit={submit}>
-        <h2>🧭 온보딩 Agent</h2>
+        <h2>온보딩 Agent</h2>
         <p className="muted">팀에서 받은 접근 코드를 입력해 주세요.</p>
         <input type="password" value={v} onChange={(e) => setV(e.target.value)} placeholder="접근 코드" autoFocus />
         {err && <p className="error">{err}</p>}
@@ -38,27 +41,33 @@ export default function App() {
 
 function Main() {
   const [tab, setTab] = useState<Tab>("chat");
+  const [theme, setThemeState] = useState<Theme>(getTheme());
+  const [showTodo, setShowTodo] = useState(() => window.matchMedia("(min-width: 821px)").matches);   // 모바일에서는 접어 둔다
+  const toggleTheme = () => { const t: Theme = theme === "dark" ? "light" : "dark"; setTheme(t); setThemeState(t); };
   const [me, setMe] = useState<Me | null>(null);
   const refresh = useCallback(() => { api.me().then(setMe).catch(() => {}); }, []);
   useEffect(refresh, [refresh]);
-  const pct = me && me.total ? Math.round((me.done / me.total) * 100) : 0;
 
   return (
     <div className="shell">
       <aside className="side">
-        <div className="brand">🧭 온보딩 Agent</div>
+        <div className="brand">
+          <div className="brand-mark"><span className="logo"><Icon name="compass" size={18} /></span>온보딩 Agent</div>
+          <button className="theme-btn" onClick={toggleTheme} aria-label={theme === "dark" ? "라이트 모드로" : "다크 모드로"} title={theme === "dark" ? "라이트 모드" : "다크 모드"}>
+            <Icon name={theme === "dark" ? "sun" : "moon"} size={16} />
+          </button>
+        </div>
         <nav>
-          <button className={tab === "chat" ? "nav on" : "nav"} onClick={() => setTab("chat")}>💬 규정 질문하기</button>
-          <button className={tab === "meeting" ? "nav on" : "nav"} onClick={() => setTab("meeting")}>📋 회의록 → 액션</button>
+          <button className={tab === "chat" ? "nav on" : "nav"} onClick={() => setTab("chat")}><Icon name="chat" />규정 질문하기</button>
+          <button className={tab === "meeting" ? "nav on" : "nav"} onClick={() => setTab("meeting")}><Icon name="doc" />회의 정리</button>
         </nav>
         {me && (
           <div className="me">
-            <div className="who"><strong>{me.name}</strong><span className="muted">{me.org} · {me.dept}</span></div>
-            <div className="bar" aria-label={`온보딩 진행률 ${pct}%`}><i style={{ width: `${pct}%` }} /></div>
-            <div className="muted small">온보딩 진행률 {me.done}/{me.total}</div>
-            <ul className="tasks">
-              {me.tasks.map((t) => <li key={t.task_id} className={t.done ? "done" : ""}>{t.done ? "✅" : "⬜"} {t.title}</li>)}
-            </ul>
+            <div className="who"><span className="avatar">{me.name.slice(0, 1)}</span><div className="who-text"><strong>{me.name}</strong><span>{me.org} · {me.dept}</span></div></div>
+            <button className="todo-toggle" onClick={() => setShowTodo((v) => !v)} aria-expanded={showTodo}>
+              <span>할 일 {me.done}/{me.total} 완료</span><span>{showTodo ? "접기" : "펼치기"}</span>
+            </button>
+            <div className={showTodo ? "todo-wrap" : "todo-wrap collapsed"}><Checklist me={me} onChange={refresh} /></div>
           </div>
         )}
       </aside>

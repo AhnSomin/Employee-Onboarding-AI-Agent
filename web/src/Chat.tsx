@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "./api";
+import Icon from "./Icons";
 
 type Msg = { role: "user" | "assistant"; text: string; escalated?: boolean };
 
@@ -29,6 +30,18 @@ function Rich({ text }: { text: string }) {
   );
 }
 
+/** 답변 끝의 '📌 근거: …' 줄은 본문과 분리해 출처 영역으로 보여 준다 (이모지는 쓰지 않음). */
+function Answer({ text }: { text: string }) {
+  const m = text.match(/^([\s\S]*?)\n*(?:📌\s*)?근거\s*:\s*([^\n]+)\s*$/);
+  if (!m) return <div className="text"><Rich text={text} /></div>;
+  return (
+    <>
+      <div className="text"><Rich text={m[1].trim()} /></div>
+      <div className="source"><b>근거</b><span>{m[2].trim()}</span></div>
+    </>
+  );
+}
+
 export default function Chat({ onActivity }: { onActivity: () => void }) {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
@@ -50,7 +63,7 @@ export default function Chat({ onActivity }: { onActivity: () => void }) {
       setMsgs((m) => [...m, { role: "assistant", text: r.reply, escalated: r.escalated }]);
       onActivity();
     } catch (e) {
-      setMsgs((m) => [...m, { role: "assistant", text: `⚠️ ${(e as Error).message}` }]);
+      setMsgs((m) => [...m, { role: "assistant", text: `오류: ${(e as Error).message}` }]);
     } finally { setBusy(false); }
   }
 
@@ -75,7 +88,8 @@ export default function Chat({ onActivity }: { onActivity: () => void }) {
       <div className="messages">
         {msgs.length === 0 && (
           <div className="empty">
-            <p>무엇이 궁금하세요? 아래 예시를 눌러 보세요.</p>
+            <h3>무엇이 궁금하세요?</h3>
+            <p>복무·복지·수당·임용 같은 규정을 근거 조문과 함께 쉽게 풀어 드려요. 예시를 눌러 보세요.</p>
             <div className="chips">
               {SUGGESTIONS.map((s) => <button key={s} className="chip" onClick={() => send(s)}>{s}</button>)}
             </div>
@@ -83,8 +97,8 @@ export default function Chat({ onActivity }: { onActivity: () => void }) {
         )}
         {msgs.map((m, i) => (
           <div key={i} className={`bubble ${m.role}`}>
-            <div className="text"><Rich text={m.text} /></div>
-            {m.escalated && <div className="note">🙋 인사담당관실 담당자에게 전달했어요</div>}
+            {m.role === "assistant" ? <Answer text={m.text} /> : <div className="text"><Rich text={m.text} /></div>}
+            {m.escalated && <div className="note"><Icon name="info" size={15} />인사담당관실 담당자에게 전달했어요</div>}
           </div>
         ))}
         {busy && <div className="bubble assistant"><div className="typing"><i /><i /><i /></div></div>}
@@ -93,7 +107,7 @@ export default function Chat({ onActivity }: { onActivity: () => void }) {
 
       <form className="composer" onSubmit={(e) => { e.preventDefault(); send(input); }}>
         <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="예: 병가는 며칠까지 쓸 수 있어요?" disabled={busy} />
-        <button className="primary" disabled={busy || !input.trim()}>보내기</button>
+        <button className="primary btn-icon" disabled={busy || !input.trim()}><Icon name="send" size={16} />보내기</button>
       </form>
     </section>
   );

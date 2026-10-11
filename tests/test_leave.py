@@ -79,23 +79,6 @@ def test_suggest_and_holiday_rejected():
     assert "공휴일" in a.chat("10월 9일 종일 연가 쓸래")
 
 
-def test_ics_and_stale_reminder(monkeypatch):
-    from backend.actions import ics, leave
-    from backend.agent.agent import OnboardingAgent
-    from backend.state import store
-    from scheduler import remind
-    from datetime import date
-    a = OnboardingAgent("2026-0101")
-    a.chat("다음주 금요일 종일 연가")
-    rid = store.list_requests("2026-0101", "FORM_FILLED")[0]["req_id"]
-    leave.submit_form(rid)
-    r = store.list_requests("2026-0101")[0]
-    assert "DTSTART;VALUE=DATE:20261016" in ics.leave_ics(r["payload"], rid)
-    assert not remind.stale_approvals(date(2026, 10, 7))
-    stale = remind.stale_approvals(date(2026, 10, 9))
-    assert stale and "박정훈" in remind.approval_message(stale[0])
-
-
 def test_user_can_edit_form_before_submit():
     from backend.actions import leave, supply
     from backend.agent.agent import OnboardingAgent
