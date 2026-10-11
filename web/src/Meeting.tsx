@@ -11,6 +11,7 @@ const STATE_LABEL: Record<string, string> = {
 const SAMPLE_INFO: Record<string, { label: string; hint: string }> = {
   "01_structured_minutes": { label: "정리된 회의록", hint: "안건·결정사항·액션 아이템이 정리된 일반적인 회의록" },
   "02_transcript": { label: "대화 녹취록", hint: "참석자 발언이 시간순으로 이어진 녹취 형태" },
+  "03_long_minutes": { label: "긴 회의록 (시연용)", hint: "안건 5개·액션 아이템 9개가 들어 있는 길이가 긴 회의록. 담당자 미정 항목 1건 포함" },
 };
 
 function download(name: string, text: string) {
