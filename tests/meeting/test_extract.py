@@ -310,3 +310,11 @@ def test_forced_fallback_results_are_all_unconfirmed(sample):
     assert result.action_items
     assert all(i.owner_status == "unconfirmed" and i.due_status == "unconfirmed" for i in result.action_items)
     assert all("Slack 알림" not in i.task for i in result.action_items)
+
+
+def test_finish_count_including_merged_duplicate_gives_no_mismatch_warning():
+    result, _ = run({"primary": [calls_response(OVERVIEW, ITEM_A, ITEM_A, finish(2))]})
+    assert result.extraction_path == "function_calling"
+    assert len(result.action_items) == 1
+    assert any("하나로 합쳤습니다" in w for w in result.warnings)
+    assert not any("항목 수" in w for w in result.warnings)
