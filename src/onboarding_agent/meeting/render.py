@@ -94,18 +94,29 @@ def _person(item: ActionItem) -> str:
     return "담당자"
 
 
-def _when(item: ActionItem) -> str:
-    return f"{format_due(item.due_date, item.due_time)}까지" if item.due_date else "기한 미정"
-
-
 def item_line(item: ActionItem) -> str:
-    """'• *10/16(금) 15:00까지* · *<@U123> 님* · 자료 보완하기' — 언제·누가·무엇을 순서로, 언제와 누가는 굵게."""
-    return f"• *{_when(item)}* · *{_person(item)}* · {_escape(item.task)}"
+    """'• 15:00 · 김민준 님 — 자료 보완하기' — 날짜는 묶음 제목에 있으니 시각이 있을 때만 앞에 붙인다."""
+    at = f"{item.due_time:%H:%M} · " if item.due_time else ""
+    return f"• {at}{_person(item)} — {_escape(item.task)}"
 
 
 def by_due(items: list[ActionItem]) -> list[ActionItem]:
     """기한이 빠른 순. 기한이 없는 항목은 맨 뒤 (같으면 입력 순서 유지)."""
     return sorted(items, key=lambda i: (i.due_date is None, i.due_date or date.max, i.due_time or time.max))
+
+
+def schedule_lines(items: list[ActionItem]) -> list[str]:
+    """달력 일정표처럼 마감일별로 묶는다. 날짜만 굵게, 그 아래에 시각·담당자·할 일."""
+    lines: list[str] = []
+    last: object = object()
+    for item in by_due(items):
+        if item.due_date != last:
+            if lines:
+                lines.append("")
+            lines.append(f"*{format_due(item.due_date)} 마감*" if item.due_date else "*기한 미정*")
+            last = item.due_date
+        lines.append(item_line(item))
+    return lines
 
 
 _HONORIFIC_AFTER = ("님", "씨", *TITLES)
@@ -134,13 +145,13 @@ def slack_summary(meeting: Meeting, items: list[ActionItem], names: Iterable[str
         lines += ["*논의한 내용*", *(f"• {honorific(_escape(t), people)}" for t in discussed), ""]
     if meeting.decisions:
         lines += ["*정해진 내용*", *(f"• {honorific(_escape(d.text), people)}" for d in meeting.decisions), ""]
-    lines += ["*일정*", *(item_line(i) for i in by_due(items)), "", CLOSING]
+    lines += ["*일정*", "", *schedule_lines(items), "", CLOSING]
     return SlackMessage(text="\n".join(lines))
 
 
 def slack_followup(meeting: Meeting, items: list[ActionItem]) -> SlackMessage:
     """요약을 올린 뒤 새로 확정된 할 일 (스레드 답글)."""
-    lines = ["회의 이후에 확정된 할 일이 있어서 추가로 공유드립니다.", *(item_line(i) for i in by_due(items)), "확인 부탁드립니다."]
+    lines = ["회의 이후에 확정된 할 일이 있어서 추가로 공유드립니다.", "", *schedule_lines(items), "", "확인 부탁드립니다."]
     return SlackMessage(text="\n".join(lines))
 
 
