@@ -1,15 +1,15 @@
 /* ── 디자인 토큰: 업무용 라이트(기본) + 선택형 다크 ───────────────────────────── */
 :root, :root[data-theme="light"] {
   color-scheme: light;
-  --bg: #faf6f2; --panel: #ffffff; --soft: #fbf7f3; --ink: #2a2019; --muted: #6e5f55; --line: #eadfd5; --line-strong: #d6c6b8;
-  --accent: #bd410d; --accent-ink: #ffffff; --accent-soft: #fdebe0; --accent-line: #f3c2a3;
+  --bg: #fff8f2; --panel: #ffffff; --soft: #fffaf6; --ink: #2a2019; --muted: #6e5f55; --line: #f0e2d6; --line-strong: #dcc8b6;
+  --accent: #ee5a12; --accent-strong: #bd410d; --accent-ink: #ffffff; --accent-soft: #ffe9d9; --accent-line: #ffc29c;
   --ok: #187a47; --ok-soft: #e6f5ec; --warn: #8a5a00; --warn-soft: #fff6dc; --warn-line: #ecd28a; --err: #b42318; --err-soft: #fdecea;
   --shadow: 0 1px 2px rgba(60, 30, 10, .05), 0 1px 3px rgba(60, 30, 10, .07);
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
   --bg: #15100d; --panel: #1e1713; --soft: #231a15; --ink: #f3ece6; --muted: #b3a398; --line: #33271f; --line-strong: #4a3a2e;
-  --accent: #ff8a4c; --accent-ink: #1a0e06; --accent-soft: #3a2114; --accent-line: #6b3a1f;
+  --accent: #ff7a30; --accent-strong: #ff9a5c; --accent-ink: #1a0e06; --accent-soft: #3a2114; --accent-line: #6b3a1f;
   --ok: #4cc58f; --ok-soft: #12291f; --warn: #f0c15a; --warn-soft: #2c2410; --warn-line: #5b4a1c; --err: #f48b82; --err-soft: #34181a;
   --shadow: none;
 }
@@ -44,10 +44,10 @@ h3 { margin: 0 0 10px; font-size: 14.5px; font-weight: 700; }
 nav { display: grid; gap: 4px; }
 .nav { display: flex; align-items: center; gap: 10px; text-align: left; border: 0; background: none; padding: 9px 12px; border-radius: 8px; color: var(--muted); font-weight: 500; }
 .nav:hover { background: var(--soft); color: var(--ink); }
-.nav.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.nav.on { background: var(--accent-soft); color: var(--accent-strong); font-weight: 600; }
 .me { border-top: 1px solid var(--line); padding-top: 16px; display: grid; gap: 12px; }
 .who { display: flex; gap: 10px; align-items: center; }
-.avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-weight: 700; flex: none; }
+.avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--accent-soft); color: var(--accent-strong); display: grid; place-items: center; font-weight: 700; flex: none; }
 .who-text { display: grid; line-height: 1.35; min-width: 0; }
 .who-text span { font-size: 12.5px; color: var(--muted); }
 main { padding: 28px 32px; max-width: 1040px; width: 100%; margin: 0 auto; }
@@ -57,7 +57,7 @@ main { padding: 28px 32px; max-width: 1040px; width: 100%; margin: 0 auto; }
 .panel-head > div:first-child { flex: 1; min-width: 0; }
 .panel-head p { margin: 4px 0 0; }
 .head-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
-.badge { font-size: 12px; background: var(--accent-soft); color: var(--accent); padding: 3px 10px; border-radius: 99px; font-weight: 600; }
+.badge { font-size: 12px; background: var(--accent-soft); color: var(--accent-strong); padding: 3px 10px; border-radius: 99px; font-weight: 600; }
 .badge.warnb { background: var(--warn-soft); color: var(--warn); }
 
 .primary, .ghost, .chip, .badge, .small-btn { white-space: nowrap; }
@@ -98,12 +98,12 @@ main { padding: 28px 32px; max-width: 1040px; width: 100%; margin: 0 auto; }
 .empty h3 { font-size: 17px; color: var(--ink); margin-bottom: 4px; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 14px; }
 .chip { border: 1px solid var(--line-strong); background: var(--panel); border-radius: 99px; padding: 7px 14px; color: var(--ink); font-size: 14px; }
-.chip:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.chip:hover { border-color: var(--accent-strong); color: var(--accent-strong); background: var(--accent-soft); }
 .bubble { max-width: 80%; padding: 11px 15px; border-radius: 14px; white-space: pre-wrap; word-break: keep-all; }
 .bubble.user { align-self: flex-end; background: var(--accent); color: var(--accent-ink); border-bottom-right-radius: 4px; }
 .bubble.assistant { align-self: flex-start; background: var(--soft); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
 .source { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--line-strong); font-size: 13px; color: var(--muted); display: flex; gap: 8px; }
-.source b { color: var(--accent); font-weight: 600; flex: none; }
+.source b { color: var(--accent-strong); font-weight: 600; flex: none; }
 .note { margin-top: 8px; font-size: 13px; color: var(--warn); display: flex; gap: 6px; align-items: center; }
 .typing { display: flex; gap: 4px; padding: 4px 0; }
 .typing i { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); animation: b 1s infinite; }
@@ -141,7 +141,7 @@ main { padding: 28px 32px; max-width: 1040px; width: 100%; margin: 0 auto; }
 .pill { font-size: 12px; padding: 2px 9px; border-radius: 99px; background: var(--line); color: var(--muted); white-space: nowrap; font-weight: 600; }
 .pill.okp, .pill.done { background: var(--ok-soft); color: var(--ok); }
 .pill.warnp { background: var(--warn-soft); color: var(--warn); }
-.pill.approved { background: var(--accent-soft); color: var(--accent); }
+.pill.approved { background: var(--accent-soft); color: var(--accent-strong); }
 
 /* ── 입장 화면 ─────────────────────────────────────────────────────────── */
 .gate { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
