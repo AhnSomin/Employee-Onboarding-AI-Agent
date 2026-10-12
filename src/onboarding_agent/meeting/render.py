@@ -11,7 +11,7 @@ import base64
 import hashlib
 import re
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import date, datetime, time, timedelta
 from collections.abc import Iterable
 from typing import Any
 
@@ -94,13 +94,18 @@ def _person(item: ActionItem) -> str:
     return "담당자"
 
 
-def _until(item: ActionItem) -> str:
-    return f"{format_due(item.due_date, item.due_time)}까지" if item.due_date else "기한은 추후 정하기로"
+def _when(item: ActionItem) -> str:
+    return f"{format_due(item.due_date, item.due_time)}까지" if item.due_date else "기한 미정"
 
 
 def item_line(item: ActionItem) -> str:
-    """'• 자료 보완하기: <@U123> 님, 10/16(금)까지'"""
-    return f"• {_escape(item.task)}: {_person(item)}, {_until(item)}"
+    """'• *10/16(금) 15:00까지* · *<@U123> 님* · 자료 보완하기' — 언제·누가·무엇을 순서로, 언제와 누가는 굵게."""
+    return f"• *{_when(item)}* · *{_person(item)}* · {_escape(item.task)}"
+
+
+def by_due(items: list[ActionItem]) -> list[ActionItem]:
+    """기한이 빠른 순. 기한이 없는 항목은 맨 뒤 (같으면 입력 순서 유지)."""
+    return sorted(items, key=lambda i: (i.due_date is None, i.due_date or date.max, i.due_time or time.max))
 
 
 _HONORIFIC_AFTER = ("님", "씨", *TITLES)
@@ -129,13 +134,13 @@ def slack_summary(meeting: Meeting, items: list[ActionItem], names: Iterable[str
         lines += ["*논의한 내용*", *(f"• {honorific(_escape(t), people)}" for t in discussed), ""]
     if meeting.decisions:
         lines += ["*정해진 내용*", *(f"• {honorific(_escape(d.text), people)}" for d in meeting.decisions), ""]
-    lines += ["*앞으로 할 일*", *(item_line(i) for i in items), "", CLOSING]
+    lines += ["*일정*", *(item_line(i) for i in by_due(items)), "", CLOSING]
     return SlackMessage(text="\n".join(lines))
 
 
 def slack_followup(meeting: Meeting, items: list[ActionItem]) -> SlackMessage:
     """요약을 올린 뒤 새로 확정된 할 일 (스레드 답글)."""
-    lines = ["회의 이후에 확정된 할 일이 있어서 추가로 공유드립니다.", *(item_line(i) for i in items), "확인 부탁드립니다."]
+    lines = ["회의 이후에 확정된 할 일이 있어서 추가로 공유드립니다.", *(item_line(i) for i in by_due(items)), "확인 부탁드립니다."]
     return SlackMessage(text="\n".join(lines))
 
 

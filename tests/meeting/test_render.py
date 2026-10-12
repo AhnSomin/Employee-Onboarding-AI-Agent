@@ -71,9 +71,9 @@ def test_timed_event_lasts_one_hour_in_seoul():
 
 
 def test_item_lines_mention_by_slack_id_or_name():
-    assert item_line(item()) == "• 자료 보완하기: <@U123> 님, 10/16(금)까지"
+    assert item_line(item()) == "• *10/16(금)까지* · *<@U123> 님* · 자료 보완하기"
     unregistered = item(owner_name="이서연", owner_slack_id=None, due_time=time(14, 0), due_date=date(2026, 10, 12))
-    assert item_line(unregistered) == "• 자료 보완하기: 이서연 님, 10/12(월) 14:00까지"
+    assert item_line(unregistered) == "• *10/12(월) 14:00까지* · *이서연 님* · 자료 보완하기"
     assert "Slack 미등록" not in item_line(unregistered)          # 명단에 없어도 사람 글처럼 이름만 쓴다
     assert "&lt;script&gt;" in item_line(item(task="<script> 정리하기"))
 
@@ -89,8 +89,8 @@ def test_summary_reads_like_a_person_wrote_it():
         "*정해진 내용*",
         "• FAQ는 위키에 올린다.",
         "",
-        "*앞으로 할 일*",
-        "• 자료 보완하기: <@U123> 님, 10/16(금)까지",
+        "*일정*",
+        "• *10/16(금)까지* · *<@U123> 님* · 자료 보완하기",
         "",
         CLOSING,
     ]
@@ -103,14 +103,14 @@ def test_summary_skips_empty_sections():
     bare = MEETING.model_copy(update={"summary": [], "decisions": []})
     text = slack_summary(bare, [item()]).text
     assert "논의한 내용" not in text and "정해진 내용" not in text and "(요약 없음)" not in text
-    assert "*앞으로 할 일*" in text
+    assert "*일정*" in text
 
 
 def test_followup_is_a_short_polite_thread_reply():
     message = slack_followup(MEETING, [item()])
     assert message.text.splitlines() == [
         "회의 이후에 확정된 할 일이 있어서 추가로 공유드립니다.",
-        "• 자료 보완하기: <@U123> 님, 10/16(금)까지",
+        "• *10/16(금)까지* · *<@U123> 님* · 자료 보완하기",
         "확인 부탁드립니다.",
     ]
 
@@ -141,3 +141,14 @@ def test_honorific_adds_nim_to_bare_names_only():
     assert honorific("한오태곤이", names) == "한오태곤이"          # 다른 이름의 일부는 건드리지 않는다
     assert honorific("인사팀이 확인", names) == "인사팀이 확인"
     assert honorific("정준재가 작성, 정준재는 검토, 정준재를 지정", names) == "정준재 님이 작성, 정준재 님은 검토, 정준재 님을 지정"
+
+
+def test_schedule_is_sorted_by_due_with_undated_last():
+    from onboarding_agent.meeting.render import by_due
+
+    late = item(item_id="a", task="나중", due_date=date(2026, 10, 20), due_time=None)
+    early_pm = item(item_id="b", task="이른 오후", due_date=date(2026, 10, 14), due_time=time(15, 0))
+    early_am = item(item_id="c", task="이른 오전", due_date=date(2026, 10, 14), due_time=time(9, 0))
+    undated = item(item_id="d", task="미정", due_date=None, due_time=None, due_status="unconfirmed")
+    assert [i.task for i in by_due([undated, late, early_pm, early_am])] == ["이른 오전", "이른 오후", "나중", "미정"]
+    assert item_line(undated) == "• *기한 미정* · *<@U123> 님* · 미정"
