@@ -102,7 +102,7 @@ cd web && npm install && npm run build && cd ..
 
 ## 배포 (Render)
 
-`render.yaml`과 `Dockerfile`이 포함돼 있습니다. Render에서 **New → Blueprint**로 이 저장소를 연결하고 환경변수 `OPENAI_API_KEY`, `ACCESS_CODE`(접근 코드), 선택으로 `SLACK_WEBHOOK_URL`을 입력합니다. 공개 URL이므로 `ACCESS_CODE`는 반드시 설정하세요. 무료 플랜은 15분간 요청이 없으면 잠들어 첫 접속이 느립니다.
+`render.yaml`과 `Dockerfile`이 포함돼 있습니다. Render에서 **New → Blueprint**로 이 저장소를 연결하고 환경변수 `OPENAI_API_KEY`, `ACCESS_CODE`(접근 코드), 선택으로 `SLACK_WEBHOOK_URL`을 입력합니다. 공개 URL이므로 `ACCESS_CODE`는 반드시 설정하세요. 무료 플랜은 15분간 요청이 없으면 잠들어 첫 접속이 느립니다. 재알림까지 쓰려면 `STATE_BACKEND=sheets`와 Google 값(`GSHEETS_SPREADSHEET_ID`, `GOOGLE_SERVICE_ACCOUNT_JSON`)을 넣고 GitHub Secrets를 맞춥니다([docs/INTEGRATION.md](docs/INTEGRATION.md) "재알림 연결").
 
 ## 팀
 

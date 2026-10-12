@@ -5,3 +5,5 @@ python-dotenv==1.2.4
 gspread==6.2.1
 google-auth==2.61.0
 slack-sdk==3.45.0
+# 리마인더 문구(render.py)가 명단 모듈(roster.py)의 직함 목록을 쓰고, roster.py가 yaml을 import한다
+pyyaml==6.0.3

@@ -22,3 +22,9 @@ services:
         sync: false
       - key: GCAL_CALENDAR_ID
         sync: false
+      # 회의 정리 저장소: sheets면 Google Sheets에 저장해 재알림 배치(GitHub Actions)가 같은 시트를 읽는다.
+      # 비우면 sqlite(컨테이너 안 파일, 재시작 때 지워짐). sheets는 GSHEETS_SPREADSHEET_ID·GOOGLE_SERVICE_ACCOUNT_JSON이 필요하다
+      - key: STATE_BACKEND
+        sync: false
+      - key: GSHEETS_SPREADSHEET_ID
+        sync: false

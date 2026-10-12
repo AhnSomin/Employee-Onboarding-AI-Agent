@@ -72,3 +72,32 @@ def test_unknown_extraction_and_bad_sample(client):
     assert client.post("/api/meeting/approve", json={"extraction_id": "nope", "rows": []}).status_code == 404
     assert client.post("/api/meeting/extract", data={"sample": "../../etc/passwd"}).status_code == 404
     assert client.post("/api/meeting/extract").status_code == 400
+
+
+def test_list_reads_items_once_for_all_meetings(client, monkeypatch):
+    for sample in ("01_structured_minutes.txt", "02_transcript.txt"):
+        ex = client.post("/api/meeting/extract", data={"sample": sample}).json()
+        rows = _rows(ex)
+        for r in rows:
+            r.update(owner=ex["owner_options"][1], owner_ok=True, due_date="2026-10-30", due_ok=True)
+        ok = client.post("/api/meeting/approve", json={
+            "extraction_id": ex["extraction_id"], "rows": rows, "summary": [], "decisions": [], "execute": False})
+        assert ok.status_code == 200 and ok.json()["approved"] == len(rows)
+    from backend import meeting_api
+    store = meeting_api.get_store()
+    calls = []
+
+    class CountingStore:   # Sheets 저장소는 list_items를 부를 때마다 시트 전체를 읽는다 (분당 60회 한도)
+        def __getattr__(self, name):
+            return getattr(store, name)
+
+        def list_items(self, **kwargs):
+            calls.append(kwargs)
+            return store.list_items(**kwargs)
+
+    monkeypatch.setattr(meeting_api, "get_store", lambda settings=None: CountingStore())
+    listed = client.get("/api/meeting/list").json()
+    expected = {m.meeting_id: len(store.list_items(meeting_id=m.meeting_id)) for m in store.list_meetings()}
+    assert len(expected) == 2 and all(expected.values())
+    assert {m["meeting_id"]: len(m["items"]) for m in listed} == expected
+    assert len(calls) == 1

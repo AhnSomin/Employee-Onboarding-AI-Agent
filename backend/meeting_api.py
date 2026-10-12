@@ -1,12 +1,12 @@
 """회의록 → 액션 API. 팀원이 만든 엔진(onboarding_agent)을 웹앱 서버에 연결한다.
 
 업무 규칙(검증·담당자 규칙·승인·실행·중복 방지)은 모두 엔진에 있고, 여기서는 JSON 변환만 한다.
-추출 결과는 승인 전까지 서버 메모리에만 두고, 승인하면 상태 저장소(SQLite)에 저장한 뒤 실행한다.
+추출 결과는 승인 전까지 서버 메모리에만 두고, 승인하면 상태 저장소(STATE_BACKEND: SQLite 또는 Google Sheets)에 저장한 뒤 실행한다.
 """
 from __future__ import annotations
 
 import threading
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from datetime import date, datetime, time
 from pathlib import Path
 from typing import Any
@@ -265,9 +265,13 @@ def register(api: APIRouter) -> None:
     def list_meetings():
         settings = get_settings()
         store = get_store(settings)
+        # 항목은 한 번에 읽어 회의별로 나눈다. Sheets 저장소는 읽을 때마다 시트 전체를 가져오고 읽기 한도가 분당 60회다
+        by_meeting: defaultdict[str, list] = defaultdict(list)
+        for i in store.list_items():
+            by_meeting[i.meeting_id].append(i)
         out = []
         for m in sorted(store.list_meetings(), key=lambda x: x.created_at, reverse=True)[:20]:
-            items = store.list_items(meeting_id=m.meeting_id)
+            items = by_meeting.get(m.meeting_id, [])
             out.append({
                 "meeting_id": m.meeting_id, "title": m.title, "meeting_date": m.meeting_date.isoformat(),
                 "items": [{

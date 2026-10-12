@@ -375,3 +375,15 @@
   - 동결: 다음 지시까지 기준값, 검색 방식, 프롬프트, 검증 규칙을 바꾸지 않는다.
   - `docs/DEMO.md`도 이번에는 바꾸지 않았다. 다만 대본의 규정 Q&A 단계는 v1 기준(0.705) 때 쓴 것이다. v2에서는 2단계 "구내식당" 질문이 모델까지 가서 모델이 보류하고(회색 구간 d11), "연가는 1년에 며칠인가요?"도 보류되지 않는다. v2를 main에 병합할 때 대본을 고쳐야 한다.
   - **v2 동결 커밋: `62c2405`** (`62c24055bd86f817fa6307017793c7c2078ec53d`, 브랜치 `feat/rag-gate-v2`). 코드·설정·평가 데이터의 마지막 커밋이다. 그 뒤의 커밋은 이 줄만 더한 문서 커밋이다. 전체 테스트 619 passed·11 skipped, 린트는 기존 11건(동결된 회의 기능 파일) 그대로다.
+
+## 2026-10-12 (웹 승인 항목의 재알림 연결)
+
+- 2026-10-12 **문제.** 웹(Render)은 회의 정리를 컨테이너 안 SQLite(`data/meetings.db`)에 저장하고, 재알림 배치(`.github/workflows/reminders.yml`)는 Google Sheets만 읽는다. 그래서 웹에서 승인한 항목에는 재알림이 가지 않았다. SQLite 파일은 컨테이너 재시작 때 지워진다.
+- 2026-10-12 **해결은 설정이다.** 웹도 `STATE_BACKEND=sheets`로 배치와 같은 시트를 쓴다. 엔진의 `SheetsStore`를 그대로 쓰므로 저장 형식과 멱등 처리가 배치와 같다. 설정 순서는 `docs/INTEGRATION.md` "재알림 연결"에 적었다.
+- 2026-10-12 **배치 의존성(yaml).** main의 배치는 import 단계에서 `ModuleNotFoundError: yaml`로 죽고 있었다. `render.py`가 `roster.TITLES`를 쓰고 `roster.py`가 `yaml`을 import하는데, `requirements-batch.txt`에 pyyaml이 없었다.
+  - `pyyaml==6.0.3`(uv.lock과 같은 버전)을 넣었다.
+  - `tests/meeting/test_batch_requirements.py`를 더했다. 배치가 불러오는 엔진 모듈과 `run_reminders.py`의 외부 import가 모두 `requirements-batch.txt`에 있는지 본다. `try`나 `if TYPE_CHECKING:` 안의 import는 세지 않는다(config.py의 streamlit은 의도된 조건부 import).
+- 2026-10-12 **Sheets 한도와 현황 수정.** Sheets API 한도는 분당 읽기·쓰기 각 60회이고, `SheetsStore`는 읽을 때마다 시트 전체를 가져온다.
+  - 현황(`GET /meeting/list`)이 회의마다 `list_items`를 불러, 최근 회의 20개면 읽기가 21회였다. 이제 항목을 한 번 읽어 회의별로 나눈다. 회의 수와 관계없이 읽기 2회이고, 응답 형식과 순서는 같다.
+  - 가짜 시트로 잰 승인·실행 1회의 호출 수: 4건에 읽기 17·쓰기 11, 13건에 읽기 35·쓰기 29.
+- 2026-10-12 **render.yaml은 `sync: false`.** `STATE_BACKEND`와 `GSHEETS_SPREADSHEET_ID`를 값 없이 더했다. sheets로 고정하면 Blueprint 동기화 때 시트 설정 전에도 sheets가 되어 승인이 503으로 막힌다. 그래서 Render 화면에서 직접 넣게 했다. 비우면 지금처럼 sqlite다.
