@@ -37,8 +37,7 @@ h3 { margin: 0 0 10px; font-size: 14.5px; font-weight: 700; }
 .shell { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; }
 .side { background: var(--panel); border-right: 1px solid var(--line); padding: 20px 16px; display: flex; flex-direction: column; gap: 18px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
 .brand { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.brand-mark { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 16px; letter-spacing: .14em; }
-.brand-mark .logo { width: 30px; height: 30px; border-radius: 8px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; }
+.brand-mark { font-weight: 800; font-size: 28px; line-height: 1; letter-spacing: .12em; }
 .theme-btn { border: 1px solid var(--line); background: var(--panel); color: var(--muted); border-radius: 8px; width: 32px; height: 32px; display: grid; place-items: center; }
 .theme-btn:hover { color: var(--ink); border-color: var(--line-strong); }
 nav { display: grid; gap: 4px; }

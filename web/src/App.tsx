@@ -52,7 +52,7 @@ function Main() {
     <div className="shell">
       <aside className="side">
         <div className="brand">
-          <div className="brand-mark"><span className="logo"><Icon name="compass" size={18} /></span>ORIENT</div>
+          <div className="brand-mark">ORIENT</div>
           <button className="theme-btn" onClick={toggleTheme} aria-label={theme === "dark" ? "라이트 모드로" : "다크 모드로"} title={theme === "dark" ? "라이트 모드" : "다크 모드"}>
             <Icon name={theme === "dark" ? "sun" : "moon"} size={16} />
           </button>
