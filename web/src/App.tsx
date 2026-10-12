@@ -19,7 +19,7 @@ function Gate({ onOk }: { onOk: () => void }) {
   return (
     <div className="gate">
       <form className="panel" onSubmit={submit}>
-        <h2>온보딩 Agent</h2>
+        <h2 style={{ letterSpacing: ".14em" }}>ORIENT</h2>
         <p className="muted">팀에서 받은 접근 코드를 입력해 주세요.</p>
         <input type="password" value={v} onChange={(e) => setV(e.target.value)} placeholder="접근 코드" autoFocus />
         {err && <p className="error">{err}</p>}
@@ -52,7 +52,7 @@ function Main() {
     <div className="shell">
       <aside className="side">
         <div className="brand">
-          <div className="brand-mark"><span className="logo"><Icon name="compass" size={18} /></span>온보딩 Agent</div>
+          <div className="brand-mark"><span className="logo"><Icon name="compass" size={18} /></span>ORIENT</div>
           <button className="theme-btn" onClick={toggleTheme} aria-label={theme === "dark" ? "라이트 모드로" : "다크 모드로"} title={theme === "dark" ? "라이트 모드" : "다크 모드"}>
             <Icon name={theme === "dark" ? "sun" : "moon"} size={16} />
           </button>

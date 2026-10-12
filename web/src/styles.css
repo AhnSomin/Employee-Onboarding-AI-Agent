@@ -1,16 +1,16 @@
 /* ── 디자인 토큰: 업무용 라이트(기본) + 선택형 다크 ───────────────────────────── */
 :root, :root[data-theme="light"] {
   color-scheme: light;
-  --bg: #f4f6fa; --panel: #ffffff; --soft: #f7f9fc; --ink: #1a2433; --muted: #5d6b80; --line: #e2e8f0; --line-strong: #cbd5e1;
-  --accent: #1f5fbf; --accent-ink: #ffffff; --accent-soft: #e8f0fc; --accent-line: #b9d0f3;
-  --ok: #187a47; --ok-soft: #e6f5ec; --warn: #a85a06; --warn-soft: #fff4e0; --warn-line: #f0d29b; --err: #b42318; --err-soft: #fdecea;
-  --shadow: 0 1px 2px rgba(16, 24, 40, .05), 0 1px 3px rgba(16, 24, 40, .06);
+  --bg: #faf6f2; --panel: #ffffff; --soft: #fbf7f3; --ink: #2a2019; --muted: #6e5f55; --line: #eadfd5; --line-strong: #d6c6b8;
+  --accent: #bd410d; --accent-ink: #ffffff; --accent-soft: #fdebe0; --accent-line: #f3c2a3;
+  --ok: #187a47; --ok-soft: #e6f5ec; --warn: #8a5a00; --warn-soft: #fff6dc; --warn-line: #ecd28a; --err: #b42318; --err-soft: #fdecea;
+  --shadow: 0 1px 2px rgba(60, 30, 10, .05), 0 1px 3px rgba(60, 30, 10, .07);
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0f141b; --panel: #171d27; --soft: #1b2230; --ink: #e8ecf2; --muted: #98a3b5; --line: #263042; --line-strong: #364258;
-  --accent: #6b9bff; --accent-ink: #0b1220; --accent-soft: #1b2a4a; --accent-line: #2d4577;
-  --ok: #4cc58f; --ok-soft: #12291f; --warn: #f3a65a; --warn-soft: #2c2113; --warn-line: #5b4320; --err: #f48b82; --err-soft: #34181a;
+  --bg: #15100d; --panel: #1e1713; --soft: #231a15; --ink: #f3ece6; --muted: #b3a398; --line: #33271f; --line-strong: #4a3a2e;
+  --accent: #ff8a4c; --accent-ink: #1a0e06; --accent-soft: #3a2114; --accent-line: #6b3a1f;
+  --ok: #4cc58f; --ok-soft: #12291f; --warn: #f0c15a; --warn-soft: #2c2410; --warn-line: #5b4a1c; --err: #f48b82; --err-soft: #34181a;
   --shadow: none;
 }
 
@@ -37,7 +37,7 @@ h3 { margin: 0 0 10px; font-size: 14.5px; font-weight: 700; }
 .shell { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; }
 .side { background: var(--panel); border-right: 1px solid var(--line); padding: 20px 16px; display: flex; flex-direction: column; gap: 18px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
 .brand { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.brand-mark { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; letter-spacing: -.01em; }
+.brand-mark { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 16px; letter-spacing: .14em; }
 .brand-mark .logo { width: 30px; height: 30px; border-radius: 8px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; }
 .theme-btn { border: 1px solid var(--line); background: var(--panel); color: var(--muted); border-radius: 8px; width: 32px; height: 32px; display: grid; place-items: center; }
 .theme-btn:hover { color: var(--ink); border-color: var(--line-strong); }
