@@ -387,3 +387,9 @@
   - 현황(`GET /meeting/list`)이 회의마다 `list_items`를 불러, 최근 회의 20개면 읽기가 21회였다. 이제 항목을 한 번 읽어 회의별로 나눈다. 회의 수와 관계없이 읽기 2회이고, 응답 형식과 순서는 같다.
   - 가짜 시트로 잰 승인·실행 1회의 호출 수: 4건에 읽기 17·쓰기 11, 13건에 읽기 35·쓰기 29.
 - 2026-10-12 **render.yaml은 `sync: false`.** `STATE_BACKEND`와 `GSHEETS_SPREADSHEET_ID`를 값 없이 더했다. sheets로 고정하면 Blueprint 동기화 때 시트 설정 전에도 sheets가 되어 승인이 503으로 막힌다. 그래서 Render 화면에서 직접 넣게 했다. 비우면 지금처럼 sqlite다.
+- 2026-10-12 **설정 안내 보강.** `docs/INTEGRATION.md` "재알림 연결"에 다음을 더했다.
+  - 키는 서비스 계정 키(JSON)여야 한다.
+  - 예전 시트를 쓰려면 `reset_demo.py`로 먼저 비운다(Slack 메시지·캘린더 일정도 지우므로 목록부터 확인).
+  - `GCAL_CALENDAR_ID`는 Render에 넣지 않는다(.ics 대신 Calendar 등록으로 바뀌는 것은 따로 정할 문제).
+  - 체크리스트(`data/state.db`)는 sheets로 바꿔도 재시작 때 지워진다.
+  - 예약 실행이 늦을 수 있다. 이 저장소의 2026-10-12 예약 실행은 13:17 KST에 돌았고, Secrets가 비어 있어 "설정 필요"로 건너뛰었다.
