@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" font-family="'Apple SD Gothic Neo','Pretendard','Noto Sans KR','Malgun Gothic',sans-serif">
+<defs><filter id="sh" x="-10%" y="-20%" width="120%" height="150%"><feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#ff6f0f" flood-opacity=".12"/></filter><filter id="sh2" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#5a3a1e" flood-opacity=".08"/></filter><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fffbf7"/><stop offset="1" stop-color="#fff4ea"/></linearGradient></defs>
+<rect width="1600" height="900" fill="url(#bg)"/>
+<text x="48" y="58" font-size="15" font-weight="800" fill="#ff6f0f" letter-spacing="4">ORIENT · WORKFLOW</text>
+<text x="48" y="104" font-size="40" font-weight="800" fill="#2a2019" letter-spacing="-0.5">AI 적용 전 vs 후</text>
+<text x="48" y="132" font-size="18" fill="#7a6b60">같은 업무에서 사람이 하는 단계는 줄고, 사람은 검토·승인과 예외에만 개입합니다</text>
+<circle cx="1392" cy="84" r="7" fill="#9a8b7e"/><text x="1406" y="90" font-size="15" fill="#7a6b60">사람</text>
+<circle cx="1466" cy="84" r="7" fill="#ff6f0f"/><text x="1480" y="90" font-size="15" fill="#7a6b60">AI · 자동</text>
+<text x="48" y="176" font-size="14" font-weight="800" fill="#ff6f0f" letter-spacing="2">01</text>
+<text x="80" y="176" font-size="23" font-weight="800" fill="#2a2019">규정 질문</text>
+<rect x="48" y="188" width="1248" height="124" rx="22" fill="#f7f2ed"/>
+<text x="82" y="248.0" font-size="21" font-weight="800" fill="#7a6b60">적용 전</text>
+<text x="82" y="272.0" font-size="13.5" fill="#b3a69a" font-weight="500">사람이 직접</text>
+<line x1="390.3" y1="228" x2="1264.0" y2="228" stroke="#d8cdc2" stroke-width="2.5" stroke-linecap="round"/>
+<path d="M1255.0 221 L1267.0 228 L1255.0 235" fill="none" stroke="#d8cdc2" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="390.3" cy="228" r="19" fill="#fff" stroke="#d8cdc2" stroke-width="2.5"/>
+<circle cx="390.3" cy="228" r="14" fill="#9a8b7e"/><text x="390.3" y="233.5" font-size="15" font-weight="800" fill="#fff" text-anchor="middle">1</text>
+<text x="390.3" y="276" font-size="17" font-weight="700" fill="#5f5146" text-anchor="middle">인사담당자에게</text>
+<text x="390.3" y="299" font-size="17" font-weight="500" fill="#5f5146" text-anchor="middle">메신저·전화로 문의</text>
+<circle cx="743.0" cy="228" r="19" fill="#fff" stroke="#d8cdc2" stroke-width="2.5"/>
+<circle cx="743.0" cy="228" r="14" fill="#9a8b7e"/><text x="743.0" y="233.5" font-size="15" font-weight="800" fill="#fff" text-anchor="middle">2</text>
+<text x="743.0" y="276" font-size="17" font-weight="700" fill="#5f5146" text-anchor="middle">담당자가 규정을</text>
+<text x="743.0" y="299" font-size="17" font-weight="500" fill="#5f5146" text-anchor="middle">찾아 해석</text>
+<circle cx="1095.7" cy="228" r="19" fill="#fff" stroke="#d8cdc2" stroke-width="2.5"/>
+<circle cx="1095.7" cy="228" r="14" fill="#9a8b7e"/><text x="1095.7" y="233.5" font-size="15" font-weight="800" fill="#fff" text-anchor="middle">3</text>
+<text x="1095.7" y="276" font-size="17" font-weight="700" fill="#5f5146" text-anchor="middle">답변 전달</text>
+<text x="1095.7" y="299" font-size="17" font-weight="500" fill="#5f5146" text-anchor="middle">신입은 그동안 대기</text>
+<rect x="48" y="324" width="1248" height="124" rx="22" fill="#ffffff" stroke="#ffd7b8" stroke-width="1.5" filter="url(#sh)"/>
+<rect x="48" y="348" width="5" height="76" rx="2.5" fill="#ff6f0f"/>
+<text x="82" y="384.0" font-size="21" font-weight="800" fill="#2a2019">적용 후</text>
+<text x="82" y="408.0" font-size="13.5" fill="#ff6f0f" font-weight="700">ORIENT</text>
+<line x1="346.2" y1="364" x2="1264.0" y2="364" stroke="#ff6f0f" stroke-width="3" stroke-linecap="round"/>
+<path d="M1255.0 357 L1267.0 364 L1255.0 371" fill="none" stroke="#ff6f0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="346.2" cy="364" r="19" fill="#fff" stroke="#9a8b7e" stroke-width="2.5"/>
+<circle cx="346.2" cy="364" r="14" fill="#9a8b7e"/><text x="346.2" y="369.5" font-size="15" font-weight="800" fill="#fff" text-anchor="middle">1</text>
+<text x="346.2" y="412" font-size="17" font-weight="700" fill="#2a2019" text-anchor="middle">채팅으로 질문</text>
+<circle cx="610.8" cy="364" r="19" fill="#fff" stroke="#ff6f0f" stroke-width="2.5"/>
+<circle cx="610.8" cy="364" r="14" fill="#ff6f0f"/><text x="610.8" y="369.5" font-size="15" font-weight="800" fill="#fff" text-anchor="middle">2</text>
+<text x="610.8" y="412" font-size="17" font-weight="700" fill="#2a2019" text-anchor="middle">AI가 조문 검색</text>
+<text x="610.8" y="435" font-size="17" font-weight="500" fill="#2a2019" text-anchor="middle">· 재순위</text>
+<circle cx="875.2" cy="364" r="19" fill="#fff" stroke="#ff6f0f" stroke-width="2.5"/>
+<circle cx="875.2" cy="364" r="14" fill="#ff6f0f"/><text x="875.2" y="369.5" font-size="15" font-weight="800" fill="#fff" text-anchor="middle">3</text>
+<text x="875.2" y="412" font-size="17" font-weight="700" fill="#2a2019" text-anchor="middle">근거 조문 + 쉬운 말로</text>
+<text x="875.2" y="435" font-size="17" font-weight="500" fill="#2a2019" text-anchor="middle">즉시 답변</text>
+<circle cx="1139.8" cy="364" r="19" fill="#fff" stroke="#ff6f0f" stroke-width="2.5"/>
+<circle cx="1139.8" cy="364" r="14" fill="#ff6f0f"/><text x="1139.8" y="369.5" font-size="15" font-weight="800" fill="#fff" text-anchor="middle">4</text>
+<text x="1139.8" y="412" font-size="17" font-weight="700" fill="#2a2019" text-anchor="middle">근거 없으면</text>
+<text x="1139.8" y="435" font-size="17" font-weight="500" fill="#2a2019" text-anchor="middle">담당자 연결 (예외)</text>
+<rect x="1320" y="188" width="232" height="260" rx="22" fill="#fff" stroke="#f2e4d6" stroke-width="1.5" filter="url(#sh2)"/>
+<text x="1436" y="264" font-size="15" fill="#7a6b60" text-anchor="middle" font-weight="600">사람이 하는 단계</text>
+<text x="1384" y="344" font-size="78" font-weight="800" fill="#cfc3b8" text-anchor="middle">3</text>
+<path d="M1418 316 h26 m-9 -9 l9 9 l-9 9" fill="none" stroke="#ff6f0f" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="1496" y="344" font-size="78" font-weight="800" fill="#ff6f0f" text-anchor="middle">1</text>
+<text x="1436" y="384" font-size="14.5" fill="#7a6b60" text-anchor="middle">답변 대기 → 즉시 답변</text>
+<text x="48" y="484" font-size="14" font-weight="800" fill="#ff6f0f" letter-spacing="2">02</text>
+<text x="80" y="484" font-size="23" font-weight="800" fill="#2a2019">회의 후속 업무</text>
+<rect x="48" y="496" width="1248" height="124" rx="22" fill="#f7f2ed"/>
+<text x="82" y="556.0" font-size="21" font-weight="800" fill="#7a6b60">적용 전</text>
+<text x="82" y="580.0" font-size="13.5" fill="#b3a69a" font-weight="500">사람이 직접</text>
+<line x1="319.8" y1="536" x2="1264.0" y2="536" stroke="#d8cdc2" stroke-width="2.5" stroke-linecap="round"/>
+<path d="M1255.0 529 L1267.0 536 L1255.0 543" fill="none" stroke="#d8cdc2" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="319.8" cy="536" r="19" fill="#fff" stroke="#d8cdc2" stroke-width="2.5"/>
+<circle cx="319.8" cy="536" r="14" fill="#9a8b7e"/><text x="319.8" y="541.5" font-size="15" font-weight="800" fill="#fff" text-anchor="middle">1</text>
+<text x="319.8" y="584" font-size="17" font-weight="700" fill="#5f5146" text-anchor="middle">회의록 읽고</text>
+<text x="319.8" y="607" font-size="17" font-weight="500" fill="#5f5146" text-anchor="middle">할 일 추리기</text>
+<circle cx="531.4" cy="536" r="19" fill="#fff" stroke="#d8cdc2" stroke-width="2.5"/>
+<circle cx="531.4" cy="536" r="14" fill="#9a8b7e"/><text x="531.4" y="541.5" font-size="15" font-weight="800" fill="#fff" text-anchor="middle">2</text>
+<text x="531.4" y="584" font-size="17" font-weight="700" fill="#5f5146" text-anchor="middle">담당자·기한</text>
+<text x="531.4" y="607" font-size="17" font-weight="500" fill="#5f5146" text-anchor="middle">표로 정리</text>
+<circle cx="743.0" cy="536" r="19" fill="#fff" stroke="#d8cdc2" stroke-width="2.5"/>
+<circle cx="743.0" cy="536" r="14" fill="#9a8b7e"/><text x="743.0" y="541.5" font-size="15" font-weight="800" fill="#fff" text-anchor="middle">3</text>
+<text x="743.0" y="584" font-size="17" font-weight="700" fill="#5f5146" text-anchor="middle">캘린더에</text>
+<text x="743.0" y="607" font-size="17" font-weight="500" fill="#5f5146" text-anchor="middle">하나씩 등록</text>
+<circle cx="954.6" cy="536" r="19" fill="#fff" stroke="#d8cdc2" stroke-width="2.5"/>
+<circle cx="954.6" cy="536" r="14" fill="#9a8b7e"/><text x="954.6" y="541.5" font-size="15" font-weight="800" fill="#fff" text-anchor="middle">4</text>
+<text x="954.6" y="584" font-size="17" font-weight="700" fill="#5f5146" text-anchor="middle">Slack 공유</text>
+<circle cx="1166.2" cy="536" r="19" fill="#fff" stroke="#d8cdc2" stroke-width="2.5"/>
+<circle cx="1166.2" cy="536" r="14" fill="#9a8b7e"/><text x="1166.2" y="541.5" font-size="15" font-weight="800" fill="#fff" text-anchor="middle">5</text>
+<text x="1166.2" y="584" font-size="17" font-weight="700" fill="#5f5146" text-anchor="middle">기한 확인·</text>
+<text x="1166.2" y="607" font-size="17" font-weight="500" fill="#5f5146" text-anchor="middle">독촉</text>
+<rect x="48" y="632" width="1248" height="124" rx="22" fill="#ffffff" stroke="#ffd7b8" stroke-width="1.5" filter="url(#sh)"/>
+<rect x="48" y="656" width="5" height="76" rx="2.5" fill="#ff6f0f"/>
+<text x="82" y="692.0" font-size="21" font-weight="800" fill="#2a2019">적용 후</text>
+<text x="82" y="716.0" font-size="13.5" fill="#ff6f0f" font-weight="700">ORIENT</text>
+<line x1="319.8" y1="672" x2="1264.0" y2="672" stroke="#ff6f0f" stroke-width="3" stroke-linecap="round"/>
+<path d="M1255.0 665 L1267.0 672 L1255.0 679" fill="none" stroke="#ff6f0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="319.8" cy="672" r="19" fill="#fff" stroke="#9a8b7e" stroke-width="2.5"/>
+<circle cx="319.8" cy="672" r="14" fill="#9a8b7e"/><text x="319.8" y="677.5" font-size="15" font-weight="800" fill="#fff" text-anchor="middle">1</text>
+<text x="319.8" y="720" font-size="17" font-weight="700" fill="#2a2019" text-anchor="middle">회의록 업로드</text>
+<circle cx="531.4" cy="672" r="19" fill="#fff" stroke="#ff6f0f" stroke-width="2.5"/>
+<circle cx="531.4" cy="672" r="14" fill="#ff6f0f"/><text x="531.4" y="677.5" font-size="15" font-weight="800" fill="#fff" text-anchor="middle">2</text>
+<text x="531.4" y="720" font-size="17" font-weight="700" fill="#2a2019" text-anchor="middle">AI가 요약·할 일</text>
+<text x="531.4" y="743" font-size="17" font-weight="500" fill="#2a2019" text-anchor="middle">담당자·기한 추출</text>
+<circle cx="743.0" cy="672" r="19" fill="#fff" stroke="#9a8b7e" stroke-width="2.5"/>
+<circle cx="743.0" cy="672" r="14" fill="#9a8b7e"/><text x="743.0" y="677.5" font-size="15" font-weight="800" fill="#fff" text-anchor="middle">3</text>
+<text x="743.0" y="720" font-size="17" font-weight="700" fill="#2a2019" text-anchor="middle">미확정 채우고</text>
+<text x="743.0" y="743" font-size="17" font-weight="500" fill="#2a2019" text-anchor="middle">승인</text>
+<circle cx="954.6" cy="672" r="19" fill="#fff" stroke="#ff6f0f" stroke-width="2.5"/>
+<circle cx="954.6" cy="672" r="14" fill="#ff6f0f"/><text x="954.6" y="677.5" font-size="15" font-weight="800" fill="#fff" text-anchor="middle">4</text>
+<text x="954.6" y="720" font-size="17" font-weight="700" fill="#2a2019" text-anchor="middle">Slack 일정 공유</text>
+<text x="954.6" y="743" font-size="17" font-weight="500" fill="#2a2019" text-anchor="middle">+ 캘린더 파일</text>
+<circle cx="1166.2" cy="672" r="19" fill="#fff" stroke="#ff6f0f" stroke-width="2.5"/>
+<circle cx="1166.2" cy="672" r="14" fill="#ff6f0f"/><text x="1166.2" y="677.5" font-size="15" font-weight="800" fill="#fff" text-anchor="middle">5</text>
+<text x="1166.2" y="720" font-size="17" font-weight="700" fill="#2a2019" text-anchor="middle">마감 전날·당일·</text>
+<text x="1166.2" y="743" font-size="17" font-weight="500" fill="#2a2019" text-anchor="middle">기한 지남 재알림</text>
+<rect x="1320" y="496" width="232" height="260" rx="22" fill="#fff" stroke="#f2e4d6" stroke-width="1.5" filter="url(#sh2)"/>
+<text x="1436" y="572" font-size="15" fill="#7a6b60" text-anchor="middle" font-weight="600">사람이 하는 단계</text>
+<text x="1384" y="652" font-size="78" font-weight="800" fill="#cfc3b8" text-anchor="middle">5</text>
+<path d="M1418 624 h26 m-9 -9 l9 9 l-9 9" fill="none" stroke="#ff6f0f" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="1496" y="652" font-size="78" font-weight="800" fill="#ff6f0f" text-anchor="middle">2</text>
+<text x="1436" y="692" font-size="14.5" fill="#7a6b60" text-anchor="middle">정리·등록·독촉 → 업로드 + 승인</text>
+<rect x="48" y="806" width="1504" height="50" rx="25" fill="#2a2019"/>
+<text x="800" y="837" font-size="19" font-weight="700" fill="#fff" text-anchor="middle">반복 작업은 <tspan fill="#ff6f0f">AI</tspan>가, 판단(검토·승인)은 <tspan fill="#ff6f0f">사람</tspan>이 — 모르면 추측하지 않고 사람에게 넘깁니다</text>
+</svg>
