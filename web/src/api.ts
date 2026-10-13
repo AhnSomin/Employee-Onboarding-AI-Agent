@@ -23,6 +23,12 @@ export type MeetingRow = {
   items: { item_id: string; task: string; owner: string; due: string; status: string; calendar: boolean; slack: boolean }[];
 };
 
+export type ReminderOut = {
+  item_id: string; task: string; owner: string; due: string; stage: "D-1" | "D-day" | "overdue";
+  message: string; thread: boolean; sent: boolean; error: string | null;
+};
+export type Reminders = { as_of: string; dry_run: boolean; reminders: ReminderOut[]; sent?: number; failed?: number };
+
 export const getCode = () => localStorage.getItem("access_code") ?? "";
 export const setCode = (c: string) => localStorage.setItem("access_code", c);
 export const clearCode = () => localStorage.removeItem("access_code");
@@ -64,6 +70,8 @@ export const api = {
   execute: (id: string) => call<Report>(`/api/meeting/${id}/execute`, { method: "POST" }),
   meetings: () => call<MeetingRow[]>("/api/meeting/list"),
   calendarFile: (id: string) => call<{ ics: string; events: number }>(`/api/meeting/${id}/calendar`),
+  remindPreview: (as_of: string | null) => call<Reminders>("/api/meeting/reminders/preview", json({ as_of })),
+  remindSend: (as_of: string | null) => call<Reminders>("/api/meeting/reminders/send", json({ as_of })),
   complete: (item_ids: string[]) => call<{ updated: number }>("/api/meeting/items/complete", json({ item_ids })),
   cancel: (item_ids: string[]) => call<{ updated: number }>("/api/meeting/items/cancel", json({ item_ids })),
 };

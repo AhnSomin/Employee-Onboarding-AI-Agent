@@ -202,3 +202,19 @@ main { padding: 28px 32px; max-width: 1040px; width: 100%; margin: 0 auto; }
 .result-row.skipped { background: var(--soft); }
 .result-row.skipped .result-task { color: var(--muted); }
 .state.failed { background: var(--err-soft); border-color: transparent; color: var(--err); }
+
+/* 재알림 */
+.remind-bar { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: flex-end; margin-top: 12px; }
+.field-inline { display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); }
+.field-inline input { height: 38px; }
+.remind-bar button { height: 38px; padding-top: 0; padding-bottom: 0; }
+.remind-msg { margin: 2px 0 0; padding: 8px 12px; border-left: 3px solid var(--accent-line); background: var(--soft); border-radius: 0 8px 8px 0; font-size: 13.5px; color: var(--ink); overflow-wrap: anywhere; }
+.state.stage-D-1 { background: var(--warn-soft); border-color: var(--warn-line); color: var(--warn); }
+.state.stage-D-day { background: var(--accent-soft); border-color: var(--accent-line); color: var(--accent-strong); }
+.state.stage-overdue { background: var(--err-soft); border-color: transparent; color: var(--err); }
+.state.stage-D-1 b, .state.stage-D-day b, .state.stage-overdue b { color: inherit; }
+@media (max-width: 520px) {
+  .remind-bar { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); }
+  .remind-bar .field-inline { grid-column: 1 / -1; }
+  .remind-bar .field-inline input { width: 100%; }
+}

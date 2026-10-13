@@ -22,6 +22,7 @@ function download(name: string, text: string) {
   URL.revokeObjectURL(a.href);
 }
 const icsName = (title: string) => `${title.replace(/[^\w가-힣]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "회의"}-액션.ics`;
+const STAGE_NAME: Record<string, string> = { "D-1": "마감 전날", "D-day": "마감 당일", overdue: "기한 지남" };
 const STATUS_LABEL: Record<string, string> = { approved: "진행 중", done: "완료", cancelled: "취소", draft: "초안" };
 
 type Stage = "input" | "review" | "done";
@@ -57,8 +58,17 @@ export default function Meeting() {
   const [excludeUnconfirmed, setExcludeUnconfirmed] = useState(false);
   const [done, setDone] = useState<Approved | null>(null);
   const [board, setBoard] = useState<MeetingRow[]>([]);
+  const [asOf, setAsOf] = useState("");
+  const [remind, setRemind] = useState<{ mode: "preview" | "sent"; data: Reminders } | null>(null);
   const input = useRef<HTMLInputElement>(null);
 
+  const runRemind = async (send: boolean) => {
+    setErr(""); setBusy(true);
+    try {
+      const data = await (send ? api.remindSend : api.remindPreview)(asOf || null);
+      setRemind({ mode: send ? "sent" : "preview", data });
+    } catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
+  };
   const loadBoard = () => api.meetings().then(setBoard).catch(() => {});
   useEffect(() => {
     api.meetingConfig().then(setCfg).catch(() => {});
@@ -176,6 +186,44 @@ export default function Meeting() {
                   </ul>
                 </div>
               ))}
+            </div>
+          )}
+          {board.length > 0 && (
+            <div className="card remind" style={{ marginTop: 18 }}>
+              <h3>재알림</h3>
+              <p className="muted small">마감 전날·마감 당일·기한이 지난 일정에 담당자를 챙기는 알림을 보내요. 이미 보낸 단계는 다시 보내지 않아요. 기준 날짜를 바꾸면 그날 나갈 알림을 미리 볼 수 있어요.</p>
+              <div className="remind-bar">
+                <label className="field-inline">기준 날짜
+                  <input type="date" value={asOf} onChange={(e) => { setAsOf(e.target.value); setRemind(null); }} />
+                </label>
+                <button className="ghost" onClick={() => runRemind(false)} disabled={busy}>미리보기</button>
+                <button className="primary" onClick={() => runRemind(true)} disabled={busy}>
+                  {cfg && !cfg.dry_run && cfg.slack_ready ? "Slack으로 보내기" : "보내기 (시뮬레이션)"}
+                </button>
+              </div>
+              {remind && (
+                <>
+                  <p className="status small" style={{ margin: "12px 0 0" }}>
+                    {remind.data.as_of} 기준 · {remind.mode === "preview"
+                      ? `보낼 알림 ${remind.data.reminders.length}건 (아직 보내지 않았어요)`
+                      : `${remind.data.sent ?? 0}건 ${remind.data.dry_run ? "처리 (Slack으로는 보내지 않음)" : "보냄"}${remind.data.failed ? `, 실패 ${remind.data.failed}건` : ""}`}
+                  </p>
+                  {remind.data.reminders.length === 0 && <p className="muted small">이 날짜에 보낼 알림이 없어요. (마감 전날·당일·기한 지남에 해당하는 일정이 없거나, 이미 보냈어요.)</p>}
+                  <ul className="results">
+                    {remind.data.reminders.map((r) => (
+                      <li key={r.item_id} className="result-row">
+                        <span className="result-task">{r.task}</span>
+                        <span className="result-states">
+                          <span className={`state stage-${r.stage}`}><b>{STAGE_NAME[r.stage]}</b>{r.owner} · {r.due}</span>
+                          {remind.mode === "sent" && <span className={`state ${r.sent ? "sent" : "failed"}`}>{r.sent ? "처리됨" : "실패"}</span>}
+                        </span>
+                        <blockquote className="remind-msg">{r.message}</blockquote>
+                        {r.error && <small className="evidence error">{r.error}</small>}
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
             </div>
           )}
         </>

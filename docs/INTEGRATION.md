@@ -24,6 +24,9 @@
 - **캘린더:** Google 서비스 계정과 캘린더 ID가 설정돼 있으면 Google Calendar에 만들고, 없으면 승인한 항목을 **.ics 파일**로 내려받게 합니다. 파일을 열면 Google·Outlook·Apple 캘린더에 등록됩니다. (`meeting/ics.py`, 설정과 관계없이 항상 내려받을 수 있음)
 - 멘션은 `data/roster.yaml`의 `slack_user_id`가 있을 때만 걸립니다. 지금은 모두 비어 있어 이름만 표시합니다. Slack 멤버 ID는 워크스페이스마다 달라서 다른 곳의 ID를 넣으면 멘션이 깨집니다.
 
+## 재알림 버튼 (웹)
+회의 정리 화면의 **재알림** 카드에서 마감 전날·당일·기한 지남 일정의 알림을 미리 보고(`POST /api/meeting/reminders/preview`) 보낼 수 있습니다(`/send`). 팀원의 `send_reminders`를 그대로 써서 이미 보낸 단계는 다시 보내지 않습니다. 기준 날짜를 고르면 그날(09:00)에 나갈 알림을 볼 수 있어 시연에 쓰기 좋습니다. `ACTIONS_DRY_RUN=true`이거나 Slack 값이 없으면 보내지 않고 기록만 합니다. 매일 자동 발송은 아래 Sheets + GitHub Actions 연결이 필요하고, 웹 버튼은 설정 없이 동작합니다(서버가 재시작되면 승인 내역이 사라지는 SQLite 기준).
+
 ## 재알림 연결 (웹 승인 → Google Sheets → GitHub Actions)
 웹은 기본으로 회의 정리를 컨테이너 안 SQLite(`data/meetings.db`, 재시작 때 지워짐)에 저장하고, 재알림 배치(`.github/workflows/reminders.yml`)는 Google Sheets만 읽습니다. 웹에서 승인한 항목에도 재알림이 가게 하려면 웹도 같은 시트를 쓰게 설정합니다. 웹은 엔진의 `SheetsStore`를 그대로 씁니다.
 

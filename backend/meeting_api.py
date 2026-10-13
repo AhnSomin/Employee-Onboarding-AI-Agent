@@ -25,6 +25,7 @@ from onboarding_agent.meeting.loader import MeetingInputError, load_meeting
 from onboarding_agent.meeting.polish import polish_overview
 from onboarding_agent.meeting.models import ExtractionResult
 from onboarding_agent.meeting.roster import Roster, RosterError, load_roster
+from onboarding_agent.scheduler.reminders import Reminder, plan_reminders, send_reminders
 from onboarding_agent.store import StoreUnavailable, get_store
 
 SAMPLES_DIR = REPO_ROOT / "data" / "demo" / "samples"
@@ -43,6 +44,10 @@ class RowIn(BaseModel):
     due_date: str | None = None
     due_time: str | None = None
     due_ok: bool = False
+
+
+class RemindIn(BaseModel):
+    as_of: str | None = None   # "2026-10-15" — 시연용 기준 날짜(오전 9시). 비우면 지금
 
 
 class ApproveIn(BaseModel):
@@ -281,6 +286,41 @@ def register(api: APIRouter) -> None:
                 } for i in items],
             })
         return out
+
+    def _remind_now(body: RemindIn, settings) -> datetime:
+        if not body.as_of:
+            return datetime.now(settings.tz)
+        try:
+            return datetime.combine(date.fromisoformat(body.as_of), time(9, 0), tzinfo=settings.tz)
+        except ValueError:
+            raise HTTPException(422, "기준 날짜 형식은 2026-10-15 처럼 써 주세요.")
+
+    def _ser_reminder(r: Reminder) -> dict[str, Any]:
+        return {
+            "item_id": r.item.item_id, "task": r.item.task, "owner": r.item.owner_name or review.OWNER_UNSET,
+            "due": format_due(r.item.due_date, r.item.due_time) if r.item.due_date else "",
+            "stage": r.stage, "message": r.message.text, "thread": bool(r.thread_ts),
+            "sent": bool(r.ts and not r.error), "error": r.error,
+        }
+
+    @api.post("/meeting/reminders/preview")
+    def reminders_preview(body: RemindIn):
+        """지금(또는 기준 날짜에) 나갈 재알림을 만들어 보여 준다. 보내거나 기록하지 않는다."""
+        settings = get_settings()
+        now = _remind_now(body, settings)
+        plan = plan_reminders(get_store(settings), now, settings=settings, dry_run=settings.actions_dry_run)
+        return {"as_of": now.date().isoformat(), "dry_run": settings.actions_dry_run,
+                "reminders": [_ser_reminder(r) for r in plan]}
+
+    @api.post("/meeting/reminders/send")
+    def reminders_send(body: RemindIn):
+        """나갈 재알림을 보내고 기록한다. 이미 보낸 단계는 다시 보내지 않는다 (ACTIONS_DRY_RUN이면 보내지 않고 기록만)."""
+        settings = get_settings()
+        now = _remind_now(body, settings)
+        report = send_reminders(get_store(settings), now, settings=settings, dry_run=settings.actions_dry_run)
+        return {"as_of": now.date().isoformat(), "dry_run": settings.actions_dry_run,
+                "reminders": [_ser_reminder(r) for r in report.reminders],
+                "sent": len(report.sent), "failed": len(report.failed)}
 
     @api.post("/meeting/items/complete")
     def complete(body: ItemsIn):

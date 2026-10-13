@@ -101,3 +101,34 @@ def test_list_reads_items_once_for_all_meetings(client, monkeypatch):
     assert len(expected) == 2 and all(expected.values())
     assert {m["meeting_id"]: len(m["items"]) for m in listed} == expected
     assert len(calls) == 1
+
+
+def _approved_meeting(client):
+    ex = client.post("/api/meeting/extract", data={"sample": "01_structured_minutes.txt"}).json()
+    rows = _rows(ex)
+    for r in rows:
+        r.update(owner=ex["owner_options"][1], owner_ok=True, due_date="2026-10-16", due_ok=True)
+    done = client.post("/api/meeting/approve", json={
+        "extraction_id": ex["extraction_id"], "rows": rows, "summary": [], "decisions": [], "exclude_unconfirmed": False})
+    assert done.status_code == 200, done.text
+    return len(rows)
+
+
+def test_reminders_preview_then_send_is_idempotent(client):
+    n = _approved_meeting(client)
+    none = client.post("/api/meeting/reminders/preview", json={"as_of": "2026-10-10"}).json()
+    assert none["reminders"] == []                                   # 마감 전 마지막 평일이 아니면 나갈 것이 없다
+    prev = client.post("/api/meeting/reminders/preview", json={"as_of": "2026-10-15"}).json()
+    assert len(prev["reminders"]) == n and {r["stage"] for r in prev["reminders"]} == {"D-1"}
+    assert all("마감이 내일" in r["message"] for r in prev["reminders"])
+    again = client.post("/api/meeting/reminders/preview", json={"as_of": "2026-10-15"}).json()
+    assert len(again["reminders"]) == n                              # 미리보기는 기록하지 않는다
+    sent = client.post("/api/meeting/reminders/send", json={"as_of": "2026-10-15"}).json()
+    assert sent["dry_run"] is True and sent["sent"] == n and sent["failed"] == 0
+    assert client.post("/api/meeting/reminders/send", json={"as_of": "2026-10-15"}).json()["sent"] == 0   # 중복 없음
+    day = client.post("/api/meeting/reminders/preview", json={"as_of": "2026-10-16"}).json()
+    assert {r["stage"] for r in day["reminders"]} == {"D-day"}       # 단계가 올라가면 다시 나간다
+
+
+def test_reminders_reject_bad_date(client):
+    assert client.post("/api/meeting/reminders/preview", json={"as_of": "10월 15일"}).status_code == 422
