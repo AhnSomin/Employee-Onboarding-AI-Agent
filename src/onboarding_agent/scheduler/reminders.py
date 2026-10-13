@@ -7,8 +7,8 @@ overdue (sent once). Only the highest stage reached is sent, and only when it
 is higher than the last one sent: a batch that missed D-1 still sends D-day,
 and a rerun sends nothing new.
 
-`send_reminders` posts them, as thread replies to the meeting's summary when
-there is one, and records each reminder right after sending it. DRY_RUN
+`send_reminders` posts each one as a new channel message (not a thread reply, so
+it is noticed) and records each reminder right after sending it. DRY_RUN
 records "dryrun:" message ids: a dry rerun is deduplicated the same way, and
 a real run ignores dry-run records. Nothing here imports Streamlit, Gemini or
 Calendar code, so the batch runs with requirements-batch.txt.
@@ -97,7 +97,7 @@ class Reminder:
     item: ActionItem
     stage: ReminderStage
     message: render.SlackMessage
-    thread_ts: str | None  # the meeting summary this replies to; None posts a new message
+    thread_ts: str | None  # reminders are new messages, so this stays None (kept for callers that print it)
     dry_run: bool
     ts: str | None = None
     error: str | None = None
@@ -131,9 +131,7 @@ def plan_reminders(store: StateStore, now: datetime, *, settings: Settings, dry_
         ]
         mode = dry_run or external
         for item, stage in select_reminders(group, now, settings.reminder_stages, dry_run=mode):
-            meeting = meetings.get(item.meeting_id)
-            parent = meeting.slack_ts if meeting and is_done(meeting.slack_ts, mode) else None
-            plan.append(Reminder(item, stage, render.reminder_message(item, stage), parent, mode))
+            plan.append(Reminder(item, stage, render.reminder_message(item, stage), None, mode))
     return sorted(plan, key=lambda r: _due_key(r.item))
 
 

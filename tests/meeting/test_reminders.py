@@ -126,12 +126,16 @@ def test_reminders_are_ordered_by_due_date():
     assert [i.item_id for i, _ in select_reminders(items, at(FRI))] == ["early", "late"]
 
 
-def test_reminder_message_is_a_short_polite_checkin():
+def test_reminder_message_has_headline_quoted_task_and_polite_closing():
     d1 = reminder_message(item(due=date(2026, 10, 16)), "D-1")
-    assert d1.text == "<@U00000001> 님, '할 일 a' 마감이 내일이에요 (10/16(금)). 진행은 잘 되고 계실까요? 도움이 필요하면 말씀해 주세요."
+    assert d1.text.splitlines() == [
+        "*마감이 내일이에요 · 10/16(금)*",
+        "> 할 일 a",
+        "<@U00000001> 님, 진행은 잘 되고 계실까요? 도움이 필요하면 말씀해 주세요.",
+    ]
     assert d1.blocks == []                                       # 블록 없이 일반 메시지로 보낸다
     late = reminder_message(item(owner_slack_id=None, due_time=time(15)), "overdue")
-    assert late.text.startswith("김민준 님, '할 일 a' 기한이 지났어요 (10/12(월) 15:00).")
+    assert late.text.startswith("*기한이 지났어요 · 10/12(월) 15:00*\n> 할 일 a\n김민준 님,")
     for text in (d1.text, late.text):
         assert "Agent" not in text and "⏰" not in text and "Slack 미등록" not in text
 
@@ -174,12 +178,12 @@ def send(store, now, *, dry_run=False, poster=None):
     )
 
 
-def test_send_replies_in_the_meeting_thread_once(store):
+def test_send_posts_a_new_message_once(store):
     poster = Poster()
     report = send(store, at(FRI), poster=poster)
     assert [(r.item.item_id, r.stage) for r in report.sent] == [("a", "D-1")]  # done item c is skipped
     text = reminder_message(store.get_item("a"), "D-1").text
-    assert poster.calls == [{"channel": "C0TEST", "text": text, "thread_ts": "1759900000.000001"}]
+    assert poster.calls == [{"channel": "C0TEST", "text": text, "thread_ts": None}]
     saved = store.get_item("a")
     assert saved.last_reminded_stage == "D-1"
     assert saved.reminders == [ReminderLog(stage="D-1", sent_at=at(FRI, 10), ts="1760000000.000001")]
@@ -205,8 +209,8 @@ def test_dry_run_never_posts_and_does_not_block_a_real_run(store):
     assert len(poster.calls) == 1
 
 
-def test_dry_run_summary_is_not_a_thread_for_a_real_reminder(store):
-    store.update_meeting("m1", slack_ts="dryrun:summary")
+def test_reminders_are_never_thread_replies(store):
+    store.update_meeting("m1", slack_ts="1759900000.000001")   # 요약이 실제로 올라가 있어도 스레드에 달지 않는다
     poster = Poster()
     send(store, at(FRI), poster=poster)
     assert poster.calls[0]["thread_ts"] is None
@@ -265,7 +269,7 @@ def test_cli_dry_run_with_now(cli, store, capsys):
     assert cli.main(["--now", "2026-10-09T09:00:00+09:00", "--dry-run"]) == 0
     out = capsys.readouterr().out
     assert "기준 2026-10-09 09:00(금) KST · DRY_RUN" in out
-    assert "[D-1] 할 일 a — 김민준 · 기한 10/12(월) · 스레드 답글 → ts dryrun:" in out
+    assert "[D-1] 할 일 a — 김민준 · 기한 10/12(월) · 새 메시지 → ts dryrun:" in out
     assert "결과: 보냄 1건 (D-1 1, D-day 0, 기한 지남 0), 실패 0건" in out
     assert cli.main(["--now", "2026-10-09T09:00:00+09:00", "--dry-run"]) == 0
     assert "보낼 리마인더 없음" in capsys.readouterr().out

@@ -155,14 +155,15 @@ def slack_followup(meeting: Meeting, items: list[ActionItem]) -> SlackMessage:
     return SlackMessage(text="\n".join(lines))
 
 
-_REMINDERS: dict[str, str] = {
-    "D-1": "{who}, '{task}' 마감이 내일이에요 ({due}). 진행은 잘 되고 계실까요? 도움이 필요하면 말씀해 주세요.",
-    "D-day": "{who}, '{task}' 오늘까지예요 ({due}). 마무리되면 한 줄만 남겨 주세요.",
-    "overdue": "{who}, '{task}' 기한이 지났어요 ({due}). 진행 상황 알려 주실 수 있을까요? 일정 조정이 필요하면 말씀해 주세요.",
+_REMINDERS: dict[str, tuple[str, str]] = {   # (제목, 담당자에게 건네는 말)
+    "D-1": ("마감이 내일이에요", "{who}, 진행은 잘 되고 계실까요? 도움이 필요하면 말씀해 주세요."),
+    "D-day": ("오늘까지예요", "{who}, 마무리되면 한 줄만 남겨 주세요."),
+    "overdue": ("기한이 지났어요", "{who}, 진행 상황 알려 주실 수 있을까요? 일정 조정이 필요하면 말씀해 주세요."),
 }
 
 
 def reminder_message(item: ActionItem, stage: ReminderStage) -> SlackMessage:
-    """기한 전후 재알림. 담당자를 부르는 짧은 안부 한 줄 (스레드 답글)."""
+    """기한 전후 재알림. 새 메시지로 올라가므로 제목(굵게)·할 일(인용)·담당자에게 건네는 말 순서로, 어떤 일인지 한눈에 보이게 한다."""
     due = format_due(item.due_date, item.due_time) if item.due_date else "기한 미정"
-    return SlackMessage(text=_REMINDERS[stage].format(who=_person(item), task=_escape(item.task), due=due))
+    headline, closing = _REMINDERS[stage]
+    return SlackMessage(text=f"*{headline} · {due}*\n> {_escape(item.task)}\n{closing.format(who=_person(item))}")

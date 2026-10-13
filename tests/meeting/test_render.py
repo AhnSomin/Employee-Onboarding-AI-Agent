@@ -125,7 +125,7 @@ def test_reminders_are_short_checkins_per_stage():
     d1, day, late = (reminder_message(one, s).text for s in ("D-1", "D-day", "overdue"))
     assert "마감이 내일" in d1 and "오늘까지" in day and "기한이 지났" in late
     for text in (d1, day, late):
-        assert text.startswith("<@U123> 님,") and "10/16(금) 15:00" in text
+        assert text.startswith("*") and "10/16(금) 15:00*" in text and "\n> 자료 보완하기\n<@U123> 님," in text
         assert "Agent" not in text and "⏰" not in text and "액션 현황" not in text
 
 

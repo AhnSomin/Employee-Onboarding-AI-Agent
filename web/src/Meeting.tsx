@@ -14,6 +14,19 @@ const SAMPLE_INFO: Record<string, { label: string; hint: string }> = {
   "03_long_minutes": { label: "긴 회의록 (시연용)", hint: "안건 5개·액션 아이템 9개가 들어 있는 길이가 긴 회의록. 담당자 미정 항목 1건 포함" },
 };
 
+/** Slack 서식(*굵게*, 줄머리 "> " 인용)을 화면에서 같은 모양으로 보여 준다. */
+function SlackText({ text }: { text: string }) {
+  const bold = (line: string) => line.split(/(\*[^*]+\*)/g).map((p, i) =>
+    p.startsWith("*") && p.endsWith("*") && p.length > 2 ? <strong key={i}>{p.slice(1, -1)}</strong> : p);
+  return (
+    <>
+      {text.split("\n").map((line, i) => line.startsWith("> ")
+        ? <div key={i} className="slack-quote">{bold(line.slice(2))}</div>
+        : <div key={i}>{bold(line)}</div>)}
+    </>
+  );
+}
+
 function download(name: string, text: string) {
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([text], { type: "text/calendar;charset=utf-8" }));
@@ -217,7 +230,7 @@ export default function Meeting() {
                           <span className={`state stage-${r.stage}`}><b>{STAGE_NAME[r.stage]}</b>{r.owner} · {r.due}</span>
                           {remind.mode === "sent" && <span className={`state ${r.sent ? "sent" : "failed"}`}>{r.sent ? "처리됨" : "실패"}</span>}
                         </span>
-                        <blockquote className="remind-msg">{r.message}</blockquote>
+                        <div className="remind-msg"><SlackText text={r.message} /></div>
                         {r.error && <small className="evidence error">{r.error}</small>}
                       </li>
                     ))}
