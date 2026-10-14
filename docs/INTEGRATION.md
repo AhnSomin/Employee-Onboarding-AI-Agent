@@ -22,10 +22,10 @@
 ## Slack, 캘린더 동작
 - **Slack:** `ACTIONS_DRY_RUN=false`이고 `SLACK_BOT_TOKEN`·`SLACK_CHANNEL_ID`가 있으면 실제로 보냅니다. `true`면 보낼 내용만 화면에 보여 줍니다(결과 화면에만 표시).
 - **캘린더:** Google 서비스 계정과 캘린더 ID가 설정돼 있으면 Google Calendar에 만들고, 없으면 승인한 항목을 **.ics 파일**로 내려받게 합니다. 파일을 열면 Google·Outlook·Apple 캘린더에 등록됩니다. (`meeting/ics.py`, 설정과 관계없이 항상 내려받을 수 있음)
-- 멘션은 `data/roster.yaml`의 `slack_user_id`가 있을 때만 걸립니다. 지금은 모두 비어 있어 이름만 표시합니다. Slack 멤버 ID는 워크스페이스마다 달라서 다른 곳의 ID를 넣으면 멘션이 깨집니다.
+- 멘션은 명단(웹은 `data/demo/roster.yaml`)의 `slack_user_id`가 있을 때만 걸립니다. 지금은 모두 비어 있어 이름만 표시합니다. Slack 멤버 ID는 워크스페이스마다 달라서 다른 곳의 ID를 넣으면 멘션이 깨집니다.
 
 ## 재알림 버튼 (웹)
-회의 정리 화면의 **재알림** 카드에서 마감 전날·당일·기한 지남 일정의 알림을 미리 보고(`POST /api/meeting/reminders/preview`) 보낼 수 있습니다(`/send`). 팀원의 `send_reminders`를 그대로 써서 이미 보낸 단계는 다시 보내지 않습니다. 기준 날짜를 고르면 그날(09:00)에 나갈 알림을 볼 수 있어 시연에 쓰기 좋습니다. `ACTIONS_DRY_RUN=true`이거나 Slack 값이 없으면 보내지 않고 기록만 합니다. 매일 자동 발송은 아래 Sheets + GitHub Actions 연결이 필요하고, 웹 버튼은 설정 없이 동작합니다(서버가 재시작되면 승인 내역이 사라지는 SQLite 기준).
+회의 정리 화면의 **재알림** 카드에서 마감 전날·당일·기한 지남 일정의 알림을 미리 보고(`POST /api/meeting/reminders/preview`) 보낼 수 있습니다(`/send`). 팀원의 `send_reminders`를 그대로 써서 이미 보낸 단계는 다시 보내지 않습니다. 기준 날짜를 고르면 그날(09:00)에 나갈 알림을 볼 수 있어 시연에 쓰기 좋습니다. `ACTIONS_DRY_RUN=true`이면 보내지 않고 기록만 합니다. `false`인데 Slack 값이 없으면 '실패'로 표시되고 기록하지 않으므로, 다시 눌러도 같은 실패가 반복됩니다. 평일 자동 발송은 아래 Sheets + GitHub Actions 연결이 필요하고, 웹 버튼은 Sheets 없이도 동작합니다(서버가 재시작되면 승인 내역이 사라지는 SQLite 기준). Slack 값이 없으면 `ACTIONS_DRY_RUN=true`로 둡니다.
 
 ## 재알림 연결 (웹 승인 → Google Sheets → GitHub Actions)
 웹은 기본으로 회의 정리를 컨테이너 안 SQLite(`data/meetings.db`, 재시작 때 지워짐)에 저장하고, 재알림 배치(`.github/workflows/reminders.yml`)는 Google Sheets만 읽습니다. 웹에서 승인한 항목에도 재알림이 가게 하려면 웹도 같은 시트를 쓰게 설정합니다. 웹은 엔진의 `SheetsStore`를 그대로 씁니다.
@@ -34,9 +34,9 @@
    - 키는 "API 키" 문자열이 아니라 **서비스 계정 키(JSON)**여야 시트에 쓸 수 있습니다.
    - 예전에 쓰던 시트를 그대로 쓰면 남아 있는 승인 항목에도 재알림이 갑니다. 그 시트를 쓰려면 먼저 `scripts/reset_demo.py`로 비웁니다. 기본 실행은 지울 목록만 보여 주고 `--yes`일 때만 지웁니다. 시트 행과 함께 이 앱이 올린 Slack 메시지와 캘린더 일정도 지우니 목록을 먼저 확인합니다.
 2. Render 환경변수에 `STATE_BACKEND=sheets`, `GSHEETS_SPREADSHEET_ID`(시트 URL의 `/d/`와 `/edit` 사이 값), `GOOGLE_SERVICE_ACCOUNT_JSON`을 넣습니다.
-   - `GCAL_CALENDAR_ID`는 넣지 않습니다. 넣으면 일정이 .ics 다운로드 대신 Google Calendar 등록으로 바뀌는데, 이건 재알림과 별개로 정할 문제입니다.
+   - `GCAL_CALENDAR_ID`는 넣지 않습니다. 넣으면 일정이 Google Calendar에도 등록되는데(.ics 다운로드는 그대로), 이건 재알림과 별개로 정할 문제입니다.
    - `STATE_BACKEND`를 비우면 지금처럼 sqlite입니다. sheets인데 시트 값이 빠졌거나 공유가 안 돼 있으면 승인이 503(저장소를 열 수 없음)으로 막힙니다.
-3. GitHub 저장소 Secrets 4개를 넣습니다: `GOOGLE_SERVICE_ACCOUNT_JSON`, `GSHEETS_SPREADSHEET_ID`, `SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID`. Slack 값은 Render와 같아야 합니다. 재알림은 웹이 올린 요약 메시지에 스레드 답글로 달리기 때문입니다.
+3. GitHub 저장소 Secrets 4개를 넣습니다: `GOOGLE_SERVICE_ACCOUNT_JSON`, `GSHEETS_SPREADSHEET_ID`, `SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID`. Slack 값은 Render와 같게 넣습니다. 재알림은 회의 요약과 같은 채널에 할 일마다 새 메시지로 올라갑니다.
 4. Actions → reminders → Run workflow를 `dry_run`으로 돌려 보낼 내용을 확인합니다. 시연 때는 `now` 입력(예: `2026-10-15T09:00:00+09:00`)으로 기준 시각을 정해 돌립니다.
 
 주의

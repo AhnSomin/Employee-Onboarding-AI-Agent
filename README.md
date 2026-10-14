@@ -15,15 +15,16 @@
 
 ### 1. 규정 기반 질의응답 (RAG + LLM)
 - 신입이 채팅으로 질문하면 규정·법령에서 근거 조문을 찾아 **조문 번호와 함께 쉬운 말로 풀어서** 답합니다.
-- 근거를 찾지 못하거나 확신이 낮으면 추측하지 않고 "담당자에게 물어볼게요"로 에스컬레이션합니다.
-- 지식 소스: 법령 PDF(로컬 파일 — 국가공무원 복무규정·복무규칙, 공무원 행동강령, 복무규정 별표 2)와 이미지 표 전사본 2개(검수 완료). 법제처 Open API는 미연동(향후 과제)입니다.
+- 근거를 찾지 못하거나 결과가 질문과 맞지 않으면 추측하지 않고 담당자 확인이 필요하다고 안내합니다(실제 전달 연동은 후속 과제).
+- 지식 소스(웹 버전): 법제처 Open API로 받은 법령 21개·행정규칙 1개와 인사혁신처 예규 PDF 2종을 미리 색인했습니다(24개 문서, 2026-10-09 기준). 질문할 때는 이 색인만 검색합니다.
+- 검증형 엔진(`src/onboarding_agent/rag`, Streamlit 화면, 웹 연결 전): 법령 PDF(국가공무원 복무규정·복무규칙, 공무원 행동강령, 복무규정 별표 2)와 이미지 표 전사본 2개(검수 완료)를 쓰고, 답변의 근거·수치·조문을 원문과 코드로 대조합니다.
 - 구축·실행 방법, 검증 범위와 한계: [docs/regulations/RAG.md](docs/regulations/RAG.md)
 
 ### 2. 회의록 → 액션 자동화
 - 회의 텍스트 파일을 올리면 요약하고 **결정사항·담당자·기한**을 추출합니다.
-- 사용자가 내용을 확인·수정해 승인하면 Google Calendar에 일정을 등록하고 Slack으로 담당자에게 알립니다.
+- 사용자가 내용을 확인·수정해 승인하면 캘린더 파일(.ics)을 만들고, 실제 전송 모드(`ACTIONS_DRY_RUN=false`)에서는 Slack 채널에 일정을 공유합니다. 서비스 계정과 캘린더 ID도 설정하면 Google Calendar에도 직접 등록합니다.
 - 담당자나 기한이 회의록에 없으면 추측하지 않고 "미확정"으로 표시해 사용자가 채웁니다.
-- 기한 전 미완료 항목은 배치 스케줄러가 재알림합니다.
+- 마감 전날·당일·기한 지남 항목은 웹의 재알림 버튼으로 다시 알립니다. 평일 09:00 자동 배치(GitHub Actions)는 Google Sheets와 Secrets를 설정하면 동작합니다.
 - 설치·설정·실행 방법과 한계: [docs/meeting/README.md](docs/meeting/README.md)
 
 ## 아키텍처
@@ -102,7 +103,7 @@ cd web && npm install && npm run build && cd ..
 
 ## 배포 (Render)
 
-`render.yaml`과 `Dockerfile`이 포함돼 있습니다. Render에서 **New → Blueprint**로 이 저장소를 연결하고 환경변수 `OPENAI_API_KEY`, `ACCESS_CODE`(접근 코드), 선택으로 `SLACK_WEBHOOK_URL`을 입력합니다. 공개 URL이므로 `ACCESS_CODE`는 반드시 설정하세요. 무료 플랜은 15분간 요청이 없으면 잠들어 첫 접속이 느립니다. 재알림까지 쓰려면 `STATE_BACKEND=sheets`와 Google 값(`GSHEETS_SPREADSHEET_ID`, `GOOGLE_SERVICE_ACCOUNT_JSON`)을 넣고 GitHub Secrets를 맞춥니다([docs/INTEGRATION.md](docs/INTEGRATION.md) "재알림 연결").
+`render.yaml`과 `Dockerfile`이 포함돼 있습니다. Render에서 **New → Blueprint**로 이 저장소를 연결하고 환경변수 `OPENAI_API_KEY`, `ACCESS_CODE`(접근 코드)를 입력하고, 회의 정리를 Slack으로 보내려면 `SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID`도 입력합니다. Slack 값을 넣지 않으면 `ACTIONS_DRY_RUN`을 `true`로 바꿉니다(그대로 두면 Slack 단계가 '실패'로 표시됩니다). 공개 URL이므로 `ACCESS_CODE`는 반드시 설정하세요. 무료 플랜은 15분간 요청이 없으면 잠들어 첫 접속이 느립니다. 재알림까지 쓰려면 `STATE_BACKEND=sheets`와 Google 값(`GSHEETS_SPREADSHEET_ID`, `GOOGLE_SERVICE_ACCOUNT_JSON`)을 넣고 GitHub Secrets를 맞춥니다([docs/INTEGRATION.md](docs/INTEGRATION.md) "재알림 연결").
 
 ## 팀
 
