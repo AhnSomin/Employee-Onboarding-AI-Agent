@@ -215,6 +215,18 @@
   .s-eval2 .mets { border-top: 0; } .s-eval1 .notes2 { margin-top: 0; }
   .s-risk .duo ul { gap: 44px; } .s-risk .duo li { font-size: 28px; }
 
+  /* 4 기능: 같은 틀의 세 칸, 간격 통일 */
+  .s-feat .feats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 56px; height: 100%; }
+  .s-feat .ft { border-top: 3px solid var(--gr); padding-top: 22px; }
+  .s-feat .ft.core { border-top-color: var(--or); }
+  .s-feat .tg { font-size: 16px; font-weight: 800; color: var(--gr); } .s-feat .ft.core .tg { color: var(--or-dk); }
+  .s-feat h3 { margin: 10px 0 12px; font-size: 36px; font-weight: 700; line-height: 1.3; }
+  .s-feat .ds { font-size: 21px; line-height: 1.5; color: var(--sub); min-height: 66px; padding-bottom: 26px; border-bottom: 1px solid var(--line); box-sizing: content-box; }
+  .s-feat ul { margin: 0; padding: 30px 0 0; list-style: none; display: grid; gap: 28px; }
+  .s-feat li { font-size: 27px; line-height: 1.5; padding-left: 28px; position: relative; }
+  .s-feat li::before { content: ""; position: absolute; left: 0; top: 17px; width: 10px; height: 10px; background: var(--or); }
+  .s-feat .ft:not(.core) li::before { background: var(--gr); }
+
   /* 크롬 */
   #bar { position: absolute; left: 0; bottom: 0; height: 4px; background: var(--or); width: 0; transition: width .35s; z-index: 20; }
   #pg { position: absolute; right: 80px; bottom: 34px; font-size: 14px; color: var(--faint); z-index: 20; cursor: pointer; } #pg:hover { color: var(--or-dk); }
@@ -262,20 +274,18 @@
 </section>
 
 <!-- 4 -->
-<section class="slide s-sol" data-title="ORIENT의 기능" data-notes="ORIENT의 핵심 기능은 규정 질의응답입니다. 근거 조문을 찾아 쉬운 말로 풀어 주기 때문에 신입은 담당자를 거치지 않고 바로 확인할 수 있고, 담당자는 반복 응대를 줄이는 것이 목표입니다. 근거를 못 찾으면 지어내지 않고 사람에게 넘깁니다. 여기에 신입에게 도움이 될 추가 기능 두 가지를 넣었습니다. 하나는 회의 후속 처리로, 회의록을 올리면 할 일과 담당자, 기한을 뽑고, 사람이 승인하면 슬랙 공유와 캘린더 파일, 재알림으로 이어집니다. 다른 하나는 온보딩 체크리스트로, 신입이 해야 할 일을 기한과 함께 보고 체크하며, 직접 할 일을 추가하거나 지울 수 있습니다.">
+<section class="slide s-feat" data-title="ORIENT의 기능" data-notes="ORIENT의 핵심 기능은 규정 질의응답입니다. 근거 조문을 찾아 쉬운 말로 풀어 주기 때문에 신입은 담당자를 거치지 않고 바로 확인할 수 있고, 담당자는 반복 응대를 줄이는 것이 목표입니다. 근거를 못 찾으면 지어내지 않고 사람에게 넘깁니다. 여기에 신입에게 도움이 될 추가 기능 두 가지를 넣었습니다. 하나는 회의 후속 처리로, 회의록을 올리면 할 일과 담당자, 기한을 뽑고, 사람이 승인하면 슬랙 공유와 캘린더 파일, 재알림으로 이어집니다. 다른 하나는 온보딩 체크리스트로, 신입이 해야 할 일을 기한과 함께 보고 체크하며, 직접 할 일을 추가하거나 지울 수 있습니다.">
   <div class="hd"><h2>ORIENT의 기능</h2></div>
-  <div class="body">
-    <div class="cols">
-      <div class="col f" data-g="1"><div class="tg core">핵심 기능</div><h3>RAG 기반 규정 질의응답</h3><div class="ds">신입은 기다리지 않고 확인, 담당자의 반복 응대 감소(목표)</div>
-        <ul><li>근거 조문을 찾아 조문 번호와 함께 쉬운 말로 답변</li><li>근거를 못 찾으면 추측하지 않고 담당자 확인 안내</li><li>복무, 보수, 수당, 연금, 연말정산 규정까지 색인</li></ul></div>
-      <div class="col ex f" data-g="2"><div class="tg">추가 기능</div>
-        <div class="sb2"><h3>회의 후속 처리</h3><ul><li>회의록에서 요약, 결정사항, 담당자, 기한 추출</li><li>승인하면 Slack 공유와 캘린더 파일, 재알림</li></ul></div>
-        <div class="sb2"><h3>온보딩 체크리스트</h3><ul><li>신입이 해야 할 일을 기한과 함께 확인하고 체크</li><li>직접 할 일을 추가하거나 삭제</li></ul></div></div>
-    </div>
-  </div>
+  <div class="body"><div class="feats">
+    <div class="ft core f" data-g="1"><div class="tg">핵심 기능</div><h3>RAG 기반 규정 질의응답</h3><div class="ds">신입은 기다리지 않고 확인, 담당자의 반복 응대 감소(목표)</div>
+      <ul><li>근거 조문을 찾아 조문 번호와 함께 쉬운 말로 답변</li><li>근거를 못 찾으면 추측하지 않고 담당자 확인 안내</li><li>복무, 보수, 수당, 연금, 연말정산 규정까지 색인</li></ul></div>
+    <div class="ft f" data-g="2"><div class="tg">추가 기능</div><h3>회의 후속 처리</h3><div class="ds">정리, 등록, 공유, 재알림을 한 흐름으로 처리</div>
+      <ul><li>회의록에서 요약, 결정사항, 담당자, 기한 추출</li><li>승인하면 Slack 공유와 캘린더 파일, 재알림</li></ul></div>
+    <div class="ft f" data-g="3"><div class="tg">추가 기능</div><h3>온보딩 체크리스트</h3><div class="ds">신입이 해야 할 일을 한곳에서 관리</div>
+      <ul><li>해야 할 일을 기한과 함께 확인하고 체크</li><li>직접 할 일을 추가하거나 삭제</li></ul></div>
+  </div></div>
   <div class="foot"><span>ORIENT</span><span></span></div>
 </section>
-
 <!-- 5 -->
 <section class="slide s-wf" data-wf="0" data-title="업무 흐름 비교 (기능 1)" data-notes="먼저 기능 1인 규정 질문의 업무 흐름입니다. 지금은 인사담당자에게 묻고, 담당자가 규정을 찾아 해석해 답을 전하는 동안 신입이 기다립니다. 사람이 하는 단계가 세 번입니다. ORIENT에서는 채팅으로 질문하면 AI가 조문을 찾아 근거와 함께 쉬운 말로 바로 답하고, 근거를 못 찾을 때만 담당자 확인이 필요하다고 안내합니다. 사람이 하는 일은 질문 한 번입니다. 시간은 측정하지 않았고, 단계 수로 비교했습니다. (R: 다시 재생 / 단계 클릭: 설명)">
   <div class="hd"><h2>업무 흐름 비교</h2><div class="sec">기능 1 · RAG 기반 규정 질의응답</div>
