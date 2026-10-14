@@ -185,12 +185,20 @@
   /* 12 한계·발전 */
   .s-risk .duo { display: grid; grid-template-columns: 1fr 1.25fr; gap: 64px; height: 100%; }
   .s-risk .duo .col { border-top: 3px solid var(--ink); padding-top: 24px; } .s-risk .duo .col.nx { border-top-color: var(--or); }
-  .s-risk .duo h3 { margin: 0 0 40px; font-size: 38px; font-weight: 700; }
-  .s-risk .duo ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 46px; } .s-risk .duo li { font-size: 28px; line-height: 1.5; padding-left: 28px; position: relative; }
+  .s-risk .duo h3 { margin: 0 0 34px; font-size: 38px; font-weight: 700; }
+  .s-risk .duo ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 30px; } .s-risk .duo li { font-size: 26px; line-height: 1.5; padding-left: 28px; position: relative; }
   .s-risk .duo li::before { content: ""; position: absolute; left: 0; top: 18px; width: 10px; height: 10px; background: var(--gr); } .s-risk .duo .nx li::before { background: var(--or); }
 
   .hd .sec { position: absolute; right: 0; top: 30px; font-size: 20px; font-weight: 700; color: var(--or-dk); }
   .s-wf .hd .sec { right: 160px; top: 30px; }
+
+  .met .big small.pre { font-size: 40px; font-weight: 700; color: #d6a77c; letter-spacing: 0; margin: 0 10px 0 0; }
+  .s-eval1 .mets { height: 400px; } .s-eval1 .met { padding-top: 60px; }
+  .s-eval2 .mets { height: 520px; } .s-eval2 .met { padding-top: 110px; }
+  .s-risk .duo li em { display: block; font-style: normal; font-size: 21px; color: var(--sub); margin-top: 6px; line-height: 1.5; }
+  .s-end .bar { position: absolute; left: 100px; top: 372px; width: 8px; height: 190px; background: var(--or); }
+  .s-end h1 { position: absolute; left: 140px; top: 360px; margin: 0; font-size: 128px; font-weight: 800; line-height: 1.1; letter-spacing: -2px; }
+  .s-end .u { position: absolute; left: 146px; top: 534px; font-size: 22px; color: var(--sub); }
 
   /* 크롬 */
   #bar { position: absolute; left: 0; bottom: 0; height: 4px; background: var(--or); width: 0; transition: width .35s; z-index: 20; }
@@ -273,7 +281,7 @@
     <div class="left"><div class="steps">
       <div class="st f" data-g="1"><div class="n">1</div><div><h4>조건·시점 정리<span class="eng">웹 연결 전</span></h4><p>고용 형태, 재직기간, 시점을 최근 대화에서 정리</p></div></div>
       <div class="st f" data-g="2"><div class="n">2</div><div><h4>하이브리드 검색<span class="eng web">웹 시연 적용</span></h4><p>임베딩과 키워드 검색 병행, 질의 확장 후 LLM 재순위</p></div></div>
-      <div class="st f" data-g="3"><div class="n">3</div><div><h4>1차 문지기<span class="eng">웹 연결 전</span></h4><p>관련도가 기준 미만이면 모델을 호출하지 않고 보류</p></div></div>
+      <div class="st f" data-g="3"><div class="n">3</div><div><h4>관련도 확인<span class="eng">웹 연결 전</span></h4><p>검색 결과의 관련도가 기준에 못 미치면 모델을 호출하지 않고 보류</p></div></div>
       <div class="st f" data-g="4"><div class="n">4</div><div><h4>근거 ID로만 생성<span class="eng">웹 연결 전</span></h4><p>모델은 근거를 ID로만 선택, 조문과 원문은 프로그램이 첨부</p></div></div>
       <div class="st f" data-g="5"><div class="n">5</div><div><h4>결정적 검증<span class="eng">웹 연결 전</span></h4><p>실패 시 1회 재생성, 다시 실패하면 원문 카드만 보여 주고 보류</p></div></div>
     </div></div>
@@ -305,18 +313,17 @@
 </section>
 
 <!-- 8 -->
-<section class="slide s-eval1" data-title="규정 질의응답 평가" data-notes="숫자는 어디서 쟀는지 나눠서 말씀드리겠습니다. 왼쪽 두 개는 오늘 시연하는 웹 버전의 검색 정확도입니다. 질문 68개 기준으로 재순위를 포함해 상위 3개 안에 정답 근거가 들어온 비율이 85퍼센트, 상위 5개는 90퍼센트입니다. 질의 확장과 재순위를 LLM이 하기 때문에 실행마다 조금 달라질 수 있습니다. 오른쪽 두 개는 웹 연결 전 RAG 버전의 답변 평가입니다. 사람이 검수한 최종 세트 10문항 중 9문항에서 답변 상태가 기대와 일치했고, 답한 7문항은 근거도 모두 맞았습니다. 기준선 근처 점수가 나온 개발용 질문 4개를 실제로 생성해 봤더니 네 개 모두 보류했습니다. 웹 버전의 답변 품질은 따로 재지 않았고, 표본이 작다는 한계도 분명히 말씀드립니다.">
+<section class="slide s-eval1" data-title="규정 질의응답 평가" data-notes="숫자는 어디서 쟀는지 나눠서 말씀드리겠습니다. 왼쪽 두 개는 오늘 시연하는 웹 버전의 검색 정확도입니다. 질문 68개 기준으로 재순위를 포함해 상위 3개 안에 정답 근거가 들어온 비율이 85퍼센트, 상위 5개는 90퍼센트입니다. 질의 확장과 재순위를 LLM이 하기 때문에 실행마다 조금 달라질 수 있습니다. 다시 돌려 보면 84퍼센트와 88퍼센트가 나오기도 해서, 한두 문항 정도는 오르내린다고 보시면 됩니다. 오른쪽 두 개는 웹 연결 전 RAG 버전의 답변 평가입니다. 사람이 검수한 최종 세트 10문항 중 9문항에서 답변 상태가 기대와 일치했고, 답한 7문항은 근거도 모두 맞았습니다. 기준선 근처 점수가 나온 개발용 질문 4개를 실제로 생성해 봤더니 네 개 모두 보류했습니다. 웹 버전의 답변 품질은 따로 재지 않았고, 표본이 작다는 한계도 분명히 말씀드립니다.">
   <div class="hd"><h2>규정 질의응답 평가</h2><div class="sec">기능 1 · RAG 기반 규정 질의응답</div></div>
   <div class="body">
     <div class="mets">
-      <div class="met f" data-g="1"><div class="big"><span class="cnt" data-to="85">0</span><small>%</small></div><h4>검색 hit@3</h4><p>웹 버전, 질문 68개, 재순위 포함</p></div>
-      <div class="met f" data-g="2"><div class="big"><span class="cnt" data-to="90">0</span><small>%</small></div><h4>검색 hit@5</h4><p>웹 버전, 같은 질문 68개 기준</p></div>
+      <div class="met f" data-g="1"><div class="big"><small class="pre">약</small><span class="cnt" data-to="85">0</span><small>%</small></div><h4>검색 hit@3</h4><p>웹 버전, 질문 68개, 재순위 포함</p></div>
+      <div class="met f" data-g="2"><div class="big"><small class="pre">약</small><span class="cnt" data-to="90">0</span><small>%</small></div><h4>검색 hit@5</h4><p>웹 버전, 같은 질문 68개 기준</p></div>
       <div class="met f" data-g="3"><div class="big"><span class="cnt" data-to="9">0</span><small>/10</small></div><h4>최종 세트 상태 일치</h4><p>웹 연결 전 RAG 버전, 답한 문항의 근거 일치 7/7</p></div>
       <div class="met f" data-g="4"><div class="big"><span class="cnt" data-to="4">0</span><small>/4</small></div><h4>경계 질문 보류</h4><p>웹 연결 전 RAG 버전, 기준선 근처 4문항</p></div>
     </div>
     <div class="notes2 f" data-g="5">
       <div class="r"><b>웹 색인 범위</b><span>24개 문서(10/9 기준): 복무규정·행동강령, 보수·수당·여비·후생복지, 국가공무원법·임용령, 공무원연금법·재해보상법·청탁금지법, 소득세법(연말정산), 인사혁신처 예규 2종 등</span></div>
-      <div class="r"><b>비고</b><span>최종 세트가 10문항으로 표본이 작음. 검색 수치 재현: python -m tests.rag_eval (질의 확장·재순위가 LLM이라 실행마다 조금 다를 수 있음)</span></div>
     </div>
   </div>
   <div class="foot"><span>ORIENT</span><span></span></div>
@@ -353,14 +360,10 @@
   <div class="hd"><h2>회의록 추출 평가: 거짓 확정 여부</h2><div class="sec">기능 2 · 회의 후속 처리</div></div>
   <div class="body">
     <div class="mets">
-      <div class="met hero f" data-g="1"><div class="big"><span class="cnt" data-to="0">0</span><small>/18</small></div><h4>거짓 확정</h4><p>처음 보는 공개 회의록 시험 세트에서 '미확정'이어야 할 담당자·기한을 잘못 확정한 횟수 (Gemini로 측정)</p></div>
+      <div class="met hero f" data-g="1"><div class="big"><span class="cnt" data-to="0">0</span><small>/18</small></div><h4>거짓 확정</h4><p>처음 보는 공개 회의록 시험 세트에서 '미확정'이어야 할 담당자·기한을 잘못 확정한 횟수</p></div>
       <div class="met f" data-g="2"><div class="big"><span class="cnt" data-to="6">0</span><small>/6</small></div><h4>필수 할 일 검출</h4><p>꼭 찾아야 할 할 일을 모두 찾음</p></div>
       <div class="met f" data-g="3"><div class="big"><span class="cnt" data-to="6">0</span><small>/6</small></div><h4>담당자·기한 미확정 유지</h4><p>회의록에 없는 담당자·기한을 비워 둠 (정답이 미확정)</p></div>
       <div class="met f" data-g="4"><div class="big"><span class="cnt" data-to="9">0</span><small>/10</small></div><h4>정밀도</h4><p>제안한 항목 중 맞는 비율</p></div>
-    </div>
-    <div class="notes2 f" data-g="5">
-      <div class="r"><b>규칙의 효과</b><span>담당자 규칙을 끄면 같은 모델 출력에서 거짓 확정 1/18 (개발 세트 7/66). 규칙을 켜면 모두 '미확정'으로 돌려짐</span></div>
-      <div class="r"><b>비고</b><span>규칙은 시험 전 커밋으로 동결. 시험 세트의 필수 항목이 6개로 표본이 작음. 웹 시연(OpenAI)은 가상 샘플로만 재확인</span></div>
     </div>
   </div>
   <div class="foot"><span>ORIENT</span><span></span></div>
@@ -389,22 +392,21 @@
 </section>
 
 <!-- 13 -->
-<section class="slide s-risk" data-title="한계와 앞으로의 발전" data-notes="한계부터 솔직하게 말씀드리겠습니다. 평가 표본이 작습니다. 의미 해석은 자동으로 검증하지 못합니다. 오늘 보시는 웹 답변은 검색된 조문을 근거로 쓰도록 모델에 지시하는 단계까지이고, 원문과 코드로 대조하는 검증은 아직 연결 전입니다. 실제 그룹웨어 연동은 이번 범위에 넣지 않았습니다. 앞으로는 먼저 RAG 검증 단계를 웹에 연결해 수치와 조문을 원문과 대조하겠습니다. 근거를 못 찾은 질문은 지금은 확인 안내까지만 하는데, 인사담당자에게 실제로 전달하는 연동을 붙이겠습니다. 캘린더는 지금 파일로 제공하지만 Google Calendar에 직접 등록하도록 하고, 재알림도 평일 아침 자동으로 보내는 배치를 연결하겠습니다. 평가 표본을 늘리고 웹 버전의 답변 품질도 따로 재겠습니다. 참고로 입력한 질문과 회의록은 OpenAI로 전송되기 때문에 데모에는 공개·가상 데이터만 썼습니다.">
-  <div class="hd"><h2>한계와 앞으로의 발전</h2></div>
+<section class="slide s-risk" data-title="적용 범위와 앞으로의 발전" data-notes="이번 프로젝트는 실제 기업의 온보딩을 대상으로 하고 싶었지만 사내 규정은 외부에서 구할 수 없어서, 공개된 공무원 법령과 예규를 대상으로 구현했습니다. 규정을 색인해 근거와 함께 답하는 구조는 같기 때문에, 사기업의 사내 규정 문서를 색인하면 같은 방식으로 쓸 수 있다고 봅니다. 다만 사내 규정은 법령과 문서 형식이 달라서 색인 단계를 그에 맞게 조정해야 합니다. 메신저도 지금은 슬랙으로 연결했지만 사내 메신저와 연동할 수 있습니다. 그 밖에 캘린더는 지금 파일로 제공하는데 Google Calendar에 직접 등록하도록 하고, 평일 아침 자동으로 재알림을 보내는 배치도 연결하겠습니다. RAG 검증 단계를 웹에 연결해 수치와 조문을 원문과 대조하고, 근거를 못 찾은 질문은 인사담당자에게 실제로 전달하는 연동을 붙이겠습니다. 평가 세트도 늘리고 웹 버전의 답변 품질을 따로 재겠습니다. 참고로 평가 표본은 작은 편이고, 입력한 질문과 회의록은 OpenAI로 전송되기 때문에 데모에는 공개·가상 데이터만 썼습니다. 이어서 실제 화면으로 시연하겠습니다. 순서는 이렇습니다. 하나, 연가 일수 질문으로 근거 조문과 쉬운 설명을 확인합니다. 둘, 헬스장 이용 요금처럼 규정에서 근거를 찾지 못하는 질문은 추측하지 않고 담당자 확인을 안내하는 것을 보여 드립니다. 셋, 구내식당 메뉴처럼 규정과 관련 없는 질문은 범위 밖이라고 안내하는 것을 보여 드립니다. 넷, 온보딩 체크리스트에서 할 일을 체크하고 직접 추가합니다. 다섯, 긴 회의록을 올려 담당자나 기한이 모호한 항목이 미확정으로 표시되는 것을 보고, 빈칸을 채워 승인하면 슬랙에 일정이 공유되고 캘린더 파일을 받을 수 있는 것을 보여 드립니다. 여섯, 재알림을 미리 보고 보내 본 뒤 한 번 더 실행해도 같은 알림이 중복되지 않는 것을 확인합니다. 연동이 안 되면 미리보기만으로 같은 흐름을 보여 드립니다.">
+  <div class="hd"><h2>적용 범위와 앞으로의 발전</h2></div>
   <div class="body">
     <div class="duo">
-      <div class="col f" data-g="1"><h3>한계</h3><ul>
-        <li>평가 표본이 작음</li>
-        <li>의미 해석은 자동 검증하지 않음</li>
-        <li>웹 답변의 원문 대조 검증은 연결 전</li>
-        <li>실제 그룹웨어 연동은 범위 밖</li>
+      <div class="col f" data-g="1"><h3>현재 적용 범위</h3><ul>
+        <li>공개된 공무원 법령·예규를 대상으로 구현<em>기업 온보딩이 목표였지만 사내 규정은 구할 수 없어 공개 규정으로 구성</em></li>
+        <li>메신저는 Slack, 캘린더는 .ics 파일로 구현</li>
       </ul></div>
       <div class="col nx f" data-g="2"><h3>앞으로의 발전</h3><ul>
-        <li>RAG 검증 단계를 웹에 연결해 수치·조문을 원문과 대조</li>
+        <li>기업의 사내 규정을 색인해 사기업 온보딩으로 확장</li>
+        <li>Slack 대신 사내 메신저와 연동</li>
+        <li>Google Calendar 직접 등록, 평일 아침 재알림 자동 배치</li>
+        <li>RAG 검증 단계(수치·조문 대조)를 웹에 연결</li>
         <li>근거를 못 찾은 질문을 인사담당자에게 실제로 전달</li>
-        <li>Google Calendar에 직접 등록</li>
-        <li>평일 아침 재알림 자동 배치 연결</li>
-        <li>평가 표본 확대, 웹 버전 답변 품질 평가</li>
+        <li>평가 세트 확대와 웹 버전 답변 품질 평가</li>
       </ul></div>
     </div>
   </div>
@@ -412,20 +414,10 @@
 </section>
 
 <!-- 14 -->
-<section class="slide s-live" data-title="시연 순서" data-notes="이제 실제 화면으로 보여 드리겠습니다. 먼저 기능 1부터 보겠습니다. 연가 일수를 물어 근거 조문과 쉬운 설명을 확인하고, 규정 범위 안이지만 근거를 찾지 못하는 질문은 추측하지 않고 담당자 확인을 안내하는 것을, 규정과 관련 없는 질문은 범위 밖이라고 안내하는 것을 차례로 보여 드립니다. 이어 추가 기능으로 온보딩 체크리스트에서 할 일을 체크하고 직접 추가해 보겠습니다. 그다음 기능 2로 긴 회의록을 올려 담당자나 기한이 모호한 항목이 미확정으로 표시되는 것을 보고, 빈칸을 채워 승인하면 슬랙에 일정이 공유되고 캘린더 파일을 받을 수 있는 것을 보여 드립니다. 마지막으로 재알림을 미리 보고 보내 본 뒤, 한 번 더 실행해도 같은 알림이 중복되지 않는 것을 확인하겠습니다. 연동이 안 되면 미리보기만으로 같은 흐름을 보여 드립니다.">
-  <div class="hd"><h2>시연 순서</h2></div>
-  <div class="body">
-    <div class="list">
-      <div class="it f" data-g="1"><div class="n">1</div><span>연가 일수 질문<em>근거 조문과 쉬운 설명 확인</em></span></div>
-      <div class="it f" data-g="2"><div class="n">2</div><span>근거를 찾지 못하는 질문<em>헬스장 이용 요금처럼 규정에 없는 내용은 담당자 확인 안내</em></span></div>
-      <div class="it f" data-g="3"><div class="n">3</div><span>관련 없는 질문<em>구내식당 메뉴는 범위 밖이라고 안내</em></span></div>
-      <div class="it f" data-g="4"><div class="n">4</div><span>온보딩 체크리스트<em>할 일 체크, 직접 추가</em></span></div>
-      <div class="it f" data-g="5"><div class="n">5</div><span>긴 회의록 업로드<em>미확정 표시를 채워 승인하면 Slack 공유, 캘린더 파일 생성</em></span></div>
-      <div class="it f" data-g="6"><div class="n">6</div><span>재알림을 두 번 실행<em>같은 알림은 중복 발송되지 않음</em></span></div>
-    </div>
-    <div class="thx f" data-g="7"><h2>감사합니다</h2><p>질문을 받겠습니다.</p><div class="u">github.com/AhnSomin/Employee-Onboarding-AI-Agent</div></div>
-  </div>
-  <div class="foot"><span>ORIENT</span><span></span></div>
+<section class="slide s-end" data-title="감사합니다" data-notes="감사합니다.">
+  <div class="bar"></div>
+  <h1>감사합니다</h1>
+  <div class="u">github.com/AhnSomin/Employee-Onboarding-AI-Agent</div>
 </section>
 
 <div id="bar"></div><div id="pg"></div><div id="menu"></div>
