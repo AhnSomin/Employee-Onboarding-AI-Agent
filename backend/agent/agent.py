@@ -141,7 +141,7 @@ class OnboardingAgent:
             if arts:
                 return "📚 관련 규정이에요:\n\n" + arts[0]
         self.tools["escalate_to_hr"](msg)
-        return "정확한 답을 드리기 어려워요. 인사담당관실 담당자에게 물어볼게요 🙏"
+        return "정확한 답을 드리기 어려워요. 인사담당관실 담당자에게 확인해 보시는 게 좋겠어요 🙏"
 
     def _leave_flow(self, msg: str) -> str:
         if "date" not in self.slots and (d := leave.parse_korean_date(msg)):

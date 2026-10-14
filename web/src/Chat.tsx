@@ -98,7 +98,7 @@ export default function Chat({ onActivity }: { onActivity: () => void }) {
         {msgs.map((m, i) => (
           <div key={i} className={`bubble ${m.role}`}>
             {m.role === "assistant" ? <Answer text={m.text} /> : <div className="text"><Rich text={m.text} /></div>}
-            {m.escalated && <div className="note"><Icon name="info" size={15} />인사담당관실 담당자에게 전달했어요</div>}
+            {m.escalated && <div className="note"><Icon name="info" size={15} />인사담당관실 확인이 필요한 질문이에요</div>}
           </div>
         ))}
         {busy && <div className="bubble assistant"><div className="typing"><i /><i /><i /></div></div>}

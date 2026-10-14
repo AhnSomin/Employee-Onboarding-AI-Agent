@@ -60,9 +60,9 @@ def build_tools(emp_id: str, ctx: dict, only: set[str] | None = None) -> dict:
         return {"articles": arts, "note": "각 항목 맨 앞 [ ] 안이 법령명·조·항이다. 질문과 무관한 조문뿐이면 답하지 말고 escalate_to_hr를 호출할 것."}
 
     def escalate_to_hr(question: str) -> dict:
-        """답변 근거가 부족할 때 인사담당관실 담당자에게 질문을 전달한다."""
+        """답변 근거가 부족할 때 질문을 인사담당관실 확인 대상으로 기록한다(실제 전달 연동은 후속 과제)."""
         ctx.setdefault("escalations", []).append(question)
-        return {"ok": True, "message": "담당자에게 전달됨"}
+        return {"ok": True, "message": "담당자 확인 대상으로 기록됨(전달 연동 전)"}
 
     fns = [get_my_profile, fill_leave_form, suggest_leave_dates,
            fill_supply_form, get_roadmap,
