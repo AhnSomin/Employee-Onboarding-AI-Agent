@@ -99,13 +99,13 @@
 <div id="stage">
   <div class="eyebrow">ORIENT · WORKFLOW</div>
   <h1>AI 적용 전 vs 후</h1>
-  <div class="sub">같은 업무에서 사람이 하는 단계는 줄고, 사람은 검토·승인과 예외에만 개입합니다</div>
+  <div class="sub">같은 업무에서 사람이 하는 단계는 줄고, 사람은 주로 검토·승인과 예외에 개입합니다</div>
   <div class="controls">
     <button class="tab" data-i="0">① 규정 질문</button>
     <button class="tab" data-i="1">② 회의 후속 업무</button>
     <button class="play" id="play">▶ 다시 재생</button>
   </div>
-  <div class="legend"><span><i style="background:var(--gr)"></i>사람</span><span><i style="background:var(--or)"></i>AI · 자동</span></div>
+  <div class="legend"><span><i style="background:var(--gr)"></i>사람</span><span><i style="background:var(--or)"></i>AI · 코드</span></div>
 
   <section class="lane before" id="laneB"></section>
   <section class="lane after" id="laneA"></section>
@@ -133,9 +133,9 @@ const DATA = [
     ],
     after: [
       { t: ["채팅으로 질문"], who: "사람", ti: "채팅으로 질문", d: "채팅창에 궁금한 점을 그대로 입력합니다. 접근 코드만 있으면 바로 쓸 수 있습니다." },
-      { t: ["AI가 조문 검색", "· 재순위"], who: "AI", ti: "AI가 조문 검색·재순위", d: "질문을 법령 용어로 확장하고, 키워드(BM25)와 임베딩을 합친 하이브리드 검색 뒤 LLM이 순위를 다시 매깁니다. (검색 hit@3 84% · 질문 68개 기준)" },
-      { t: ["근거 조문 + 쉬운 말로", "즉시 답변"], who: "AI", bubble: "⚡ 즉시", ti: "근거 조문과 함께 즉시 답변", d: "조문 번호를 근거로 달아 쉬운 말로 답합니다. 검색 결과에 없는 숫자는 쓰지 않도록 제한합니다." },
-      { t: ["근거 없으면", "담당자 연결 (예외)"], who: "AI", ti: "예외: 근거가 없으면 담당자 연결", d: "근거를 찾지 못하면 추측하지 않고 인사담당자 확인을 요청합니다. 규정과 무관한 질문은 범위 밖이라고 안내합니다." },
+      { t: ["AI가 조문 검색", "· 재순위"], who: "AI", ti: "AI가 조문 검색·재순위", d: "질문을 법령 용어로 확장하고, 키워드(BM25)와 임베딩을 합친 하이브리드 검색 뒤 LLM이 순위를 다시 매깁니다. (검색 hit@3 85% · 질문 68개 기준)" },
+      { t: ["근거 조문 + 쉬운 말로", "즉시 답변"], who: "AI", bubble: "⚡ 즉시", ti: "근거 조문과 함께 즉시 답변", d: "조문 번호를 근거로 달아 쉬운 말로 답합니다. 검색 결과에 없는 숫자는 쓰지 않도록 지시합니다." },
+      { t: ["근거 없으면", "담당자 확인 (예외)"], who: "AI", ti: "예외: 근거가 없으면 담당자 확인 안내", d: "근거를 찾지 못하면 추측하지 않고 담당자 확인이 필요하다고 안내합니다(실제 전달 연동은 후속 과제). 규정과 무관한 질문은 범위 밖이라고 안내합니다." },
     ] },
   { name: "회의 후속 업무", note: "정리·등록·독촉 → 업로드 + 승인",
     before: [
@@ -149,11 +149,11 @@ const DATA = [
       { t: ["회의록 업로드"], who: "사람", ti: "회의록 업로드", d: "회의록 텍스트(.txt)를 올립니다. 정리형, 녹취형, 메모형 모두 가능합니다." },
       { t: ["AI가 요약·할 일", "담당자·기한 추출"], who: "AI", ti: "AI가 요약·할 일·담당자·기한 추출", d: "모델은 개요 기록·할 일 제안·추출 종료, 세 도구로만 답합니다. 코드 규칙이 인용, 담당자, 날짜, 프롬프트 주입 여부를 검증합니다." },
       { t: ["미확정 채우고", "승인"], who: "사람", ti: "미확정 항목을 채우고 승인", d: "담당자나 기한이 불분명한 항목은 추측하지 않고 '미확정'으로 표시합니다. 사람이 채우고 확정된 항목만 승인합니다." },
-      { t: ["Slack 일정 공유", "+ 캘린더 파일"], who: "AI", ti: "Slack 일정 공유 + 캘린더 파일", d: "일정이 마감일별로 정리되어 Slack에 공유되고, .ics 파일로 캘린더에 추가할 수 있습니다. 같은 승인을 다시 눌러도 중복되지 않습니다." },
-      { t: ["마감 전날·당일·", "기한 지남 재알림"], who: "AI", ti: "마감 전날·당일·기한 지남 재알림", d: "담당자를 부르는 새 메시지로 알립니다. 같은 단계는 한 번만 보내고, 단계가 올라가면 다시 보냅니다." },
+      { t: ["Slack 일정 공유", "+ 캘린더 파일"], who: "AI", chip: "코드 · 승인 후", ti: "Slack 일정 공유 + 캘린더 파일", d: "승인하면 코드가 일정을 마감일별로 정리해 Slack에 공유하고, .ics 파일로 캘린더에 추가할 수 있게 합니다. 다시 실행해도 이미 보낸 것은 건너뜁니다." },
+      { t: ["마감 전날·당일·", "기한 지남 재알림"], who: "AI", chip: "코드 · 지금은 버튼", ti: "마감 전날·당일·기한 지남 재알림", d: "할 일마다 채널에 새 메시지로 알립니다(담당자 이름 표기). 같은 단계는 한 번만 보내고, 단계가 올라가면 다시 보냅니다. 지금은 재알림 버튼으로 보내고, 평일 아침 자동 배치는 설정 후 동작합니다." },
     ] },
 ];
-const IDLE = "반복 작업은 <b>AI</b>가, 판단(검토·승인)은 <b>사람</b>이 — 모르면 추측하지 않고 사람에게 넘깁니다";
+const IDLE = "추출·검색은 <b>AI</b>가, 공유·알림은 코드가, 판단(검토·승인)은 <b>사람</b>이 — 모르면 추측하지 않고 사람에게 넘깁니다";
 const $ = (id) => document.getElementById(id);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -178,7 +178,7 @@ function buildLane(el, steps, isAfter) {
           ${s.bubble ? `<span class="bubble">${s.bubble}</span>` : ""}
           <div class="node ${s.who === "AI" ? "ai" : "human"}">${i + 1}</div>
           <div class="lbl">${s.t.map((x, j) => (j ? `<em>${x}</em>` : x)).join("")}</div>
-          <span class="chip ${s.who === "AI" ? "ai" : "human"}">${s.who === "AI" ? "AI · 자동" : "사람"}</span>
+          <span class="chip ${s.who === "AI" ? "ai" : "human"}">${s.chip ?? (s.who === "AI" ? "AI · 자동" : "사람")}</span>
         </div>`).join("")}
       </div>
     </div>`;
@@ -191,7 +191,7 @@ function select(lane, steps, i, st) {
   st.classList.add("sel");
   const s = steps[i], d = $("detail");
   d.className = "detail sel";
-  d.innerHTML = `<div class="t"><b>${i + 1}.</b> ${s.ti} <span style="font-weight:600;color:#c9baa9;font-size:15px;margin-left:8px">${s.who === "AI" ? "AI · 자동" : "사람"}</span></div><div class="d">${s.d}</div>`;
+  d.innerHTML = `<div class="t"><b>${i + 1}.</b> ${s.ti} <span style="font-weight:600;color:#c9baa9;font-size:15px;margin-left:8px">${s.chip ?? (s.who === "AI" ? "AI · 자동" : "사람")}</span></div><div class="d">${s.d}</div>`;
 }
 function idle() { const d = $("detail"); d.className = "detail idle"; d.innerHTML = `<div class="t">${IDLE}</div>`;
   document.querySelectorAll(".step.sel").forEach((e) => e.classList.remove("sel")); }
