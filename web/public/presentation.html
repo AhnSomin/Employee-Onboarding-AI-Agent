@@ -47,15 +47,15 @@
   .s-prob .tr.head > div:nth-child(3) { background: none; border: 0; color: var(--or-dk); height: auto; padding-left: 22px; }
 
   /* 3 */
-  .s-sol .cols { display: grid; grid-template-columns: 1.15fr 1fr; gap: 64px; height: 440px; }
+  .s-sol .cols { display: grid; grid-template-columns: 1.15fr 1fr; gap: 64px; height: 100%; }
   .s-sol .tg { font-size: 16px; font-weight: 800; color: var(--gr); margin-bottom: 8px; } .s-sol .tg.core { color: var(--or-dk); }
   .s-sol .col.ex { border-left: 1px solid var(--line); padding-left: 56px; }
-  .s-sol .sb2 + .sb2 { margin-top: 30px; padding-top: 26px; border-top: 1px solid var(--line); }
-  .s-sol .col .sb2 h3 { font-size: 30px; margin: 0 0 2px; } .s-sol .col .sb2 ul { padding-top: 12px; gap: 12px; } .s-sol .col .sb2 li { font-size: 24px; } .s-sol .col .sb2 li::before { top: 13px; width: 9px; height: 9px; }
+  .s-sol .sb2 + .sb2 { margin-top: 44px; padding-top: 36px; border-top: 1px solid var(--line); }
+  .s-sol .col .sb2 h3 { font-size: 30px; margin: 0 0 2px; } .s-sol .col .sb2 ul { padding-top: 16px; gap: 18px; } .s-sol .col .sb2 li { font-size: 26px; } .s-sol .col .sb2 li::before { top: 13px; width: 9px; height: 9px; }
   .s-sol .col h3 { margin: 0 0 6px; font-size: 36px; font-weight: 700; }
   .s-sol .col .ds { font-size: 21px; color: var(--sub); padding-bottom: 22px; border-bottom: 1px solid var(--line); }
-  .s-sol .col ul { margin: 0; padding: 32px 0 0; list-style: none; display: grid; gap: 40px; }
-  .s-sol .col li { font-size: 28px; line-height: 1.5; padding-left: 28px; position: relative; }
+  .s-sol .col ul { margin: 0; padding: 36px 0 0; list-style: none; display: grid; gap: 56px; }
+  .s-sol .col li { font-size: 30px; line-height: 1.5; padding-left: 30px; position: relative; }
   .s-sol .col li::before { content: ""; position: absolute; left: 0; top: 19px; width: 10px; height: 10px; background: var(--or); }
   .s-sol .rule { position: absolute; left: 0; right: 0; bottom: 0; height: 120px; border: 1px solid var(--line); border-left: 6px solid var(--or); background: #fff; padding: 0 40px; display: flex; flex-direction: column; justify-content: center; gap: 6px; }
   .s-sol .rule small { font-size: 17px; color: var(--sub); font-weight: 600; } .s-sol .rule b { font-size: 28px; font-weight: 700; }
@@ -257,7 +257,6 @@
         <div class="sb2"><h3>회의 후속 처리</h3><ul><li>회의록에서 요약, 결정사항, 담당자, 기한 추출</li><li>승인하면 Slack 공유와 캘린더 파일, 재알림</li></ul></div>
         <div class="sb2"><h3>온보딩 체크리스트</h3><ul><li>신입이 해야 할 일을 기한과 함께 확인하고 체크</li><li>직접 할 일을 추가하거나 삭제</li></ul></div></div>
     </div>
-    <div class="rule f" data-g="3"><small>공통 원칙</small><b>모르면 추측하지 않고 '담당자 확인' 또는 '미확정'으로 표시해 사람에게 넘긴다</b></div>
   </div>
   <div class="foot"><span>ORIENT</span><span></span></div>
 </section>
@@ -275,8 +274,8 @@
 </section>
 
 <!-- 6 -->
-<section class="slide s-rag" data-title="RAG 기반 처리 단계" data-notes="기능 1은 RAG 기반 규정 질의응답입니다. 다섯 단계 중 웹 시연 적용 표시가 붙은 2단계 검색은 오늘 시연하는 웹 버전에 들어가 있습니다. 임베딩과 키워드를 함께 쓰는 하이브리드 검색에 질의 확장과 LLM 재순위를 더했고, 모델은 이렇게 찾은 조문을 근거로 쓰도록 지시받아 답합니다. 웹 연결 전 표시가 붙은 나머지 단계는 따로 구현해 평가까지 마친 RAG 버전의 것입니다. 사용자가 말한 조건과 시점을 먼저 정리하고, 관련도가 기준에 못 미치면 모델을 부르지 않고 보류하며, 모델은 근거를 ID로만 고르고 조문 표기와 원문은 프로그램이 붙이고, 마지막에 결정적 검증을 거칩니다. 이 단계들을 웹에 연결하는 것이 다음 과제입니다. 오른쪽은 오늘 쓰는 웹 버전의 실제 결과입니다. 연가 일수는 제15조를 근거로 답했습니다. 규정 범위 안이지만 근거를 찾지 못한 질문은 추측하지 않고 담당자 확인을 안내합니다. 규정과 관련 없는 질문은 범위 밖이라고 안내합니다. 이 둘은 서로 다른 처리입니다.">
-  <div class="hd"><h2>RAG 기반 규정 질의응답: 질문에서 답변까지</h2><div class="sec">기능 1 · RAG 기반 규정 질의응답</div></div>
+<section class="slide s-rag" data-title="RAG 기반 규정 질의응답" data-notes="기능 1은 RAG 기반 규정 질의응답입니다. 다섯 단계 중 웹 시연 적용 표시가 붙은 2단계 검색은 오늘 시연하는 웹 버전에 들어가 있습니다. 임베딩과 키워드를 함께 쓰는 하이브리드 검색에 질의 확장과 LLM 재순위를 더했고, 모델은 이렇게 찾은 조문을 근거로 쓰도록 지시받아 답합니다. 웹 연결 전 표시가 붙은 나머지 단계는 따로 구현해 평가까지 마친 RAG 버전의 것입니다. 사용자가 말한 조건과 시점을 먼저 정리하고, 관련도가 기준에 못 미치면 모델을 부르지 않고 보류하며, 모델은 근거를 ID로만 고르고 조문 표기와 원문은 프로그램이 붙이고, 마지막에 결정적 검증을 거칩니다. 이 단계들을 웹에 연결하는 것이 다음 과제입니다. 오른쪽은 오늘 쓰는 웹 버전의 실제 결과입니다. 연가 일수는 제15조를 근거로 답했습니다. 규정 범위 안이지만 근거를 찾지 못한 질문은 추측하지 않고 담당자 확인을 안내합니다. 규정과 관련 없는 질문은 범위 밖이라고 안내합니다. 이 둘은 서로 다른 처리입니다.">
+  <div class="hd"><h2>RAG 기반 규정 질의응답</h2><div class="sec">기능 1 · 처리 단계</div></div>
   <div class="body">
     <div class="left"><div class="steps">
       <div class="st f" data-g="1"><div class="n">1</div><div><h4>조건·시점 정리<span class="eng">웹 연결 전</span></h4><p>고용 형태, 재직기간, 시점을 최근 대화에서 정리</p></div></div>
