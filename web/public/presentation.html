@@ -101,6 +101,10 @@
   .s-rag .ex small { font-size: 16px; font-weight: 700; color: var(--sub); } .s-rag .ex .q { font-size: 24px; font-weight: 600; line-height: 1.4; }
   .s-rag .ex .a { font-size: 36px; font-weight: 800; color: var(--or); line-height: 1.25; } .s-rag .ex .m { font-size: 18px; color: var(--sub); line-height: 1.55; }
   .s-rag .ex.hold { background: var(--gr-bg); border-color: transparent; } .s-rag .ex.hold .a { color: var(--ink); font-size: 28px; }
+  .s-rag .eng { display: inline-block; margin-left: 12px; padding: 2px 10px; font-size: 14px; font-weight: 700; vertical-align: 4px; color: var(--sub); border: 1px solid var(--line); background: #fff; }
+  .s-rag .eng.web { color: var(--or-dk); border-color: var(--or); background: var(--or-bg); }
+  .s-rag .right { grid-template-rows: 1fr 1fr auto; gap: 18px; } .s-rag .ex { padding: 24px 30px; }
+  .s-rag .ex.web { background: var(--or-bg); border-color: transparent; padding: 18px 26px; gap: 6px; } .s-rag .ex.web p { margin: 0; font-size: 18px; line-height: 1.55; }
 
   /* 6 */
   .s-hal .tbl { position: absolute; left: 0; top: 0; width: 960px; grid-template-rows: 56px repeat(6, 1fr); height: 520px; }
@@ -180,13 +184,13 @@
 </section>
 
 <!-- 2 -->
-<section class="slide s-prob" data-title="문제 정의 · 도입 전후" data-notes="신입의 첫 한 달을 도입 전과 후로 나눠 보겠습니다. 지금은 연가나 복리후생 질문이 나올 때마다 인사담당자에게 묻고 기다립니다. 답은 규정에 있지만 원문이 문어체라 직접 읽기 어렵습니다. 회의가 끝나면 정리, 담당자 지정, 일정 등록, 공유를 모두 손으로 해서 누락이 생깁니다. ORIENT를 도입하면 질문에는 근거 조문과 함께 바로 답하고, 근거가 없으면 담당자에게 넘깁니다. 회의록은 올리고 확인해서 승인 한 번이면 슬랙 공유와 캘린더 파일까지 이어지고, 마감 전날과 당일에는 다시 알려 줍니다.">
+<section class="slide s-prob" data-title="문제 정의 · 도입 전후" data-notes="신입의 첫 한 달을 도입 전과 후로 나눠 보겠습니다. 지금은 연가나 복리후생 질문이 나올 때마다 인사담당자에게 묻고 기다립니다. 답은 규정에 있지만 원문이 문어체라 직접 읽기 어렵습니다. 회의가 끝나면 정리, 담당자 지정, 일정 등록, 공유를 모두 손으로 해서 누락이 생깁니다. ORIENT를 도입하면 질문에는 근거 조문과 함께 바로 답하고, 근거를 못 찾으면 추측하지 않고 담당자 확인이 필요하다고 안내합니다. 회의록은 올리고 확인해서 승인 한 번이면 슬랙 공유와 캘린더 파일까지 이어지고, 마감 전날·당일·기한이 지난 일은 재알림 버튼으로 다시 알릴 수 있습니다.">
   <div class="hd"><h2>문제 정의: 도입 전과 후</h2></div>
   <div class="body"><div class="tbl">
     <div class="tr head"><div></div><div>도입 전</div><div>도입 후 (ORIENT)</div></div>
     <div class="tr f" data-g="1"><div>규정 질문</div><div>연가·복리후생 질문마다 인사담당자에게 문의하고 답변을 기다림</div><div>채팅으로 바로 답변 확인, 근거 조문 번호 함께 제공</div></div>
-    <div class="tr f" data-g="2"><div>법령 이해</div><div>문어체 원문을 직접 찾아 읽고 스스로 해석</div><div>쉬운 말 요약과 원문 근거 제공, 근거가 없으면 담당자에게 연결</div></div>
-    <div class="tr f" data-g="3"><div>회의 후속</div><div>정리, 담당자 지정, 일정 등록, 공유를 모두 수작업으로 처리, 누락 발생</div><div>승인하면 Slack 공유와 캘린더 파일 생성, 마감 전 재알림 발송</div></div>
+    <div class="tr f" data-g="2"><div>법령 이해</div><div>문어체 원문을 직접 찾아 읽고 스스로 해석</div><div>쉬운 말 요약과 근거 조문 표기, 근거가 없으면 담당자 확인 안내</div></div>
+    <div class="tr f" data-g="3"><div>회의 후속</div><div>정리, 담당자 지정, 일정 등록, 공유를 모두 수작업으로 처리, 누락 발생</div><div>승인하면 Slack 공유와 캘린더 파일 생성, 버튼 한 번으로 마감 전 재알림</div></div>
   </div></div>
   <div class="foot"><span>ORIENT</span><span></span></div>
 </section>
@@ -197,7 +201,7 @@
   <div class="body">
     <div class="cols">
       <div class="col f" data-g="1"><h3>기능 1. 규정 질의응답</h3><div class="ds">RAG + LLM</div>
-        <ul><li>근거 조문을 찾아 조문 번호와 함께 쉬운 말로 답변</li><li>근거가 없거나 확신이 낮으면 담당자에게 연결</li><li>복무, 보수, 수당, 연금, 연말정산 규정까지 색인</li></ul></div>
+        <ul><li>근거 조문을 찾아 조문 번호와 함께 쉬운 말로 답변</li><li>근거를 못 찾으면 추측하지 않고 담당자 확인 안내</li><li>복무, 보수, 수당, 연금, 연말정산 규정까지 색인</li></ul></div>
       <div class="col f" data-g="2"><h3>기능 2. 회의록 후속 처리</h3><div class="ds">추출, 검토·승인, 실행, 재알림</div>
         <ul><li>요약, 결정사항, 담당자, 기한 자동 추출</li><li>사람이 승인하면 Slack 공유와 캘린더 파일(.ics) 생성</li><li>마감 전날, 당일, 기한 지남 단계별 재알림</li></ul></div>
     </div>
@@ -207,7 +211,7 @@
 </section>
 
 <!-- 4 -->
-<section class="slide s-wf" data-title="업무 흐름 비교" data-notes="ORIENT가 바꾸는 업무 흐름을 적용 전과 후로 비교해 보겠습니다. 위는 규정 질문입니다. 지금은 인사담당자에게 묻고, 담당자가 규정을 찾아 해석해 답을 전하는 동안 신입이 기다립니다. 사람이 하는 단계가 세 번입니다. ORIENT에서는 채팅으로 질문하면 AI가 조문을 찾아 근거와 함께 쉬운 말로 즉시 답하고, 근거가 없을 때만 담당자에게 연결합니다. 사람이 하는 일은 질문 한 번입니다. 탭을 눌러 회의 후속 업무를 보여 드립니다. 지금은 회의록을 읽고, 표로 정리하고, 캘린더에 등록하고, 슬랙에 공유하고, 기한을 챙기는 다섯 단계를 사람이 합니다. ORIENT에서는 회의록을 올리면 AI가 요약과 할 일, 담당자, 기한을 추출하고, 사람은 미확정 칸을 채워 승인합니다. 이후 슬랙 공유와 캘린더 파일, 마감 전날과 당일 재알림은 자동입니다. 사람이 하는 단계는 다섯 단계에서 두 단계로 줄어듭니다. 시간은 측정하지 않았고, 단계 수로 비교했습니다. (R: 다시 재생 / 단계 클릭: 설명)">
+<section class="slide s-wf" data-title="업무 흐름 비교" data-notes="ORIENT가 바꾸는 업무 흐름을 적용 전과 후로 비교해 보겠습니다. 위는 규정 질문입니다. 지금은 인사담당자에게 묻고, 담당자가 규정을 찾아 해석해 답을 전하는 동안 신입이 기다립니다. 사람이 하는 단계가 세 번입니다. ORIENT에서는 채팅으로 질문하면 AI가 조문을 찾아 근거와 함께 쉬운 말로 바로 답하고, 근거를 못 찾을 때만 담당자 확인이 필요하다고 안내합니다. 사람이 하는 일은 질문 한 번입니다. 탭을 눌러 회의 후속 업무를 보여 드립니다. 지금은 회의록을 읽고, 표로 정리하고, 캘린더에 등록하고, 슬랙에 공유하고, 기한을 챙기는 다섯 단계를 사람이 합니다. ORIENT에서는 회의록을 올리면 AI가 요약과 할 일, 담당자, 기한을 추출하고, 사람은 미확정 칸을 채워 승인합니다. 이후 슬랙 공유와 캘린더 파일은 코드가 자동으로 만들고, 재알림은 지금은 버튼 한 번으로 보냅니다. 평일 아침 자동 발송 배치도 만들어 두었습니다. 사람이 하는 단계는 구조상 다섯에서 두 단계로 줄어듭니다. 시간은 측정하지 않았고, 단계 수로 비교했습니다. (R: 다시 재생 / 단계 클릭: 설명)">
   <div class="hd"><h2>업무 흐름 비교: AI 적용 전과 후</h2>
     <div class="hdr"><button class="tab" data-i="0">규정 질문</button><button class="tab" data-i="1">회의 후속 업무</button><button class="play" id="wfPlay">다시 재생</button></div></div>
   <section class="lane before" id="wfB"></section><section class="lane after" id="wfA"></section>
@@ -219,27 +223,28 @@
 </section>
 
 <!-- 5 -->
-<section class="slide s-rag" data-title="규정 질의응답 처리 단계" data-notes="질문이 들어오면 먼저 사용자가 말한 조건과 시점을 정리합니다. 이어 임베딩과 키워드를 함께 쓰는 하이브리드 검색으로 조문을 찾고, 관련도가 기준에 못 미치면 모델을 부르지 않고 바로 보류합니다. 모델은 근거를 ID로만 고르고, 조문 표기와 원문은 프로그램이 저장된 원문에서 꺼내 붙입니다. 마지막으로 결정적 검증을 거칩니다. 오른쪽처럼 연가 일수는 제15조 표를 근거로 답하고, 구내식당 메뉴처럼 규정에 없는 질문은 담당자 확인으로 넘깁니다.">
+<section class="slide s-rag" data-title="규정 질의응답 처리 단계" data-notes="규정 질의응답은 두 갈래로 만들었습니다. 오늘 시연하는 웹 버전과, 답변을 원문과 대조하는 검증형 엔진입니다. 다섯 단계 중 웹 시연 표시가 붙은 2단계 검색은 웹 버전의 것으로, 임베딩과 키워드를 함께 쓰는 하이브리드 검색에 질의 확장과 LLM 재순위를 더했습니다. 웹 버전은 모델이 이렇게 찾은 조문을 근거로 쓰도록 지시받아 답과 근거 조문을 씁니다. 검증형 엔진은 검색을 따로 둡니다. 벡터 검색과 조문 직접 조회를 쓰고 재순위는 없으며, 그 위에 단계를 더 둡니다. 사용자가 말한 조건과 시점을 먼저 정리하고, 관련도가 기준에 못 미치면 모델을 부르지 않고 보류하며, 모델은 근거를 ID로만 고르고 조문 표기와 원문은 프로그램이 붙입니다. 마지막으로 결정적 검증을 거칩니다. 오른쪽 예시는 검증형 엔진으로 실행한 결과입니다. 연가 일수는 제15조 표를 근거로 답했고, 구내식당 메뉴처럼 규정에 없는 질문은 보류했습니다. 나머지 단계를 웹에 연결하는 것이 다음 과제입니다.">
   <div class="hd"><h2>규정 질의응답: 질문에서 답변까지</h2></div>
   <div class="body">
     <div class="left"><div class="steps">
-      <div class="st f" data-g="1"><div class="n">1</div><div><h4>조건·시점 정리</h4><p>고용 형태, 재직기간, 시점을 최근 대화에서 정리</p></div></div>
-      <div class="st f" data-g="2"><div class="n">2</div><div><h4>하이브리드 검색</h4><p>임베딩과 키워드 검색 병행, 질의 확장 후 LLM 재순위</p></div></div>
-      <div class="st f" data-g="3"><div class="n">3</div><div><h4>1차 문지기</h4><p>관련도가 기준 미만이면 모델을 호출하지 않고 보류</p></div></div>
-      <div class="st f" data-g="4"><div class="n">4</div><div><h4>근거 ID로만 생성</h4><p>모델은 근거를 ID로만 선택, 조문과 원문은 프로그램이 첨부</p></div></div>
-      <div class="st f" data-g="5"><div class="n">5</div><div><h4>결정적 검증</h4><p>실패 시 1회 재생성, 다시 실패하면 원문 카드만 보여 주고 보류</p></div></div>
+      <div class="st f" data-g="1"><div class="n">1</div><div><h4>조건·시점 정리<span class="eng">검증형 엔진</span></h4><p>고용 형태, 재직기간, 시점을 최근 대화에서 정리</p></div></div>
+      <div class="st f" data-g="2"><div class="n">2</div><div><h4>하이브리드 검색<span class="eng web">웹 시연</span></h4><p>임베딩과 키워드 검색 병행, 질의 확장 후 LLM 재순위</p></div></div>
+      <div class="st f" data-g="3"><div class="n">3</div><div><h4>1차 문지기<span class="eng">검증형 엔진</span></h4><p>관련도가 기준 미만이면 모델을 호출하지 않고 보류</p></div></div>
+      <div class="st f" data-g="4"><div class="n">4</div><div><h4>근거 ID로만 생성<span class="eng">검증형 엔진</span></h4><p>모델은 근거를 ID로만 선택, 조문과 원문은 프로그램이 첨부</p></div></div>
+      <div class="st f" data-g="5"><div class="n">5</div><div><h4>결정적 검증<span class="eng">검증형 엔진</span></h4><p>실패 시 1회 재생성, 다시 실패하면 원문 카드만 보여 주고 보류</p></div></div>
     </div></div>
     <div class="right">
-      <div class="ex f" data-g="6"><small>질문</small><div class="q">재직기간별 연가 일수는 며칠인가요?</div><div class="a">11·15·16·17·20·21일</div><div class="m">재직기간별 일수와 단서 2개<br>근거: 국가공무원 복무규정 제15조 표</div></div>
-      <div class="ex hold f" data-g="7"><small>근거 없는 질문</small><div class="q">"구내식당 이번 주 메뉴가 뭐예요?"</div><div class="a">담당자 확인이 필요합니다 (보류)</div></div>
+      <div class="ex f" data-g="6"><small>검증형 엔진 실행 예 · 질문</small><div class="q">재직기간별 연가 일수는 며칠인가요?</div><div class="a">11·15·16·17·20·21일</div><div class="m">재직기간별 일수와 단서 2개<br>근거: 국가공무원 복무규정 제15조 표</div></div>
+      <div class="ex hold f" data-g="7"><small>검증형 엔진 실행 예 · 근거 없는 질문</small><div class="q">"구내식당 이번 주 메뉴가 뭐예요?"</div><div class="a">담당자 확인이 필요합니다 (보류)</div></div>
+      <div class="ex web f" data-g="8"><small>오늘 시연 · 웹 버전</small><p>2단계 검색까지 연결. 모델은 검색된 조문을 근거로 쓰도록 지시받아 답하고, 나머지 단계의 웹 연결은 후속 과제</p></div>
     </div>
   </div>
   <div class="foot"><span>ORIENT</span><span></span></div>
 </section>
 
 <!-- 6 -->
-<section class="slide s-hal" data-title="답변 검증" data-notes="답변은 화면에 나가기 전에 여섯 가지 결정적 검사를 거칩니다. 특히 수치 검사는 답변 속 일수, 금액, 비율, 날짜가 인용한 원문에 그대로 있는지 숫자 경계까지 맞춰 봅니다. 하나라도 실패하면 실패 목록을 붙여 한 번 다시 생성하고, 또 실패하면 AI 답변 대신 관련 원문 카드만 보여 주고 담당자 확인으로 넘깁니다. 다만 조건을 의미상 맞게 해석했는지는 자동으로 확인하지 못하고, 이 한계를 화면에 그대로 표시합니다.">
-  <div class="hd"><h2>답변 검증: 원문과 대조하는 6가지 검사</h2></div>
+<section class="slide s-hal" data-title="답변 검증" data-notes="검증형 엔진에서는 답변이 화면에 나가기 전에 여섯 가지 결정적 검사를 거칩니다. 결정적이라는 말은 같은 입력이면 항상 같은 결과가 나오는 코드 검사라는 뜻입니다. 특히 수치 검사는 답변 속 일수, 금액, 비율, 날짜가 인용한 원문에 그대로 있는지 숫자 경계까지 맞춰 봅니다. 앞의 다섯 검사 중 하나라도 실패하면 실패 목록을 붙여 한 번 다시 생성하고, 또 실패하면 AI 답변 대신 관련 원문 카드만 보여 주고 담당자 확인이 필요하다고 표시합니다. 단서·예외는 실패가 아니라 주의만 띄웁니다. 오늘 보실 웹 버전은 아직 이 검사를 거치지 않고, 검색된 조문을 근거로 쓰도록 모델에 지시하는 단계까지입니다. 조건을 의미상 맞게 해석했는지는 어느 쪽도 자동으로 확인하지 못합니다.">
+  <div class="hd"><h2>답변 검증: 원문과 대조하는 6가지 검사 (검증형 엔진)</h2></div>
   <div class="body">
     <div class="tbl"><div class="tr head"><div>검사</div><div>확인 내용</div></div>
       <div class="tr f" data-g="1"><div>근거 ID</div><div>인용한 근거가 이번 질문에서 실제로 검색·조회된 청크인지</div></div>
@@ -250,63 +255,63 @@
       <div class="tr f" data-g="6"><div>단서·예외</div><div>"다만" 같은 단서를 조건으로 인용했는지 (빠지면 주의 표시)</div></div>
     </div>
     <div class="side f" data-g="7"><small>검사에 실패하면</small><b>1회 재생성 후에도 실패하면 보류</b><p>AI 답변 대신 관련 원문 카드만 보여 주고 담당자 확인으로 넘긴다.</p></div>
-    <div class="warn f" data-g="8"><b>한계</b>조건·적용 범위를 의미상 맞게 해석했는지는 자동 검증하지 않으며, 화면에 이 한계를 표시한다.</div>
+    <div class="warn f" data-g="8"><b>한계</b>의미상 맞게 해석했는지는 자동 검증하지 않음. 웹 시연 버전은 이 검사 없이 모델 지시까지이고, 연결은 후속 과제</div>
   </div>
   <div class="foot"><span>ORIENT</span><span></span></div>
 </section>
 
 <!-- 7 -->
-<section class="slide s-eval1" data-title="규정 질의응답 평가" data-notes="검색 정확도는 질문 68개 기준으로 재순위를 포함해 상위 3개 안에 정답 근거가 들어온 비율이 84퍼센트, 상위 5개는 88퍼센트입니다. 최종 평가 세트 10문항에서는 9문항의 답변 상태가 기대와 일치했고, 답한 7문항은 근거도 모두 맞았습니다. 점수가 기준선 근처인 범위 밖 질문 4개를 실제로 생성해 봤는데, 모델이 네 개 모두 보류했습니다. 표본이 작다는 한계는 분명히 말씀드립니다.">
+<section class="slide s-eval1" data-title="규정 질의응답 평가" data-notes="숫자는 어디서 쟀는지 나눠서 말씀드리겠습니다. 왼쪽 두 개는 오늘 시연하는 웹 버전의 검색 정확도입니다. 질문 68개 기준으로 재순위를 포함해 상위 3개 안에 정답 근거가 들어온 비율이 85퍼센트, 상위 5개는 90퍼센트입니다. 질의 확장과 재순위를 LLM이 하기 때문에 실행마다 조금 달라질 수 있습니다. 오른쪽 두 개는 검증형 엔진의 답변 평가입니다. 사람이 검수한 최종 세트 10문항 중 9문항에서 답변 상태가 기대와 일치했고, 답한 7문항은 근거도 모두 맞았습니다. 기준선 근처 점수가 나온 개발용 질문 4개를 실제로 생성해 봤더니 네 개 모두 보류했습니다. 웹 버전의 답변 품질은 따로 재지 않았고, 표본이 작다는 한계도 분명히 말씀드립니다.">
   <div class="hd"><h2>규정 질의응답 평가</h2></div>
   <div class="body">
     <div class="mets">
-      <div class="met f" data-g="1"><div class="big"><span class="cnt" data-to="84">0</span><small>%</small></div><h4>검색 hit@3</h4><p>질문 68개, 재순위 포함</p></div>
-      <div class="met f" data-g="2"><div class="big"><span class="cnt" data-to="88">0</span><small>%</small></div><h4>검색 hit@5</h4><p>같은 질문 68개 기준</p></div>
-      <div class="met f" data-g="3"><div class="big"><span class="cnt" data-to="9">0</span><small>/10</small></div><h4>최종 세트 상태 일치</h4><p>답한 문항의 근거 일치 7/7</p></div>
-      <div class="met f" data-g="4"><div class="big"><span class="cnt" data-to="4">0</span><small>/4</small></div><h4>경계 질문 보류</h4><p>근거 없이 답한 문항 0</p></div>
+      <div class="met f" data-g="1"><div class="big"><span class="cnt" data-to="85">0</span><small>%</small></div><h4>검색 hit@3</h4><p>웹 버전, 질문 68개, 재순위 포함</p></div>
+      <div class="met f" data-g="2"><div class="big"><span class="cnt" data-to="90">0</span><small>%</small></div><h4>검색 hit@5</h4><p>웹 버전, 같은 질문 68개 기준</p></div>
+      <div class="met f" data-g="3"><div class="big"><span class="cnt" data-to="9">0</span><small>/10</small></div><h4>최종 세트 상태 일치</h4><p>검증형 엔진(v1), 답한 문항의 근거 일치 7/7</p></div>
+      <div class="met f" data-g="4"><div class="big"><span class="cnt" data-to="4">0</span><small>/4</small></div><h4>경계 질문 보류</h4><p>검증형 엔진, 기준선 근처 4문항</p></div>
     </div>
     <div class="notes2 f" data-g="5">
-      <div class="r"><b>색인 범위</b><span>복무규정·복무규칙·행동강령, 보수·수당·여비·후생복지, 국가공무원법·임용령, 공무원연금법·재해보상법·청탁금지법, 소득세법(연말정산), 인사혁신처 예규 2종 등</span></div>
-      <div class="r"><b>비고</b><span>최종 세트가 10문항으로 표본이 작음. 재현: python -m tests.rag_eval</span></div>
+      <div class="r"><b>웹 색인 범위</b><span>24개 문서(10/9 기준): 복무규정·행동강령, 보수·수당·여비·후생복지, 국가공무원법·임용령, 공무원연금법·재해보상법·청탁금지법, 소득세법(연말정산), 인사혁신처 예규 2종 등</span></div>
+      <div class="r"><b>비고</b><span>최종 세트가 10문항으로 표본이 작음. 검색 수치 재현: python -m tests.rag_eval (질의 확장·재순위가 LLM이라 실행마다 조금 다를 수 있음)</span></div>
     </div>
   </div>
   <div class="foot"><span>ORIENT</span><span></span></div>
 </section>
 
 <!-- 8 -->
-<section class="slide s-pipe" data-title="회의록 처리 단계" data-notes="회의록 기능은 여섯 단계입니다. 회의 텍스트를 올리면 모델이 정해진 도구 세 개로만 개요와 할 일을 제안합니다. 모델은 캘린더나 슬랙을 직접 부를 수 없습니다. 제안은 코드 규칙이 거릅니다. 인용이 회의록에 실제로 있는지, 담당자가 정말 한 사람인지, 날짜 표현이 확실한지, 회의록 안에 AI에게 내리는 지시문이 있는지 확인합니다. 그다음 사람이 미확정 칸을 채우고 승인해야 슬랙 공유와 캘린더 파일이 만들어지고, 같은 승인을 다시 눌러도 중복되지 않습니다. 재알림은 마감 전날, 당일, 기한 지남 단계로 나가고 같은 단계는 한 번만 보냅니다. 매일 자동으로 보내는 배치는 구현돼 있고, 웹과의 연결은 후속 과제입니다.">
+<section class="slide s-pipe" data-title="회의록 처리 단계" data-notes="회의록 기능은 여섯 단계입니다. 회의 텍스트를 올리면 모델이 정해진 도구 세 개로만 개요와 할 일을 제안합니다. 모델은 캘린더나 슬랙을 직접 부를 수 없습니다. 제안은 코드 규칙이 거릅니다. 인용이 회의록에 실제로 있는지, 담당자가 정말 한 사람인지, 날짜 표현이 확실한지, 회의록 안에 AI에게 내리는 지시문이 있는지 확인합니다. 그다음 사람이 미확정 칸을 채우고 승인해야 코드가 슬랙 공유와 캘린더 파일을 만들고, 실행을 다시 해도 이미 보낸 것은 건너뜁니다. 재알림은 마감 전날, 당일, 기한 지남 단계로 나가고 같은 단계는 한 번만 보냅니다. 지금은 재알림 버튼으로 보내고, 평일 아침 자동으로 보내는 배치는 만들어 두었지만 운영 설정이 남아 있습니다.">
   <div class="hd"><h2>회의록 처리 단계</h2></div>
   <div class="body"><div class="grid">
     <div class="pc hu f" data-g="1"><div class="no">01</div><h4>업로드</h4><div class="ac">담당: 사람</div><p>정리형, 녹취형, 메모형 회의 텍스트를 그대로 업로드</p></div>
     <div class="pc ai f" data-g="2"><div class="no">02</div><h4>추출</h4><div class="ac">담당: AI (function calling)</div><p>개요 기록, 할 일 제안, 추출 종료의 도구 3개로만 응답</p></div>
     <div class="pc f" data-g="3"><div class="no">03</div><h4>검증</h4><div class="ac">담당: 코드 규칙</div><p>근거 인용 확인, 담당자 규칙, 한국어 날짜 해석, 프롬프트 주입 차단</p></div>
-    <div class="pc hu f" data-g="4"><div class="no">04</div><h4>검토·승인</h4><div class="ac">담당: 사람</div><p>미확정 담당자·기한은 사람이 채우고, 미리보기 확인 후 승인</p></div>
-    <div class="pc ai f" data-g="5"><div class="no">05</div><h4>실행</h4><div class="ac">담당: 자동</div><p>Slack 일정 공유와 .ics 파일 제공, 같은 승인을 다시 눌러도 중복 없음</p></div>
-    <div class="pc ai f" data-g="6"><div class="no">06</div><h4>재알림</h4><div class="ac">담당: 자동</div><p>마감 전날, 당일, 기한 지남 단계별 알림 (자동 배치는 후속 과제)</p></div>
+    <div class="pc hu f" data-g="4"><div class="no">04</div><h4>검토·승인</h4><div class="ac">담당: 사람</div><p>미확정 담당자·기한은 사람이 채우고, 추출 결과를 확인·수정한 뒤 승인</p></div>
+    <div class="pc ai f" data-g="5"><div class="no">05</div><h4>실행</h4><div class="ac">담당: 코드 · 승인 후 자동</div><p>Slack 일정 공유와 .ics 파일 제공, 다시 실행해도 이미 보낸 것은 건너뜀</p></div>
+    <div class="pc ai f" data-g="6"><div class="no">06</div><h4>재알림</h4><div class="ac">담당: 코드 · 지금은 버튼</div><p>마감 전날, 당일, 기한 지남 단계별 알림 (평일 자동 배치는 설정 후)</p></div>
   </div></div>
   <div class="foot"><span>ORIENT</span><span></span></div>
 </section>
 
 <!-- 9 -->
-<section class="slide s-eval2" data-title="회의록 추출 평가" data-notes="회의록 기능에서 가장 중요하게 본 지표는 거짓 확정입니다. 담당자를 잘못 확정하면 엉뚱한 사람에게 일정과 알림이 가기 때문입니다. 모델에 넣은 적 없는 공개 국회 회의록 시험 세트에서 꼭 찾아야 할 할 일 6개를 모두 찾았고, 거짓 확정은 18건 중 0건이었습니다. 같은 모델 출력에서 담당자 규칙만 끄면 1건이 생기고, 개발 세트에서는 7건이 생겼습니다. 모델이 찾고, 규칙이 거르는 구조가 효과가 있었다는 뜻입니다. 다만 표본이 작아 앞으로도 0건이라는 뜻은 아닙니다.">
+<section class="slide s-eval2" data-title="회의록 추출 평가" data-notes="회의록 기능에서 가장 중요하게 본 지표는 거짓 확정입니다. 담당자를 잘못 확정하면 엉뚱한 사람에게 일정과 알림이 가기 때문입니다. 모델에 넣은 적 없는 공개 국회 회의록 시험 세트에서 Gemini 모델로 잰 결과, 꼭 찾아야 할 할 일 6개를 모두 찾았고 거짓 확정은 18건 중 0건이었습니다. 이 6개는 회의록만으로 담당자와 기한을 정할 수 없는 항목이라, 6개 모두 미확정으로 남긴 것이 정답이었습니다. 같은 모델 출력에서 담당자 규칙만 끄면 1건이 생기고, 개발 세트에서는 7건이 생겼습니다. 모델이 찾고, 규칙이 거르는 구조가 효과가 있었다는 뜻입니다. 오늘 웹 시연은 OpenAI 모델로 돌고, OpenAI로는 가상 샘플에서 다시 확인했습니다. 표본이 작아 앞으로도 0건이라는 뜻은 아닙니다.">
   <div class="hd"><h2>회의록 추출 평가: 거짓 확정 여부</h2></div>
   <div class="body">
     <div class="mets">
-      <div class="met hero f" data-g="1"><div class="big"><span class="cnt" data-to="0">0</span><small>/18</small></div><h4>거짓 확정</h4><p>처음 보는 공개 회의록 시험 세트에서 '미확정'이어야 할 담당자·기한을 잘못 확정한 횟수</p></div>
+      <div class="met hero f" data-g="1"><div class="big"><span class="cnt" data-to="0">0</span><small>/18</small></div><h4>거짓 확정</h4><p>처음 보는 공개 회의록 시험 세트에서 '미확정'이어야 할 담당자·기한을 잘못 확정한 횟수 (Gemini로 측정)</p></div>
       <div class="met f" data-g="2"><div class="big"><span class="cnt" data-to="6">0</span><small>/6</small></div><h4>필수 할 일 검출</h4><p>꼭 찾아야 할 할 일을 모두 찾음</p></div>
-      <div class="met f" data-g="3"><div class="big"><span class="cnt" data-to="6">0</span><small>/6</small></div><h4>담당자·기한 정확</h4><p>검출한 항목의 담당자와 기한 일치</p></div>
+      <div class="met f" data-g="3"><div class="big"><span class="cnt" data-to="6">0</span><small>/6</small></div><h4>담당자·기한 미확정 유지</h4><p>회의록에 없는 담당자·기한을 비워 둠 (정답이 미확정)</p></div>
       <div class="met f" data-g="4"><div class="big"><span class="cnt" data-to="9">0</span><small>/10</small></div><h4>정밀도</h4><p>제안한 항목 중 맞는 비율</p></div>
     </div>
     <div class="notes2 f" data-g="5">
       <div class="r"><b>규칙의 효과</b><span>담당자 규칙을 끄면 같은 모델 출력에서 거짓 확정 1/18 (개발 세트 7/66). 규칙을 켜면 모두 '미확정'으로 돌려짐</span></div>
-      <div class="r"><b>비고</b><span>규칙은 시험 전 커밋으로 동결. 시험 세트의 필수 항목이 6개로 표본이 작음</span></div>
+      <div class="r"><b>비고</b><span>규칙은 시험 전 커밋으로 동결. 시험 세트의 필수 항목이 6개로 표본이 작음. 웹 시연(OpenAI)은 가상 샘플로만 재확인</span></div>
     </div>
   </div>
   <div class="foot"><span>ORIENT</span><span></span></div>
 </section>
 
 <!-- 10 -->
-<section class="slide s-arch" data-title="시스템 구성" data-notes="사용자는 React 웹앱에서 질문하거나 회의록을 올립니다. FastAPI 서버가 Agent를 부르고, Agent는 function calling으로 규정 검색 도구를 씁니다. 회의 정리에서는 사람이 승인한 항목만 코드가 슬랙으로 공유하고 캘린더 파일을 만듭니다. LLM 장애에 대비해 모델 자동 전환과 규칙 기반 폴백을 두었습니다. 승인된 할 일은 상태 저장소에 남고, 재알림 버튼이 이를 읽어 마감 전날, 당일, 기한 지난 항목을 슬랙으로 알립니다. 매일 자동으로 보내는 GitHub Actions 배치는 구현돼 있고 연결은 후속 과제입니다.">
+<section class="slide s-arch" data-title="시스템 구성" data-notes="사용자는 React 웹앱에서 질문하거나 회의록을 올립니다. FastAPI 서버가 Agent를 부르고, Agent는 function calling으로 규정 검색 도구를 씁니다. 규정 원문은 법제처 Open API와 예규 PDF로 받아 10월 9일에 색인해 두었고, 질문할 때는 그 색인을 검색합니다. 회의 정리에서는 사람이 승인한 항목만 코드가 슬랙으로 공유하고 캘린더 파일을 만듭니다. 그림의 선은 데이터 흐름이고, 슬랙과 캘린더는 AI가 직접 부르지 않습니다. LLM 장애에 대비해 모델을 자동으로 바꾸고, 회의 정리는 LLM 없이도 규칙으로 추출합니다. 승인된 할 일은 상태 저장소에 남고, 재알림 버튼이 이를 읽어 마감 전날, 당일, 기한 지난 항목을 슬랙으로 알립니다. 평일 아침 자동으로 보내는 GitHub Actions 배치는 구현돼 있고, Google Sheets 연결과 GitHub Secrets 설정이 남아 있습니다.">
   <div class="hd"><h2>시스템 구성</h2></div>
   <div class="body">
     <svg class="lines" viewBox="0 0 1600 900">
@@ -317,58 +322,58 @@
     <div class="nd f" data-g="1" style="left:80px;top:248px"><b>사용자</b><span>신규 임용자</span></div>
     <div class="nd f" data-g="1" style="left:356px;top:248px"><b>웹앱</b><span>React + Vite</span></div>
     <div class="nd f" data-g="2" style="left:632px;top:248px"><b>API 서버</b><span>FastAPI, Render 배포</span></div>
-    <div class="nd hl f" data-g="3" style="left:908px;top:248px"><b>Agent</b><span>LLM function calling<br>모델 자동 전환, 규칙 폴백</span></div>
-    <div class="nd f" data-g="4" style="left:1220px;top:124px"><b>규정 검색</b><span>RAG 색인<br>법제처 API, 예규 PDF</span></div>
-    <div class="nd f" data-g="4" style="left:1220px;top:248px"><b>캘린더</b><span>.ics 파일 제공</span></div>
+    <div class="nd hl f" data-g="3" style="left:908px;top:248px"><b>Agent</b><span>LLM function calling<br>모델 전환, 회의 규칙 폴백</span></div>
+    <div class="nd f" data-g="4" style="left:1220px;top:124px"><b>규정 검색</b><span>RAG 색인 (10/9 기준)<br>법제처 API, 예규 PDF</span></div>
+    <div class="nd f" data-g="4" style="left:1220px;top:248px"><b>캘린더</b><span>.ics 파일, 승인 후</span></div>
     <div class="nd f" data-g="4" style="left:1220px;top:372px"><b>Slack</b><span>승인 후 일정 공유</span></div>
     <div class="nd mu f" data-g="5" style="left:632px;top:384px"><b>상태 저장소</b><span>SQLite (Sheets는 선택)</span></div>
-    <div class="nd ds f" data-g="6" style="left:908px;top:384px"><b>재알림</b><span>마감 전날·당일 알림<br>자동 배치는 후속</span></div>
+    <div class="nd ds f" data-g="6" style="left:908px;top:384px"><b>재알림</b><span>마감 전날·당일·지남<br>버튼 발송, 배치는 후속</span></div>
   </div>
   <div class="foot"><span>ORIENT</span><span></span></div>
 </section>
 
 <!-- 11 -->
-<section class="slide s-eff" data-title="기대 효과" data-notes="구체적인 장면 두 개로 전후를 비교해 보겠습니다. 신입이 결혼하면 경조사휴가를 며칠 받는지 물으면, 지금은 담당자에게 묻고 기다리고, 담당자가 규정을 찾아 답을 전해 줍니다. ORIENT에서는 채팅으로 물으면 복무규정 별표 2를 근거로 본인 5일이라고 바로 답합니다. 인사담당자는 근거가 없는 질문만 받으면 됩니다. 회의가 끝난 뒤에는 지금까지 읽기, 정리, 캘린더 등록, 슬랙 공유, 기한 독촉의 다섯 단계를 손으로 했지만, 이제는 회의록을 올리고 추출 결과를 확인해 승인하는 두 단계만 남습니다. 소요시간은 측정하지 않았고, 단계 수로 비교했습니다.">
+<section class="slide s-eff" data-title="기대 효과" data-notes="구체적인 장면 두 개로 전후를 비교해 보겠습니다. 신입이 결혼하면 경조사휴가를 며칠 받는지 물으면, 지금은 담당자에게 묻고 기다리고, 담당자가 규정을 찾아 답을 전해 줍니다. ORIENT에서는 채팅으로 물으면 복무규정 별표 2를 근거로 본인 5일이라고 바로 답합니다. 인사담당자는 근거를 못 찾은 질문만 확인하면 되도록 하는 것이 목표입니다. 회의가 끝난 뒤에는 지금까지 읽기, 정리, 캘린더 등록, 슬랙 공유, 기한 독촉의 다섯 단계를 손으로 했지만, 이제는 회의록을 올리고 추출 결과를 확인해 승인하는 두 단계가 중심이 됩니다. 재알림은 지금은 버튼 한 번으로 보냅니다. 소요시간은 측정하지 않았고, 단계 수로 비교했습니다.">
   <div class="hd"><h2>기대 효과: 같은 업무, 달라지는 과정</h2></div>
   <div class="body">
     <div class="cols">
       <div class="col f" data-g="1"><div class="tt"><small>장면 1. 규정 질문</small><h3>"제가 결혼하면 경조사휴가를 며칠 받나요?"</h3></div>
         <div class="ba b"><small>도입 전</small>담당자에게 문의, 답변 대기, 담당자가 규정을 검색해 답변 전달</div>
         <div class="ba a"><small>도입 후</small>채팅으로 질문하면 별표 2의 "본인 5일"을 근거와 함께 즉시 답변</div>
-        <div class="mt"><span>인사담당자 응대</span><b>매번 <em>→</em> 근거가 없을 때만</b></div></div>
+        <div class="mt"><span>인사담당자 응대 (목표)</span><b>매번 <em>→</em> 근거가 없을 때만</b></div></div>
       <div class="col f" data-g="2"><div class="tt"><small>장면 2. 회의 후속</small><h3>팀 회의가 끝난 뒤</h3></div>
         <div class="ba b"><small>도입 전</small>회의록 읽기, 표 정리, 캘린더 등록, Slack 공유, 기한 독촉</div>
         <div class="ba a"><small>도입 후</small>파일 업로드, 추출 결과 확인·수정, 승인 후 Slack 공유와 재알림</div>
         <div class="mt"><span>사람이 하는 단계</span><b>5단계 <em>→</em> 2단계</b></div></div>
     </div>
-    <div class="rem f" data-g="3">소요 시간은 측정하지 않았고, 사람이 하는 단계 수로 비교함</div>
+    <div class="rem f" data-g="3">소요 시간은 측정하지 않았고, 사람이 하는 단계 수로 비교함 (구조 기준, 지금은 재알림 버튼 한 번 추가)</div>
   </div>
   <div class="foot"><span>ORIENT</span><span></span></div>
 </section>
 
 <!-- 12 -->
-<section class="slide s-risk" data-title="리스크와 한계" data-notes="예상되는 위험마다 대응을 두었습니다. 환각은 근거 제한과 에스컬레이션으로, 추출 오류는 미확정 표시와 사람의 확인으로, API 장애는 모델 전환과 규칙 폴백으로 막습니다. 회의록 안에 AI에게 내리는 지시문이 있으면 코드가 찾아 결과에서 뺍니다. 한계도 분명합니다. 평가 표본이 작고, 의미 해석은 자동 검증하지 않으며, Google Calendar 연동과 자동 재알림 배치의 웹 연결은 후속 과제입니다. 실제 그룹웨어 대신 Slack과 캘린더 파일로 액션을 구현했습니다.">
+<section class="slide s-risk" data-title="리스크와 한계" data-notes="예상되는 위험마다 대응을 두었습니다. 환각은 검색된 조문을 근거로 쓰도록 모델에 지시하고, 근거를 못 찾으면 담당자 확인으로 안내해서 줄입니다. 추출 오류는 미확정 표시와 사람의 확인으로, API 장애는 모델 자동 전환으로 막고, 회의 정리는 LLM 없이도 규칙으로 돌아갑니다. 회의록 안에 AI에게 내리는 지시문이 있으면 코드가 찾아 결과에서 빼고 경고합니다. 입력한 질문과 회의록은 OpenAI로 전송되므로 데모에는 공개·가상 데이터만 썼습니다. 한계도 분명합니다. 평가 표본이 작고, 의미 해석은 자동 검증하지 않습니다. 웹 답변을 원문과 자동 대조하는 검증과 평일 자동 재알림은 아직 연결 전입니다. Google Calendar 직접 등록은 코드가 있고 설정으로 켜는 방식이라, 오늘은 캘린더 파일로 보여 드립니다. 실제 그룹웨어 대신 Slack과 캘린더 파일로 액션을 구현했습니다.">
   <div class="hd"><h2>리스크와 대응, 알려진 한계</h2></div>
   <div class="body">
     <div class="tbl"><div class="tr head"><div>리스크</div><div>대응</div></div>
-      <div class="tr f" data-g="1"><div>LLM 환각</div><div>근거 문서만 사용, 근거가 부족하면 담당자에게 연결</div></div>
+      <div class="tr f" data-g="1"><div>LLM 환각</div><div>검색된 조문을 근거로 쓰도록 모델에 지시, 근거가 부족하면 담당자 확인 안내</div></div>
       <div class="tr f" data-g="2"><div>추출 오류</div><div>'미확정' 표시, 등록 전에 사람이 확인·수정</div></div>
-      <div class="tr f" data-g="3"><div>API 장애·한도</div><div>모델 자동 전환, 규칙 기반 폴백</div></div>
+      <div class="tr f" data-g="3"><div>API 장애·한도</div><div>모델 자동 전환, 회의 정리는 규칙 기반 폴백</div></div>
       <div class="tr f" data-g="4"><div>프롬프트 주입</div><div>회의록 속 AI 지시문을 찾아 결과에서 제외하고 경고</div></div>
       <div class="tr f" data-g="5"><div>데이터 외부 전송</div><div>데모는 공개·가상 데이터만 사용</div></div>
     </div>
-    <div class="lim f" data-g="6"><h3>알려진 한계</h3><ul><li>평가 표본이 작음</li><li>의미 해석은 자동 검증하지 않음</li><li>Google Calendar 연동, 자동 재알림 배치 연결은 후속 과제</li><li>실제 그룹웨어 연동은 범위 밖</li></ul></div>
+    <div class="lim f" data-g="6"><h3>알려진 한계</h3><ul><li>평가 표본이 작음</li><li>의미 해석은 자동 검증하지 않음</li><li>웹 답변 원문 대조, 평일 자동 재알림은 후속 과제</li><li>실제 그룹웨어 연동은 범위 밖</li></ul></div>
   </div>
   <div class="foot"><span>ORIENT</span><span></span></div>
 </section>
 
 <!-- 13 -->
-<section class="slide s-live" data-title="시연 순서" data-notes="이제 실제 화면으로 보여 드리겠습니다. 먼저 연가 일수를 물어 근거 조문과 쉬운 설명을 확인하고, 규정과 무관한 질문은 추측하지 않고 범위 밖이라고 안내하는 것을 보여 드립니다. 이어 긴 회의록을 올려 담당자나 기한이 모호한 항목이 미확정으로 표시되는 것을 보고, 빈칸을 채워 승인하면 슬랙에 일정이 공유되고 캘린더 파일을 받을 수 있는 것을 보여 드립니다. 마지막으로 재알림을 미리 보고 보내 본 뒤, 한 번 더 실행해도 같은 알림이 중복되지 않는 것을 확인하겠습니다. 연동이 안 되면 미리보기만으로 같은 흐름을 보여 드립니다.">
+<section class="slide s-live" data-title="시연 순서" data-notes="이제 실제 화면으로 보여 드리겠습니다. 먼저 연가 일수를 물어 근거 조문과 쉬운 설명을 확인하고, 규정에 답이 없는 질문은 추측하지 않고 범위 밖이라고 안내하거나 담당자 확인으로 넘기는 것을 보여 드립니다. 이어 긴 회의록을 올려 담당자나 기한이 모호한 항목이 미확정으로 표시되는 것을 보고, 빈칸을 채워 승인하면 슬랙에 일정이 공유되고 캘린더 파일을 받을 수 있는 것을 보여 드립니다. 마지막으로 재알림을 미리 보고 보내 본 뒤, 한 번 더 실행해도 같은 알림이 중복되지 않는 것을 확인하겠습니다. Slack 연동이 안 되면 결과 화면의 Slack 메시지 내용과 캘린더 파일, 재알림 미리보기로 같은 흐름을 보여 드립니다.">
   <div class="hd"><h2>시연 순서</h2></div>
   <div class="body">
     <div class="list">
       <div class="it f" data-g="1"><div class="n">1</div><span>연가 일수 질문<em>근거 조문과 쉬운 설명 확인</em></span></div>
-      <div class="it f" data-g="2"><div class="n">2</div><span>구내식당 메뉴 질문<em>범위 밖 안내, 추측하지 않음</em></span></div>
+      <div class="it f" data-g="2"><div class="n">2</div><span>구내식당 메뉴 질문<em>범위 밖·담당자 확인 안내, 추측하지 않음</em></span></div>
       <div class="it f" data-g="3"><div class="n">3</div><span>긴 회의록 업로드<em>담당자·기한 미확정 항목 표시</em></span></div>
       <div class="it f" data-g="4"><div class="n">4</div><span>미확정 항목을 채우고 승인<em>Slack 일정 공유, 캘린더 파일 생성</em></span></div>
       <div class="it f" data-g="5"><div class="n">5</div><span>재알림을 두 번 실행<em>같은 알림은 중복 발송되지 않음</em></span></div>
@@ -458,9 +463,9 @@ const WF = [
       { t: ["답변 전달", "신입은 그동안 대기"], who: "사람", note: "대기 발생", ti: "답변 전달, 신입은 대기", d: "답을 받을 때까지 신입은 기다린다. 담당자가 바쁘면 그만큼 늦어진다." } ],
     after: [
       { t: ["채팅으로 질문"], who: "사람", ti: "채팅으로 질문", d: "채팅창에 궁금한 점을 그대로 입력한다. 접근 코드만 있으면 바로 쓸 수 있다." },
-      { t: ["AI가 조문 검색", "및 재순위"], who: "AI", ti: "AI가 조문 검색, 재순위", d: "질문을 법령 용어로 확장하고, 키워드(BM25)와 임베딩을 합친 하이브리드 검색 뒤 LLM이 순위를 다시 매긴다. (검색 hit@3 84%, 질문 68개 기준)" },
-      { t: ["근거 조문과 함께", "즉시 답변"], who: "AI", note: "즉시 답변", ti: "근거 조문과 함께 즉시 답변", d: "조문 번호를 근거로 달아 쉬운 말로 답한다. 검색 결과에 없는 숫자는 쓰지 않도록 제한한다." },
-      { t: ["근거가 없으면", "담당자 연결 (예외)"], who: "AI", ti: "예외: 근거가 없으면 담당자 연결", d: "근거를 찾지 못하면 추측하지 않고 인사담당자 확인을 요청한다. 규정과 무관한 질문은 범위 밖이라고 안내한다." } ] },
+      { t: ["AI가 조문 검색", "및 재순위"], who: "AI", ti: "AI가 조문 검색, 재순위", d: "질문을 법령 용어로 확장하고, 키워드(BM25)와 임베딩을 합친 하이브리드 검색 뒤 LLM이 순위를 다시 매긴다. (검색 hit@3 85%, 질문 68개 기준)" },
+      { t: ["근거 조문과 함께", "즉시 답변"], who: "AI", note: "즉시 답변", ti: "근거 조문과 함께 즉시 답변", d: "조문 번호를 근거로 달아 쉬운 말로 답한다. 검색된 조문을 근거로 쓰도록 모델에 지시한다." },
+      { t: ["근거가 없으면", "담당자 확인 (예외)"], who: "AI", ti: "예외: 근거가 없으면 담당자 확인 안내", d: "근거를 찾지 못하면 추측하지 않고 인사담당자에게 확인하라고 안내한다. 담당자에게 자동으로 전달하는 연동은 후속 과제다. 규정과 무관한 질문은 범위 밖이라고 안내한다." } ] },
   { nt: "정리·등록·독촉에서 업로드와 승인으로",
     before: [
       { t: ["회의록 읽고", "할 일 추리기"], who: "사람", ti: "회의록 읽고 할 일 추리기", d: "회의가 끝나면 회의록을 처음부터 읽으며 누가 무엇을 언제까지 하는지 직접 뽑아낸다." },
@@ -472,8 +477,8 @@ const WF = [
       { t: ["회의록 업로드"], who: "사람", ti: "회의록 업로드", d: "회의록 텍스트(.txt)를 올린다. 정리형, 녹취형, 메모형 모두 가능하다." },
       { t: ["AI가 요약·할 일", "담당자·기한 추출"], who: "AI", ti: "AI가 요약, 할 일, 담당자, 기한 추출", d: "모델은 개요 기록, 할 일 제안, 추출 종료의 세 도구로만 답한다. 코드 규칙이 인용, 담당자, 날짜, 프롬프트 주입 여부를 검증한다." },
       { t: ["미확정 채우고", "승인"], who: "사람", ti: "미확정 항목을 채우고 승인", d: "담당자나 기한이 불분명한 항목은 추측하지 않고 '미확정'으로 표시한다. 사람이 채우고 확정된 항목만 승인한다." },
-      { t: ["Slack 일정 공유", "및 캘린더 파일"], who: "AI", ti: "Slack 일정 공유, 캘린더 파일 생성", d: "일정이 마감일별로 정리되어 Slack에 공유되고, .ics 파일로 캘린더에 추가할 수 있다. 같은 승인을 다시 눌러도 중복되지 않는다." },
-      { t: ["마감 전날·당일·", "기한 지남 재알림"], who: "AI", ti: "마감 전날, 당일, 기한 지남 재알림", d: "담당자를 부르는 새 메시지로 알린다. 같은 단계는 한 번만 보내고, 단계가 올라가면 다시 보낸다." } ] },
+      { t: ["Slack 일정 공유", "및 캘린더 파일"], who: "AI", chip: "코드 · 승인 후", ti: "Slack 일정 공유, 캘린더 파일 생성", d: "일정이 마감일별로 정리되어 Slack에 공유되고, .ics 파일로 캘린더에 추가할 수 있다. 실패한 항목을 다시 실행해도 이미 보낸 것은 건너뛴다." },
+      { t: ["마감 전날·당일·", "기한 지남 재알림"], who: "AI", chip: "코드 · 지금은 버튼", ti: "마감 전날, 당일, 기한 지남 재알림", d: "지금은 재알림 버튼으로 보내고, 평일 아침 자동 배치는 Google Sheets와 GitHub Secrets를 설정하면 동작한다. 할 일마다 새 메시지로 알리고, 같은 단계는 한 번만 보낸다." } ] },
 ];
 const IDLE = "반복 작업은 AI가, 판단(검토·승인)은 사람이 맡는다. 모르면 추측하지 않고 사람에게 넘긴다.";
 const TW = 960; let wi = 0, wtok = 0;
@@ -484,13 +489,13 @@ function wfBuild(el, steps, after) {
   el.innerHTML = `<div class="lane-label"><b>${after ? "적용 후" : "적용 전"}</b><span>${after ? "ORIENT" : "사람이 직접"}</span></div><div class="meter">사람이 하는 단계 <b>0</b></div>
   <div class="track"><div class="line"><i class="fill"></i></div><i class="dot"></i><div class="steps" style="grid-template-columns:repeat(${n},1fr)">
   ${steps.map((s, i) => `<div class="step" data-i="${i}">${s.note ? `<span class="note">${s.note}</span>` : ""}<div class="node ${s.who === "AI" ? "ai" : "human"}">${i + 1}</div>
-  <div class="lbl">${s.t.map((x, j) => (j ? `<em>${x}</em>` : x)).join("")}</div><span class="who">${s.who === "AI" ? "AI·자동" : "사람"}</span></div>`).join("")}</div></div>`;
+  <div class="lbl">${s.t.map((x, j) => (j ? `<em>${x}</em>` : x)).join("")}</div><span class="who">${s.chip ?? (s.who === "AI" ? "AI·자동" : "사람")}</span></div>`).join("")}</div></div>`;
   $$(".step", el).forEach((st) => st.addEventListener("click", (e) => { e.stopPropagation(); wfSelect(steps, +st.dataset.i, st); }));
 }
 function wfSelect(steps, i, st) {
   $$(".s-wf .step.sel").forEach((e) => e.classList.remove("sel")); st.classList.add("sel");
   const s = steps[i], d = $("#wfDetail"); d.className = "detail";
-  d.innerHTML = `<div class="t">${i + 1}. ${s.ti} <span style="font-weight:500;color:#c9baa9;font-size:15px;margin-left:8px">${s.who === "AI" ? "AI·자동" : "사람"}</span></div><div class="d">${s.d}</div>`;
+  d.innerHTML = `<div class="t">${i + 1}. ${s.ti} <span style="font-weight:500;color:#c9baa9;font-size:15px;margin-left:8px">${s.chip ?? (s.who === "AI" ? "AI·자동" : "사람")}</span></div><div class="d">${s.d}</div>`;
 }
 function wfIdle() { const d = $("#wfDetail"); d.className = "detail idle"; d.innerHTML = `<div class="t">${IDLE}</div>`; $$(".s-wf .step.sel").forEach((e) => e.classList.remove("sel")); }
 function wfReset() {
