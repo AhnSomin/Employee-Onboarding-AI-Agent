@@ -47,7 +47,11 @@
   .s-prob .tr.head > div:nth-child(3) { background: none; border: 0; color: var(--or-dk); height: auto; padding-left: 22px; }
 
   /* 3 */
-  .s-sol .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; height: 420px; }
+  .s-sol .cols { display: grid; grid-template-columns: 1.15fr 1fr; gap: 64px; height: 440px; }
+  .s-sol .tg { font-size: 16px; font-weight: 800; color: var(--gr); margin-bottom: 8px; } .s-sol .tg.core { color: var(--or-dk); }
+  .s-sol .col.ex { border-left: 1px solid var(--line); padding-left: 56px; }
+  .s-sol .sb2 + .sb2 { margin-top: 30px; padding-top: 26px; border-top: 1px solid var(--line); }
+  .s-sol .col .sb2 h3 { font-size: 30px; margin: 0 0 2px; } .s-sol .col .sb2 ul { padding-top: 12px; gap: 12px; } .s-sol .col .sb2 li { font-size: 24px; } .s-sol .col .sb2 li::before { top: 13px; width: 9px; height: 9px; }
   .s-sol .col h3 { margin: 0 0 6px; font-size: 36px; font-weight: 700; }
   .s-sol .col .ds { font-size: 21px; color: var(--sub); padding-bottom: 22px; border-bottom: 1px solid var(--line); }
   .s-sol .col ul { margin: 0; padding: 32px 0 0; list-style: none; display: grid; gap: 40px; }
@@ -104,7 +108,9 @@
   .s-rag .ex.hold { background: var(--gr-bg); border-color: transparent; } .s-rag .ex.hold .a { color: var(--ink); font-size: 28px; }
   .s-rag .eng { display: inline-block; margin-left: 12px; padding: 2px 10px; font-size: 14px; font-weight: 700; vertical-align: 4px; color: var(--sub); border: 1px solid var(--line); background: #fff; }
   .s-rag .eng.web { color: var(--or-dk); border-color: var(--or); background: var(--or-bg); }
-  .s-rag .right { grid-template-rows: 1fr 1fr auto; gap: 18px; } .s-rag .ex { padding: 24px 30px; }
+  .s-rag .right { grid-template-rows: repeat(3, 1fr); gap: 16px; } .s-rag .ex { padding: 20px 28px; gap: 6px; }
+  .s-rag .ex .q { font-size: 21px; } .s-rag .ex .a { font-size: 30px; } .s-rag .ex.hold .a { font-size: 26px; }
+  .s-rag .ex.off { background: #fff; border: 1px dashed var(--gr); } .s-rag .ex.off .a { color: var(--sub); font-size: 26px; }
   .s-rag .ex.web { background: var(--or-bg); border-color: transparent; padding: 18px 26px; gap: 6px; } .s-rag .ex.web p { margin: 0; font-size: 18px; line-height: 1.55; }
 
   /* 6 */
@@ -156,7 +162,7 @@
   .s-risk .lim ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 34px; } .s-risk .lim li { font-size: 25px; line-height: 1.5; padding-left: 24px; position: relative; } .s-risk .lim li::before { content: ""; position: absolute; left: 0; top: 14px; width: 8px; height: 8px; background: var(--or); }
 
   /* 13 */
-  .s-live .list { position: absolute; left: 0; top: 0; width: 900px; height: 100%; display: grid; grid-template-rows: repeat(5, 1fr); }
+  .s-live .list { position: absolute; left: 0; top: 0; width: 900px; height: 100%; display: grid; grid-template-rows: repeat(6, 1fr); }
   .s-live .it { display: grid; grid-template-columns: 76px 1fr; align-items: center; border-bottom: 1px solid var(--line); } .s-live .it:first-child { border-top: 1px solid var(--line); }
   .s-live .it .n { font-size: 36px; font-weight: 800; color: var(--or); } .s-live .it span { font-size: 26px; font-weight: 600; line-height: 1.4; } .s-live .it span em { display: block; font-style: normal; font-size: 21px; font-weight: 400; color: var(--sub); margin-top: 4px; }
   .s-live .thx { position: absolute; left: 1000px; right: 0; top: 0; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 6px; }
@@ -169,7 +175,9 @@
   .s-pain .pc { border-top: 3px solid var(--ink); padding-top: 24px; }
   .s-pain .no { font-size: 17px; font-weight: 800; color: var(--or-dk); } .s-pain h4 { margin: 8px 0 12px; font-size: 36px; font-weight: 700; } .s-pain p { margin: 0; font-size: 25px; line-height: 1.6; color: var(--sub); }
   /* 3 해결 */
-  .s-intro .tbl { grid-template-rows: 56px repeat(4, 1fr); }
+  .s-intro .tbl { grid-template-rows: 56px repeat(4, 1fr); height: calc(100% - 92px); }
+  .s-intro .more { position: absolute; left: 0; right: 0; bottom: 0; height: 68px; background: var(--gr-bg); padding: 0 30px; display: flex; align-items: center; font-size: 23px; color: var(--sub); }
+  .s-intro .more b { color: var(--ink); margin-right: 18px; font-weight: 700; }
   .s-intro .tr { grid-template-columns: 330px 1fr; font-size: 26px; line-height: 1.5; }
   .s-intro .tr > div:first-child { color: var(--sub); font-weight: 600; }
   .s-intro .tr > div:nth-child(2) { background: var(--or-bg); height: calc(100% - 24px); display: flex; align-items: center; border-left: 4px solid var(--or); padding-left: 28px; font-weight: 600; }
@@ -180,6 +188,9 @@
   .s-risk .duo h3 { margin: 0 0 40px; font-size: 38px; font-weight: 700; }
   .s-risk .duo ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 46px; } .s-risk .duo li { font-size: 28px; line-height: 1.5; padding-left: 28px; position: relative; }
   .s-risk .duo li::before { content: ""; position: absolute; left: 0; top: 18px; width: 10px; height: 10px; background: var(--gr); } .s-risk .duo .nx li::before { background: var(--or); }
+
+  .hd .sec { position: absolute; right: 0; top: 30px; font-size: 20px; font-weight: 700; color: var(--or-dk); }
+  .s-wf .hd .sec { right: 160px; top: 30px; }
 
   /* 크롬 */
   #bar { position: absolute; left: 0; bottom: 0; height: 4px; background: var(--or); width: 0; transition: width .35s; z-index: 20; }
@@ -194,7 +205,7 @@
 <div id="stage">
 
 <!-- 1 -->
-<section class="slide s-title" data-title="표지" data-notes="ORIENT는 신입사원 온보딩을 돕는 업무용 AI Agent입니다. 먼저 지금 온보딩이 어떤 점에서 불편한지 말씀드리고, 그 문제를 ORIENT가 어떻게 풀었는지, 기능과 업무 흐름, 기술과 평가, 구조, 한계와 앞으로의 계획 순서로 설명한 뒤 시연으로 마무리하겠습니다.">
+<section class="slide s-title" data-title="표지" data-notes="ORIENT는 신입사원 온보딩을 돕는 업무용 AI Agent입니다. 먼저 신입이 규정을 물어볼 때 지금 어떤 점이 불편한지 말씀드리고, 그 문제를 ORIENT가 어떻게 풀었는지, 함께 제공하는 기능, 업무 흐름, 기술과 평가, 구조, 한계와 앞으로의 계획 순서로 설명한 뒤 시연으로 마무리하겠습니다.">
   <div class="bar"></div>
   <h1>ORIENT</h1>
   <div class="sb">신입사원 온보딩 AI Agent</div>
@@ -202,39 +213,41 @@
 </section>
 
 <!-- 2 -->
-<section class="slide s-pain" data-title="현재 온보딩의 문제점" data-notes="먼저 지금 신입 온보딩이 어떻게 돌아가는지 보겠습니다. 첫째, 연가나 복리후생처럼 비슷한 규정 질문이 신입마다 인사담당자에게 반복해서 들어옵니다. 둘째, 답은 규정에 있지만 법령과 예규 원문이 문어체이고 여러 문서에 흩어져 있어서 신입이 직접 찾아 해석하기 어렵습니다. 셋째, 담당자가 찾아서 답하는 동안 신입은 기다려야 하고, 담당자는 같은 응대를 되풀이합니다. 넷째, 회의가 끝나면 할 일 정리, 담당자 지정, 일정 등록, 공유를 모두 손으로 해서 빠뜨리거나 늦어지는 일이 생깁니다.">
-  <div class="hd"><h2>현재 온보딩의 문제점</h2></div>
+<section class="slide s-pain" data-title="현재 온보딩의 문제점" data-notes="지금 신입이 규정을 알아보는 과정에서 불편한 점부터 보겠습니다. 첫째, 연가나 복리후생처럼 비슷한 규정 질문이 신입마다 인사담당자에게 반복해서 들어옵니다. 둘째, 답은 규정에 있지만 법령과 예규 원문이 문어체라서 신입이 읽고 해석하기 어렵습니다. 셋째, 그 규정이 법령, 행정규칙, 예규 등 여러 문서에 흩어져 있어서 어디를 봐야 하는지부터 찾기 어렵습니다. 넷째, 담당자가 찾아서 답하는 동안 신입은 기다려야 하고, 담당자는 같은 응대를 되풀이합니다. ORIENT는 이 문제를 풀기 위해 만들었습니다.">
+  <div class="hd"><h2>현재 온보딩의 문제점: 규정 질문</h2></div>
   <div class="body"><div class="grid">
     <div class="pc f" data-g="1"><div class="no">01</div><h4>같은 질문의 반복</h4><p>연가, 복리후생 같은 비슷한 규정 질문이 신입마다 인사담당자에게 반복해서 들어옴</p></div>
-    <div class="pc f" data-g="2"><div class="no">02</div><h4>규정 이해의 어려움</h4><p>법령·예규 원문이 문어체이고 여러 문서에 흩어져 있어 직접 찾고 해석하기 어려움</p></div>
-    <div class="pc f" data-g="3"><div class="no">03</div><h4>답변 대기와 담당자 부담</h4><p>담당자가 찾아서 답하는 동안 신입은 대기하고, 담당자는 같은 응대를 되풀이함</p></div>
-    <div class="pc f" data-g="4"><div class="no">04</div><h4>회의 후속 업무의 누락</h4><p>할 일 정리, 담당자 지정, 일정 등록, 공유를 수작업으로 하다가 빠뜨리거나 늦어짐</p></div>
+    <div class="pc f" data-g="2"><div class="no">02</div><h4>규정 원문의 어려움</h4><p>법령·예규 원문이 문어체라 신입이 직접 읽고 해석하기 어려움</p></div>
+    <div class="pc f" data-g="3"><div class="no">03</div><h4>여러 문서에 흩어진 규정</h4><p>법령, 행정규칙, 예규에 나뉘어 있어 어디를 봐야 하는지부터 찾기 어려움</p></div>
+    <div class="pc f" data-g="4"><div class="no">04</div><h4>답변 대기와 담당자 부담</h4><p>담당자가 찾아서 답하는 동안 신입은 대기하고, 담당자는 같은 응대를 되풀이함</p></div>
   </div></div>
   <div class="foot"><span>ORIENT</span><span></span></div>
 </section>
 
 <!-- 3 -->
-<section class="slide s-intro" data-title="문제 해결을 위한 ORIENT" data-notes="이 네 가지 문제를 풀기 위해 ORIENT를 만들었습니다. 규정 질문은 채팅으로 물으면 근거 조문과 함께 바로 답하고, 원문은 쉬운 말로 풀어서 조문 번호를 같이 보여 줍니다. 근거를 찾지 못하면 추측하지 않고 담당자 확인이 필요하다고 안내합니다. 회의 후속 업무는 회의록을 올리면 할 일과 담당자, 기한을 뽑고, 사람이 확인해 승인하면 슬랙 공유와 캘린더 파일, 재알림까지 이어 줍니다.">
+<section class="slide s-intro" data-title="문제 해결을 위한 ORIENT" data-notes="이 네 가지 문제를 풀기 위해 ORIENT의 규정 질의응답을 만들었습니다. 채팅으로 물으면 근거 조문과 함께 바로 답하고, 원문은 쉬운 말로 풀어서 조문 번호를 같이 보여 줍니다. 여러 문서에 흩어진 규정은 24개 문서를 미리 색인해 두고 한 번에 검색합니다. 근거를 찾으면 바로 답하고, 찾지 못하면 추측하지 않고 담당자 확인이 필요하다고 안내합니다. 여기에 더해 신입에게 도움이 될 만한 회의 후속 처리와 온보딩 체크리스트를 추가 기능으로 넣었습니다.">
   <div class="hd"><h2>문제 해결을 위한 ORIENT</h2></div>
   <div class="body"><div class="tbl">
-    <div class="tr head"><div>문제</div><div>ORIENT의 해결 방법</div></div>
+    <div class="tr head"><div>문제</div><div>ORIENT의 해결 방법: RAG 기반 규정 질의응답</div></div>
     <div class="tr f" data-g="1"><div>같은 질문의 반복</div><div>채팅으로 질문하면 근거 조문과 함께 바로 답변</div></div>
-    <div class="tr f" data-g="2"><div>규정 이해의 어려움</div><div>원문을 쉬운 말로 요약하고 근거 조문 번호를 함께 표시</div></div>
-    <div class="tr f" data-g="3"><div>답변 대기와 담당자 부담</div><div>근거를 찾으면 즉시 답변하고, 못 찾으면 추측하지 않고 담당자 확인을 안내</div></div>
-    <div class="tr f" data-g="4"><div>회의 후속 업무의 누락</div><div>회의록에서 할 일·담당자·기한을 추출하고, 승인하면 Slack 공유, 캘린더 파일, 재알림까지 처리</div></div>
-  </div></div>
+    <div class="tr f" data-g="2"><div>규정 원문의 어려움</div><div>원문을 쉬운 말로 요약하고 근거 조문 번호를 함께 표시</div></div>
+    <div class="tr f" data-g="3"><div>여러 문서에 흩어진 규정</div><div>법령·행정규칙·예규 24개 문서를 미리 색인해 한 번에 검색</div></div>
+    <div class="tr f" data-g="4"><div>답변 대기와 담당자 부담</div><div>근거를 찾으면 즉시 답변하고, 못 찾으면 추측하지 않고 담당자 확인을 안내</div></div>
+  </div>
+  <div class="more f" data-g="5"><b>추가 기능</b>신입의 온보딩을 돕는 회의 후속 처리와 온보딩 체크리스트</div></div>
   <div class="foot"><span>ORIENT</span><span></span></div>
 </section>
 
 <!-- 4 -->
-<section class="slide s-sol" data-title="ORIENT의 기능" data-notes="ORIENT는 두 가지 기능으로 문제를 풀어 갑니다. 첫째, 규정 질의응답은 근거 조문을 찾아 쉬운 말로 풀어 주기 때문에 신입은 담당자를 거치지 않고 바로 확인할 수 있고, 담당자는 반복 응대를 줄이는 것이 목표입니다. 둘째, 회의록 후속 처리는 회의록을 올리면 할 일과 담당자, 기한을 뽑고, 사람이 승인하면 슬랙 공유와 캘린더 파일로 이어지고, 마감이 다가오면 재알림도 보냅니다. 두 기능 모두 같은 원칙을 따릅니다. 모르면 지어내지 않고 사람에게 넘깁니다.">
+<section class="slide s-sol" data-title="ORIENT의 기능" data-notes="ORIENT의 핵심 기능은 규정 질의응답입니다. 근거 조문을 찾아 쉬운 말로 풀어 주기 때문에 신입은 담당자를 거치지 않고 바로 확인할 수 있고, 담당자는 반복 응대를 줄이는 것이 목표입니다. 근거를 못 찾으면 지어내지 않고 사람에게 넘깁니다. 여기에 신입에게 도움이 될 추가 기능 두 가지를 넣었습니다. 하나는 회의 후속 처리로, 회의록을 올리면 할 일과 담당자, 기한을 뽑고, 사람이 승인하면 슬랙 공유와 캘린더 파일, 재알림으로 이어집니다. 다른 하나는 온보딩 체크리스트로, 신입이 해야 할 일을 기한과 함께 보고 체크하며, 직접 할 일을 추가하거나 지울 수 있습니다.">
   <div class="hd"><h2>ORIENT의 기능</h2></div>
   <div class="body">
     <div class="cols">
-      <div class="col f" data-g="1"><h3>기능 1. 규정 질의응답</h3><div class="ds">신입은 기다리지 않고 확인, 담당자의 반복 응대 감소(목표)</div>
+      <div class="col f" data-g="1"><div class="tg core">핵심 기능</div><h3>RAG 기반 규정 질의응답</h3><div class="ds">신입은 기다리지 않고 확인, 담당자의 반복 응대 감소(목표)</div>
         <ul><li>근거 조문을 찾아 조문 번호와 함께 쉬운 말로 답변</li><li>근거를 못 찾으면 추측하지 않고 담당자 확인 안내</li><li>복무, 보수, 수당, 연금, 연말정산 규정까지 색인</li></ul></div>
-      <div class="col f" data-g="2"><h3>기능 2. 회의록 후속 처리</h3><div class="ds">정리, 등록, 공유, 재알림을 한 흐름으로 처리</div>
-        <ul><li>요약, 결정사항, 담당자, 기한 자동 추출</li><li>사람이 승인하면 Slack 공유와 캘린더 파일(.ics) 생성</li><li>마감 전날, 당일, 기한 지남 단계별 재알림</li></ul></div>
+      <div class="col ex f" data-g="2"><div class="tg">추가 기능</div>
+        <div class="sb2"><h3>회의 후속 처리</h3><ul><li>회의록에서 요약, 결정사항, 담당자, 기한 추출</li><li>승인하면 Slack 공유와 캘린더 파일, 재알림</li></ul></div>
+        <div class="sb2"><h3>온보딩 체크리스트</h3><ul><li>신입이 해야 할 일을 기한과 함께 확인하고 체크</li><li>직접 할 일을 추가하거나 삭제</li></ul></div></div>
     </div>
     <div class="rule f" data-g="3"><small>공통 원칙</small><b>모르면 추측하지 않고 '담당자 확인' 또는 '미확정'으로 표시해 사람에게 넘긴다</b></div>
   </div>
@@ -242,40 +255,40 @@
 </section>
 
 <!-- 5 -->
-<section class="slide s-wf" data-title="업무 흐름 비교" data-notes="ORIENT가 바꾸는 업무 흐름을 적용 전과 후로 비교해 보겠습니다. 위는 규정 질문입니다. 지금은 인사담당자에게 묻고, 담당자가 규정을 찾아 해석해 답을 전하는 동안 신입이 기다립니다. 사람이 하는 단계가 세 번입니다. ORIENT에서는 채팅으로 질문하면 AI가 조문을 찾아 근거와 함께 쉬운 말로 바로 답하고, 근거를 못 찾을 때만 담당자 확인이 필요하다고 안내합니다. 사람이 하는 일은 질문 한 번입니다. 탭을 눌러 회의 후속 업무를 보여 드립니다. 지금은 회의록을 읽고, 표로 정리하고, 캘린더에 등록하고, 슬랙에 공유하고, 기한을 챙기는 다섯 단계를 사람이 합니다. ORIENT에서는 회의록을 올리면 AI가 요약과 할 일, 담당자, 기한을 추출하고, 사람은 미확정 칸을 채워 승인합니다. 이후 슬랙 공유와 캘린더 파일은 코드가 자동으로 만들고, 재알림은 지금은 버튼 한 번으로 보냅니다. 평일 아침 자동 발송 배치도 만들어 두었습니다. 사람이 하는 단계는 구조상 다섯에서 두 단계로 줄어듭니다. 시간은 측정하지 않았고, 단계 수로 비교했습니다. (R: 다시 재생 / 단계 클릭: 설명)">
-  <div class="hd"><h2>업무 흐름 비교: AI 적용 전과 후</h2>
-    <div class="hdr"><button class="tab" data-i="0">규정 질문</button><button class="tab" data-i="1">회의 후속 업무</button><button class="play" id="wfPlay">다시 재생</button></div></div>
-  <section class="lane before" id="wfB"></section><section class="lane after" id="wfA"></section>
+<section class="slide s-wf" data-wf="0" data-title="업무 흐름 비교: 규정 질문" data-notes="먼저 기능 1인 규정 질문의 업무 흐름입니다. 지금은 인사담당자에게 묻고, 담당자가 규정을 찾아 해석해 답을 전하는 동안 신입이 기다립니다. 사람이 하는 단계가 세 번입니다. ORIENT에서는 채팅으로 질문하면 AI가 조문을 찾아 근거와 함께 쉬운 말로 바로 답하고, 근거를 못 찾을 때만 담당자 확인이 필요하다고 안내합니다. 사람이 하는 일은 질문 한 번입니다. 시간은 측정하지 않았고, 단계 수로 비교했습니다. (R: 다시 재생 / 단계 클릭: 설명)">
+  <div class="hd"><h2>업무 흐름 비교: 규정 질문</h2><div class="sec">기능 1 · RAG 기반 규정 질의응답</div>
+    <div class="hdr"><button class="play">다시 재생</button></div></div>
+  <section class="lane before wfB"></section><section class="lane after wfA"></section>
   <aside class="stat"><div class="cap">사람이 하는 단계</div>
-    <div class="nums"><span class="bb" id="wfNb">0</span><i>→</i><span class="aa" id="wfNa">0</span></div>
-    <div class="delta" id="wfDelta"></div><div class="nt" id="wfNote"></div></aside>
-  <div class="detail idle" id="wfDetail"></div>
+    <div class="nums"><span class="bb wfNb">0</span><i>→</i><span class="aa wfNa">0</span></div>
+    <div class="delta wfDelta"></div><div class="nt wfNote"></div></aside>
+  <div class="detail idle wfDetail"></div>
   <div class="foot"><span>ORIENT</span><span></span></div>
 </section>
 
 <!-- 6 -->
-<section class="slide s-rag" data-title="규정 질의응답 처리 단계" data-notes="규정 질의응답은 두 갈래로 만들었습니다. 오늘 시연하는 웹 버전과, 답변을 원문과 대조하는 검증형 엔진입니다. 다섯 단계 중 웹 시연 표시가 붙은 2단계 검색은 웹 버전의 것으로, 임베딩과 키워드를 함께 쓰는 하이브리드 검색에 질의 확장과 LLM 재순위를 더했습니다. 웹 버전은 모델이 이렇게 찾은 조문을 근거로 쓰도록 지시받아 답과 근거 조문을 씁니다. 검증형 엔진은 검색을 따로 둡니다. 벡터 검색과 조문 직접 조회를 쓰고 재순위는 없으며, 그 위에 단계를 더 둡니다. 사용자가 말한 조건과 시점을 먼저 정리하고, 관련도가 기준에 못 미치면 모델을 부르지 않고 보류하며, 모델은 근거를 ID로만 고르고 조문 표기와 원문은 프로그램이 붙입니다. 마지막으로 결정적 검증을 거칩니다. 오른쪽 예시는 검증형 엔진으로 실행한 결과입니다. 연가 일수는 제15조 표를 근거로 답했고, 구내식당 메뉴처럼 규정에 없는 질문은 보류했습니다. 나머지 단계를 웹에 연결하는 것이 다음 과제입니다.">
-  <div class="hd"><h2>규정 질의응답: 질문에서 답변까지</h2></div>
+<section class="slide s-rag" data-title="RAG 기반 처리 단계" data-notes="기능 1은 RAG 기반 규정 질의응답입니다. 다섯 단계 중 웹 시연 적용 표시가 붙은 2단계 검색은 오늘 시연하는 웹 버전에 들어가 있습니다. 임베딩과 키워드를 함께 쓰는 하이브리드 검색에 질의 확장과 LLM 재순위를 더했고, 모델은 이렇게 찾은 조문을 근거로 쓰도록 지시받아 답합니다. 웹 연결 전 표시가 붙은 나머지 단계는 따로 구현해 평가까지 마친 RAG 버전의 것입니다. 사용자가 말한 조건과 시점을 먼저 정리하고, 관련도가 기준에 못 미치면 모델을 부르지 않고 보류하며, 모델은 근거를 ID로만 고르고 조문 표기와 원문은 프로그램이 붙이고, 마지막에 결정적 검증을 거칩니다. 이 단계들을 웹에 연결하는 것이 다음 과제입니다. 오른쪽은 오늘 쓰는 웹 버전의 실제 결과입니다. 연가 일수는 제15조를 근거로 답했습니다. 규정 범위 안이지만 근거를 찾지 못한 질문은 추측하지 않고 담당자 확인을 안내합니다. 규정과 관련 없는 질문은 범위 밖이라고 안내합니다. 이 둘은 서로 다른 처리입니다.">
+  <div class="hd"><h2>RAG 기반 규정 질의응답: 질문에서 답변까지</h2><div class="sec">기능 1 · RAG 기반 규정 질의응답</div></div>
   <div class="body">
     <div class="left"><div class="steps">
-      <div class="st f" data-g="1"><div class="n">1</div><div><h4>조건·시점 정리<span class="eng">검증형 엔진</span></h4><p>고용 형태, 재직기간, 시점을 최근 대화에서 정리</p></div></div>
-      <div class="st f" data-g="2"><div class="n">2</div><div><h4>하이브리드 검색<span class="eng web">웹 시연</span></h4><p>임베딩과 키워드 검색 병행, 질의 확장 후 LLM 재순위</p></div></div>
-      <div class="st f" data-g="3"><div class="n">3</div><div><h4>1차 문지기<span class="eng">검증형 엔진</span></h4><p>관련도가 기준 미만이면 모델을 호출하지 않고 보류</p></div></div>
-      <div class="st f" data-g="4"><div class="n">4</div><div><h4>근거 ID로만 생성<span class="eng">검증형 엔진</span></h4><p>모델은 근거를 ID로만 선택, 조문과 원문은 프로그램이 첨부</p></div></div>
-      <div class="st f" data-g="5"><div class="n">5</div><div><h4>결정적 검증<span class="eng">검증형 엔진</span></h4><p>실패 시 1회 재생성, 다시 실패하면 원문 카드만 보여 주고 보류</p></div></div>
+      <div class="st f" data-g="1"><div class="n">1</div><div><h4>조건·시점 정리<span class="eng">웹 연결 전</span></h4><p>고용 형태, 재직기간, 시점을 최근 대화에서 정리</p></div></div>
+      <div class="st f" data-g="2"><div class="n">2</div><div><h4>하이브리드 검색<span class="eng web">웹 시연 적용</span></h4><p>임베딩과 키워드 검색 병행, 질의 확장 후 LLM 재순위</p></div></div>
+      <div class="st f" data-g="3"><div class="n">3</div><div><h4>1차 문지기<span class="eng">웹 연결 전</span></h4><p>관련도가 기준 미만이면 모델을 호출하지 않고 보류</p></div></div>
+      <div class="st f" data-g="4"><div class="n">4</div><div><h4>근거 ID로만 생성<span class="eng">웹 연결 전</span></h4><p>모델은 근거를 ID로만 선택, 조문과 원문은 프로그램이 첨부</p></div></div>
+      <div class="st f" data-g="5"><div class="n">5</div><div><h4>결정적 검증<span class="eng">웹 연결 전</span></h4><p>실패 시 1회 재생성, 다시 실패하면 원문 카드만 보여 주고 보류</p></div></div>
     </div></div>
     <div class="right">
-      <div class="ex f" data-g="6"><small>검증형 엔진 실행 예 · 질문</small><div class="q">재직기간별 연가 일수는 며칠인가요?</div><div class="a">11·15·16·17·20·21일</div><div class="m">재직기간별 일수와 단서 2개<br>근거: 국가공무원 복무규정 제15조 표</div></div>
-      <div class="ex hold f" data-g="7"><small>검증형 엔진 실행 예 · 근거 없는 질문</small><div class="q">"구내식당 이번 주 메뉴가 뭐예요?"</div><div class="a">담당자 확인이 필요합니다 (보류)</div></div>
-      <div class="ex web f" data-g="8"><small>오늘 시연 · 웹 버전</small><p>2단계 검색까지 연결. 모델은 검색된 조문을 근거로 쓰도록 지시받아 답하고, 나머지 단계의 웹 연결은 후속 과제</p></div>
+      <div class="ex f" data-g="6"><small>웹 시연 결과 · 답할 수 있는 질문</small><div class="q">재직기간별 연가 일수는 며칠인가요?</div><div class="a">11·15·16·17·20·21일</div><div class="m">근거: 국가공무원 복무규정 제15조</div></div>
+      <div class="ex hold f" data-g="7"><small>웹 시연 결과 · 규정에서 근거를 못 찾은 질문</small><div class="q">우리 기관 직원 전용 헬스장 이용 요금은 얼마예요?</div><div class="a">추측하지 않고 담당자 확인 안내</div></div>
+      <div class="ex off f" data-g="8"><small>웹 시연 결과 · 규정과 관련 없는 질문</small><div class="q">구내식당 이번 주 메뉴가 뭐예요?</div><div class="a">범위 밖이라고 안내</div></div>
     </div>
   </div>
   <div class="foot"><span>ORIENT</span><span></span></div>
 </section>
 
 <!-- 7 -->
-<section class="slide s-hal" data-title="답변 검증" data-notes="검증형 엔진에서는 답변이 화면에 나가기 전에 여섯 가지 결정적 검사를 거칩니다. 결정적이라는 말은 같은 입력이면 항상 같은 결과가 나오는 코드 검사라는 뜻입니다. 특히 수치 검사는 답변 속 일수, 금액, 비율, 날짜가 인용한 원문에 그대로 있는지 숫자 경계까지 맞춰 봅니다. 앞의 다섯 검사 중 하나라도 실패하면 실패 목록을 붙여 한 번 다시 생성하고, 또 실패하면 AI 답변 대신 관련 원문 카드만 보여 주고 담당자 확인이 필요하다고 표시합니다. 단서·예외는 실패가 아니라 주의만 띄웁니다. 오늘 보실 웹 버전은 아직 이 검사를 거치지 않고, 검색된 조문을 근거로 쓰도록 모델에 지시하는 단계까지입니다. 조건을 의미상 맞게 해석했는지는 어느 쪽도 자동으로 확인하지 못합니다.">
-  <div class="hd"><h2>답변 검증: 원문과 대조하는 6가지 검사 (검증형 엔진)</h2></div>
+<section class="slide s-hal" data-title="RAG 답변 검증" data-notes="웹 연결 전 RAG 버전에서는 답변이 화면에 나가기 전에 여섯 가지 결정적 검사를 거칩니다. 결정적이라는 말은 같은 입력이면 항상 같은 결과가 나오는 코드 검사라는 뜻입니다. 특히 수치 검사는 답변 속 일수, 금액, 비율, 날짜가 인용한 원문에 그대로 있는지 숫자 경계까지 맞춰 봅니다. 앞의 다섯 검사 중 하나라도 실패하면 실패 목록을 붙여 한 번 다시 생성하고, 또 실패하면 AI 답변 대신 관련 원문 카드만 보여 주고 담당자 확인이 필요하다고 표시합니다. 단서·예외는 실패가 아니라 주의만 띄웁니다. 오늘 보실 웹 버전은 아직 이 검사를 거치지 않고, 검색된 조문을 근거로 쓰도록 모델에 지시하는 단계까지입니다. 조건을 의미상 맞게 해석했는지는 어느 쪽도 자동으로 확인하지 못합니다.">
+  <div class="hd"><h2>RAG 답변 검증: 원문과 대조하는 6가지 검사</h2><div class="sec">기능 1 · RAG 기반 규정 질의응답</div></div>
   <div class="body">
     <div class="tbl"><div class="tr head"><div>검사</div><div>확인 내용</div></div>
       <div class="tr f" data-g="1"><div>근거 ID</div><div>인용한 근거가 이번 질문에서 실제로 검색·조회된 청크인지</div></div>
@@ -285,15 +298,45 @@
       <div class="tr f" data-g="5"><div>문서명</div><div>법령·규정 이름이 근거 문서명과 일치하는지</div></div>
       <div class="tr f" data-g="6"><div>단서·예외</div><div>"다만" 같은 단서를 조건으로 인용했는지 (빠지면 주의 표시)</div></div>
     </div>
-    <div class="side f" data-g="7"><small>검사에 실패하면</small><b>1회 재생성 후에도 실패하면 보류</b><p>AI 답변 대신 관련 원문 카드만 보여 주고 담당자 확인으로 넘긴다.</p></div>
-    <div class="warn f" data-g="8"><b>한계</b>의미상 맞게 해석했는지는 자동 검증하지 않음. 웹 시연 버전은 이 검사 없이 모델 지시까지이고, 연결은 후속 과제</div>
+    <div class="side f" data-g="7"><small>웹 연결 전 · 검사에 실패하면</small><b>1회 재생성 후에도 실패하면 보류</b><p>AI 답변 대신 관련 원문 카드만 보여 주고 담당자 확인으로 넘긴다.</p></div>
+    <div class="warn f" data-g="8"><b>한계</b>의미상 맞게 해석했는지는 자동 검증하지 않음. 오늘 웹 시연은 이 검사 없이 모델 지시까지이고, 웹 연결은 후속 과제</div>
   </div>
   <div class="foot"><span>ORIENT</span><span></span></div>
 </section>
 
 <!-- 8 -->
+<section class="slide s-eval1" data-title="규정 질의응답 평가" data-notes="숫자는 어디서 쟀는지 나눠서 말씀드리겠습니다. 왼쪽 두 개는 오늘 시연하는 웹 버전의 검색 정확도입니다. 질문 68개 기준으로 재순위를 포함해 상위 3개 안에 정답 근거가 들어온 비율이 85퍼센트, 상위 5개는 90퍼센트입니다. 질의 확장과 재순위를 LLM이 하기 때문에 실행마다 조금 달라질 수 있습니다. 오른쪽 두 개는 웹 연결 전 RAG 버전의 답변 평가입니다. 사람이 검수한 최종 세트 10문항 중 9문항에서 답변 상태가 기대와 일치했고, 답한 7문항은 근거도 모두 맞았습니다. 기준선 근처 점수가 나온 개발용 질문 4개를 실제로 생성해 봤더니 네 개 모두 보류했습니다. 웹 버전의 답변 품질은 따로 재지 않았고, 표본이 작다는 한계도 분명히 말씀드립니다.">
+  <div class="hd"><h2>규정 질의응답 평가</h2><div class="sec">기능 1 · RAG 기반 규정 질의응답</div></div>
+  <div class="body">
+    <div class="mets">
+      <div class="met f" data-g="1"><div class="big"><span class="cnt" data-to="85">0</span><small>%</small></div><h4>검색 hit@3</h4><p>웹 버전, 질문 68개, 재순위 포함</p></div>
+      <div class="met f" data-g="2"><div class="big"><span class="cnt" data-to="90">0</span><small>%</small></div><h4>검색 hit@5</h4><p>웹 버전, 같은 질문 68개 기준</p></div>
+      <div class="met f" data-g="3"><div class="big"><span class="cnt" data-to="9">0</span><small>/10</small></div><h4>최종 세트 상태 일치</h4><p>웹 연결 전 RAG 버전, 답한 문항의 근거 일치 7/7</p></div>
+      <div class="met f" data-g="4"><div class="big"><span class="cnt" data-to="4">0</span><small>/4</small></div><h4>경계 질문 보류</h4><p>웹 연결 전 RAG 버전, 기준선 근처 4문항</p></div>
+    </div>
+    <div class="notes2 f" data-g="5">
+      <div class="r"><b>웹 색인 범위</b><span>24개 문서(10/9 기준): 복무규정·행동강령, 보수·수당·여비·후생복지, 국가공무원법·임용령, 공무원연금법·재해보상법·청탁금지법, 소득세법(연말정산), 인사혁신처 예규 2종 등</span></div>
+      <div class="r"><b>비고</b><span>최종 세트가 10문항으로 표본이 작음. 검색 수치 재현: python -m tests.rag_eval (질의 확장·재순위가 LLM이라 실행마다 조금 다를 수 있음)</span></div>
+    </div>
+  </div>
+  <div class="foot"><span>ORIENT</span><span></span></div>
+</section>
+
+<!-- 9 -->
+<section class="slide s-wf" data-wf="1" data-title="업무 흐름 비교: 회의 후속 업무" data-notes="다음은 기능 2인 회의 후속 업무입니다. 지금은 회의록을 읽고, 표로 정리하고, 캘린더에 등록하고, 슬랙에 공유하고, 기한을 챙기는 다섯 단계를 사람이 합니다. ORIENT에서는 회의록을 올리면 AI가 요약과 할 일, 담당자, 기한을 추출하고, 사람은 미확정 칸을 채워 승인합니다. 이후 슬랙 공유와 캘린더 파일은 코드가 자동으로 만들고, 재알림은 지금은 버튼 한 번으로 보냅니다. 평일 아침 자동 발송 배치도 만들어 두었습니다. 사람이 하는 단계는 구조상 다섯에서 두 단계로 줄어듭니다. 시간은 측정하지 않았고, 단계 수로 비교했습니다. (R: 다시 재생 / 단계 클릭: 설명)">
+  <div class="hd"><h2>업무 흐름 비교: 회의 후속 업무</h2><div class="sec">기능 2 · 회의 후속 처리</div>
+    <div class="hdr"><button class="play">다시 재생</button></div></div>
+  <section class="lane before wfB"></section><section class="lane after wfA"></section>
+  <aside class="stat"><div class="cap">사람이 하는 단계</div>
+    <div class="nums"><span class="bb wfNb">0</span><i>→</i><span class="aa wfNa">0</span></div>
+    <div class="delta wfDelta"></div><div class="nt wfNote"></div></aside>
+  <div class="detail idle wfDetail"></div>
+  <div class="foot"><span>ORIENT</span><span></span></div>
+</section>
+
+<!-- 10 -->
 <section class="slide s-pipe" data-title="회의록 처리 단계" data-notes="회의록 기능은 여섯 단계입니다. 회의 텍스트를 올리면 모델이 정해진 도구 세 개로만 개요와 할 일을 제안합니다. 모델은 캘린더나 슬랙을 직접 부를 수 없습니다. 제안은 코드 규칙이 거릅니다. 인용이 회의록에 실제로 있는지, 담당자가 정말 한 사람인지, 날짜 표현이 확실한지, 회의록 안에 AI에게 내리는 지시문이 있는지 확인합니다. 그다음 사람이 미확정 칸을 채우고 승인해야 코드가 슬랙 공유와 캘린더 파일을 만들고, 실행을 다시 해도 이미 보낸 것은 건너뜁니다. 재알림은 마감 전날, 당일, 기한 지남 단계로 나가고 같은 단계는 한 번만 보냅니다. 지금은 재알림 버튼으로 보내고, 평일 아침 자동으로 보내는 배치는 만들어 두었지만 운영 설정이 남아 있습니다.">
-  <div class="hd"><h2>회의록 처리 단계</h2></div>
+  <div class="hd"><h2>회의록 처리 단계</h2><div class="sec">기능 2 · 회의 후속 처리</div></div>
   <div class="body"><div class="grid">
     <div class="pc hu f" data-g="1"><div class="no">01</div><h4>업로드</h4><div class="ac">담당: 사람</div><p>정리형, 녹취형, 메모형 회의 텍스트를 그대로 업로드</p></div>
     <div class="pc ai f" data-g="2"><div class="no">02</div><h4>추출</h4><div class="ac">담당: AI (function calling)</div><p>개요 기록, 할 일 제안, 추출 종료의 도구 3개로만 응답</p></div>
@@ -305,27 +348,9 @@
   <div class="foot"><span>ORIENT</span><span></span></div>
 </section>
 
-<!-- 9 -->
-<section class="slide s-eval1" data-title="규정 질의응답 평가" data-notes="숫자는 어디서 쟀는지 나눠서 말씀드리겠습니다. 왼쪽 두 개는 오늘 시연하는 웹 버전의 검색 정확도입니다. 질문 68개 기준으로 재순위를 포함해 상위 3개 안에 정답 근거가 들어온 비율이 85퍼센트, 상위 5개는 90퍼센트입니다. 질의 확장과 재순위를 LLM이 하기 때문에 실행마다 조금 달라질 수 있습니다. 오른쪽 두 개는 검증형 엔진의 답변 평가입니다. 사람이 검수한 최종 세트 10문항 중 9문항에서 답변 상태가 기대와 일치했고, 답한 7문항은 근거도 모두 맞았습니다. 기준선 근처 점수가 나온 개발용 질문 4개를 실제로 생성해 봤더니 네 개 모두 보류했습니다. 웹 버전의 답변 품질은 따로 재지 않았고, 표본이 작다는 한계도 분명히 말씀드립니다.">
-  <div class="hd"><h2>규정 질의응답 평가</h2></div>
-  <div class="body">
-    <div class="mets">
-      <div class="met f" data-g="1"><div class="big"><span class="cnt" data-to="85">0</span><small>%</small></div><h4>검색 hit@3</h4><p>웹 버전, 질문 68개, 재순위 포함</p></div>
-      <div class="met f" data-g="2"><div class="big"><span class="cnt" data-to="90">0</span><small>%</small></div><h4>검색 hit@5</h4><p>웹 버전, 같은 질문 68개 기준</p></div>
-      <div class="met f" data-g="3"><div class="big"><span class="cnt" data-to="9">0</span><small>/10</small></div><h4>최종 세트 상태 일치</h4><p>검증형 엔진(v1), 답한 문항의 근거 일치 7/7</p></div>
-      <div class="met f" data-g="4"><div class="big"><span class="cnt" data-to="4">0</span><small>/4</small></div><h4>경계 질문 보류</h4><p>검증형 엔진, 기준선 근처 4문항</p></div>
-    </div>
-    <div class="notes2 f" data-g="5">
-      <div class="r"><b>웹 색인 범위</b><span>24개 문서(10/9 기준): 복무규정·행동강령, 보수·수당·여비·후생복지, 국가공무원법·임용령, 공무원연금법·재해보상법·청탁금지법, 소득세법(연말정산), 인사혁신처 예규 2종 등</span></div>
-      <div class="r"><b>비고</b><span>최종 세트가 10문항으로 표본이 작음. 검색 수치 재현: python -m tests.rag_eval (질의 확장·재순위가 LLM이라 실행마다 조금 다를 수 있음)</span></div>
-    </div>
-  </div>
-  <div class="foot"><span>ORIENT</span><span></span></div>
-</section>
-
-<!-- 10 -->
+<!-- 11 -->
 <section class="slide s-eval2" data-title="회의록 추출 평가" data-notes="회의록 기능에서 가장 중요하게 본 지표는 거짓 확정입니다. 담당자를 잘못 확정하면 엉뚱한 사람에게 일정과 알림이 가기 때문입니다. 모델에 넣은 적 없는 공개 국회 회의록 시험 세트에서 Gemini 모델로 잰 결과, 꼭 찾아야 할 할 일 6개를 모두 찾았고 거짓 확정은 18건 중 0건이었습니다. 이 6개는 회의록만으로 담당자와 기한을 정할 수 없는 항목이라, 6개 모두 미확정으로 남긴 것이 정답이었습니다. 같은 모델 출력에서 담당자 규칙만 끄면 1건이 생기고, 개발 세트에서는 7건이 생겼습니다. 모델이 찾고, 규칙이 거르는 구조가 효과가 있었다는 뜻입니다. 오늘 웹 시연은 OpenAI 모델로 돌고, OpenAI로는 가상 샘플에서 다시 확인했습니다. 표본이 작아 앞으로도 0건이라는 뜻은 아닙니다.">
-  <div class="hd"><h2>회의록 추출 평가: 거짓 확정 여부</h2></div>
+  <div class="hd"><h2>회의록 추출 평가: 거짓 확정 여부</h2><div class="sec">기능 2 · 회의 후속 처리</div></div>
   <div class="body">
     <div class="mets">
       <div class="met hero f" data-g="1"><div class="big"><span class="cnt" data-to="0">0</span><small>/18</small></div><h4>거짓 확정</h4><p>처음 보는 공개 회의록 시험 세트에서 '미확정'이어야 할 담당자·기한을 잘못 확정한 횟수 (Gemini로 측정)</p></div>
@@ -341,7 +366,7 @@
   <div class="foot"><span>ORIENT</span><span></span></div>
 </section>
 
-<!-- 11 -->
+<!-- 12 -->
 <section class="slide s-arch" data-title="시스템 구성" data-notes="사용자는 React 웹앱에서 질문하거나 회의록을 올립니다. FastAPI 서버가 Agent를 부르고, Agent는 function calling으로 규정 검색 도구를 씁니다. 규정 원문은 법제처 Open API와 예규 PDF로 받아 10월 9일에 색인해 두었고, 질문할 때는 그 색인을 검색합니다. 회의 정리에서는 사람이 승인한 항목만 코드가 슬랙으로 공유하고 캘린더 파일을 만듭니다. 그림의 선은 데이터 흐름이고, 슬랙과 캘린더는 AI가 직접 부르지 않습니다. LLM 장애에 대비해 모델을 자동으로 바꾸고, 회의 정리는 LLM 없이도 규칙으로 추출합니다. 승인된 할 일은 상태 저장소에 남고, 재알림 버튼이 이를 읽어 마감 전날, 당일, 기한 지난 항목을 슬랙으로 알립니다. 평일 아침 자동으로 보내는 GitHub Actions 배치는 구현돼 있고, Google Sheets 연결과 GitHub Secrets 설정이 남아 있습니다.">
   <div class="hd"><h2>시스템 구성</h2></div>
   <div class="body">
@@ -363,8 +388,8 @@
   <div class="foot"><span>ORIENT</span><span></span></div>
 </section>
 
-<!-- 12 -->
-<section class="slide s-risk" data-title="한계와 앞으로의 발전" data-notes="한계부터 솔직하게 말씀드리겠습니다. 평가 표본이 작습니다. 의미 해석은 자동으로 검증하지 못합니다. 오늘 보시는 웹 답변은 검색된 조문을 근거로 쓰도록 모델에 지시하는 단계까지이고, 원문과 코드로 대조하는 검증은 아직 연결 전입니다. 실제 그룹웨어 연동은 이번 범위에 넣지 않았습니다. 앞으로는 먼저 검증형 엔진을 웹에 연결해 수치와 조문을 원문과 대조하겠습니다. 근거를 못 찾은 질문은 지금은 확인 안내까지만 하는데, 인사담당자에게 실제로 전달하는 연동을 붙이겠습니다. 캘린더는 지금 파일로 제공하지만 Google Calendar에 직접 등록하도록 하고, 재알림도 평일 아침 자동으로 보내는 배치를 연결하겠습니다. 평가 표본을 늘리고 웹 버전의 답변 품질도 따로 재겠습니다. 참고로 입력한 질문과 회의록은 OpenAI로 전송되기 때문에 데모에는 공개·가상 데이터만 썼습니다.">
+<!-- 13 -->
+<section class="slide s-risk" data-title="한계와 앞으로의 발전" data-notes="한계부터 솔직하게 말씀드리겠습니다. 평가 표본이 작습니다. 의미 해석은 자동으로 검증하지 못합니다. 오늘 보시는 웹 답변은 검색된 조문을 근거로 쓰도록 모델에 지시하는 단계까지이고, 원문과 코드로 대조하는 검증은 아직 연결 전입니다. 실제 그룹웨어 연동은 이번 범위에 넣지 않았습니다. 앞으로는 먼저 RAG 검증 단계를 웹에 연결해 수치와 조문을 원문과 대조하겠습니다. 근거를 못 찾은 질문은 지금은 확인 안내까지만 하는데, 인사담당자에게 실제로 전달하는 연동을 붙이겠습니다. 캘린더는 지금 파일로 제공하지만 Google Calendar에 직접 등록하도록 하고, 재알림도 평일 아침 자동으로 보내는 배치를 연결하겠습니다. 평가 표본을 늘리고 웹 버전의 답변 품질도 따로 재겠습니다. 참고로 입력한 질문과 회의록은 OpenAI로 전송되기 때문에 데모에는 공개·가상 데이터만 썼습니다.">
   <div class="hd"><h2>한계와 앞으로의 발전</h2></div>
   <div class="body">
     <div class="duo">
@@ -375,7 +400,7 @@
         <li>실제 그룹웨어 연동은 범위 밖</li>
       </ul></div>
       <div class="col nx f" data-g="2"><h3>앞으로의 발전</h3><ul>
-        <li>검증형 엔진을 웹에 연결해 수치·조문을 원문과 대조</li>
+        <li>RAG 검증 단계를 웹에 연결해 수치·조문을 원문과 대조</li>
         <li>근거를 못 찾은 질문을 인사담당자에게 실제로 전달</li>
         <li>Google Calendar에 직접 등록</li>
         <li>평일 아침 재알림 자동 배치 연결</li>
@@ -386,18 +411,19 @@
   <div class="foot"><span>ORIENT</span><span></span></div>
 </section>
 
-<!-- 13 -->
-<section class="slide s-live" data-title="시연 순서" data-notes="이제 실제 화면으로 보여 드리겠습니다. 먼저 연가 일수를 물어 근거 조문과 쉬운 설명을 확인하고, 규정에 답이 없는 질문은 추측하지 않고 범위 밖이라고 안내하거나 담당자 확인으로 넘기는 것을 보여 드립니다. 이어 긴 회의록을 올려 담당자나 기한이 모호한 항목이 미확정으로 표시되는 것을 보고, 빈칸을 채워 승인하면 슬랙에 일정이 공유되고 캘린더 파일을 받을 수 있는 것을 보여 드립니다. 마지막으로 재알림을 미리 보고 보내 본 뒤, 한 번 더 실행해도 같은 알림이 중복되지 않는 것을 확인하겠습니다. Slack 연동이 안 되면 결과 화면의 Slack 메시지 내용과 캘린더 파일, 재알림 미리보기로 같은 흐름을 보여 드립니다.">
+<!-- 14 -->
+<section class="slide s-live" data-title="시연 순서" data-notes="이제 실제 화면으로 보여 드리겠습니다. 먼저 기능 1부터 보겠습니다. 연가 일수를 물어 근거 조문과 쉬운 설명을 확인하고, 규정 범위 안이지만 근거를 찾지 못하는 질문은 추측하지 않고 담당자 확인을 안내하는 것을, 규정과 관련 없는 질문은 범위 밖이라고 안내하는 것을 차례로 보여 드립니다. 이어 추가 기능으로 온보딩 체크리스트에서 할 일을 체크하고 직접 추가해 보겠습니다. 그다음 기능 2로 긴 회의록을 올려 담당자나 기한이 모호한 항목이 미확정으로 표시되는 것을 보고, 빈칸을 채워 승인하면 슬랙에 일정이 공유되고 캘린더 파일을 받을 수 있는 것을 보여 드립니다. 마지막으로 재알림을 미리 보고 보내 본 뒤, 한 번 더 실행해도 같은 알림이 중복되지 않는 것을 확인하겠습니다. 연동이 안 되면 미리보기만으로 같은 흐름을 보여 드립니다.">
   <div class="hd"><h2>시연 순서</h2></div>
   <div class="body">
     <div class="list">
       <div class="it f" data-g="1"><div class="n">1</div><span>연가 일수 질문<em>근거 조문과 쉬운 설명 확인</em></span></div>
-      <div class="it f" data-g="2"><div class="n">2</div><span>구내식당 메뉴 질문<em>범위 밖·담당자 확인 안내, 추측하지 않음</em></span></div>
-      <div class="it f" data-g="3"><div class="n">3</div><span>긴 회의록 업로드<em>담당자·기한 미확정 항목 표시</em></span></div>
-      <div class="it f" data-g="4"><div class="n">4</div><span>미확정 항목을 채우고 승인<em>Slack 일정 공유, 캘린더 파일 생성</em></span></div>
-      <div class="it f" data-g="5"><div class="n">5</div><span>재알림을 두 번 실행<em>같은 알림은 중복 발송되지 않음</em></span></div>
+      <div class="it f" data-g="2"><div class="n">2</div><span>근거를 찾지 못하는 질문<em>헬스장 이용 요금처럼 규정에 없는 내용은 담당자 확인 안내</em></span></div>
+      <div class="it f" data-g="3"><div class="n">3</div><span>관련 없는 질문<em>구내식당 메뉴는 범위 밖이라고 안내</em></span></div>
+      <div class="it f" data-g="4"><div class="n">4</div><span>온보딩 체크리스트<em>할 일 체크, 직접 추가</em></span></div>
+      <div class="it f" data-g="5"><div class="n">5</div><span>긴 회의록 업로드<em>미확정 표시를 채워 승인하면 Slack 공유, 캘린더 파일 생성</em></span></div>
+      <div class="it f" data-g="6"><div class="n">6</div><span>재알림을 두 번 실행<em>같은 알림은 중복 발송되지 않음</em></span></div>
     </div>
-    <div class="thx f" data-g="6"><h2>감사합니다</h2><p>질문을 받겠습니다.</p><div class="u">github.com/AhnSomin/Employee-Onboarding-AI-Agent</div></div>
+    <div class="thx f" data-g="7"><h2>감사합니다</h2><p>질문을 받겠습니다.</p><div class="u">github.com/AhnSomin/Employee-Onboarding-AI-Agent</div></div>
   </div>
   <div class="foot"><span>ORIENT</span><span></span></div>
 </section>
@@ -450,7 +476,7 @@ function setSlide(i, kk) {
   $("#notes").innerHTML = `<small>발표자 노트 · ${cur + 1}. ${slides[cur].dataset.title}</small>${slides[cur].dataset.notes ?? ""}`;
   $$("#menu button").forEach((b, j) => b.classList.toggle("cur", j === cur));
   history.replaceState(null, "", "#" + (cur + 1));
-  if (cur === 4) wfStart(); else wfStop();
+  wfCtl.forEach((c) => (c.el === slides[cur] ? c.start() : c.stop()));
 }
 function next() { if (k < groups.length) { k++; paint(); } else if (cur < slides.length - 1) setSlide(cur + 1, 0); }
 function prev() { if (k > 0) { k--; paint(); } else if (cur > 0) setSlide(cur - 1, "all"); }
@@ -462,11 +488,11 @@ addEventListener("keydown", (e) => {
   else if (e.key === "Home") setSlide(0, 0); else if (e.key === "End") setSlide(slides.length - 1, "all");
   else if (e.key === "n" || e.key === "N") $("#notes").classList.toggle("open");
   else if (e.key === "f" || e.key === "F") (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.());
-  else if (e.key === "r" || e.key === "R") { if (cur === 4) wfPlay(); }
+  else if (e.key === "r" || e.key === "R") { wfCtl.find((c) => c.el === slides[cur])?.play(); }
   else if (e.key === "Escape") $("#menu").classList.remove("open");
 });
 $("#stage").addEventListener("click", (e) => {
-  if (e.target.closest("#pg, #menu, .s-wf .tab, .s-wf .play, .s-wf .step, .s-wf .detail")) return;
+  if (e.target.closest("#pg, #menu, .s-wf .play, .s-wf .step, .s-wf .detail")) return;
   $("#menu").classList.remove("open"); next();
 });
 $("#menu").innerHTML = slides.map((s, i) => `<button data-i="${i}"><i>${i + 1}</i><span>${s.dataset.title}</span></button>`).join("");
@@ -500,65 +526,66 @@ const WF = [
       { t: ["마감 전날·당일·", "기한 지남 재알림"], who: "AI", chip: "코드 · 지금은 버튼", ti: "마감 전날, 당일, 기한 지남 재알림", d: "지금은 재알림 버튼으로 보내고, 평일 아침 자동 배치는 Google Sheets와 GitHub Secrets를 설정하면 동작한다. 할 일마다 새 메시지로 알리고, 같은 단계는 한 번만 보낸다." } ] },
 ];
 const IDLE = "반복 작업은 AI가, 판단(검토·승인)은 사람이 맡는다. 모르면 추측하지 않고 사람에게 넘긴다.";
-const TW = 960; let wi = 0, wtok = 0;
+const TW = 960;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const cx = (i, n) => (i + 0.5) * TW / n;
-function wfBuild(el, steps, after) {
-  const n = steps.length;
-  el.innerHTML = `<div class="lane-label"><b>${after ? "적용 후" : "적용 전"}</b><span>${after ? "ORIENT" : "사람이 직접"}</span></div><div class="meter">사람이 하는 단계 <b>0</b></div>
-  <div class="track"><div class="line"><i class="fill"></i></div><i class="dot"></i><div class="steps" style="grid-template-columns:repeat(${n},1fr)">
-  ${steps.map((s, i) => `<div class="step" data-i="${i}">${s.note ? `<span class="note">${s.note}</span>` : ""}<div class="node ${s.who === "AI" ? "ai" : "human"}">${i + 1}</div>
-  <div class="lbl">${s.t.map((x, j) => (j ? `<em>${x}</em>` : x)).join("")}</div><span class="who">${s.chip ?? (s.who === "AI" ? "AI·자동" : "사람")}</span></div>`).join("")}</div></div>`;
-  $$(".step", el).forEach((st) => st.addEventListener("click", (e) => { e.stopPropagation(); wfSelect(steps, +st.dataset.i, st); }));
-}
-function wfSelect(steps, i, st) {
-  $$(".s-wf .step.sel").forEach((e) => e.classList.remove("sel")); st.classList.add("sel");
-  const s = steps[i], d = $("#wfDetail"); d.className = "detail";
-  d.innerHTML = `<div class="t">${i + 1}. ${s.ti} <span style="font-weight:500;color:#c9baa9;font-size:15px;margin-left:8px">${s.chip ?? (s.who === "AI" ? "AI·자동" : "사람")}</span></div><div class="d">${s.d}</div>`;
-}
-function wfIdle() { const d = $("#wfDetail"); d.className = "detail idle"; d.innerHTML = `<div class="t">${IDLE}</div>`; $$(".s-wf .step.sel").forEach((e) => e.classList.remove("sel")); }
-function wfReset() {
-  $$(".s-wf .step").forEach((e) => e.classList.remove("reached")); $$(".s-wf .fill").forEach((e) => (e.style.width = "0"));
-  $$(".s-wf .dot").forEach((e) => { e.classList.remove("show"); e.style.left = "0px"; }); $$(".s-wf .meter b").forEach((e) => (e.textContent = "0"));
-  $("#wfNb").textContent = "0"; $("#wfNa").textContent = "0"; $("#wfDelta").classList.remove("show"); wfIdle();
-}
-async function wfLane(laneEl, steps, my, numEl, gap) {
-  const dot = $(".dot", laneEl), fill = $(".fill", laneEl), els = $$(".step", laneEl), meter = $(".meter b", laneEl); let h = 0; const n = steps.length;
-  dot.style.transition = "none"; dot.style.left = cx(0, n) + "px"; dot.offsetWidth; dot.style.transition = ""; dot.classList.add("show");
-  for (let i = 0; i < n; i++) {
-    if (my !== wtok) return;
-    const x = cx(i, n); dot.style.left = x + "px"; fill.style.width = x + "px"; await sleep(i === 0 ? 200 : gap * 0.6);
-    if (my !== wtok) return;
-    els[i].classList.add("reached");
-    if (steps[i].who === "사람") { h++; meter.textContent = h; numEl.textContent = h; }
-    await sleep(gap * 0.55);
-  }
-}
 const humans = (a) => a.filter((s) => s.who === "사람").length;
-function wfFinal() {
-  const w = WF[wi];
-  [["#wfB", w.before, "#wfNb"], ["#wfA", w.after, "#wfNa"]].forEach(([id, st, num]) => {
-    const l = $(id); $$(".step", l).forEach((e) => e.classList.add("reached")); $(".fill", l).style.width = TW + "px";
-    $(".meter b", l).textContent = humans(st); $(num).textContent = humans(st);
-  });
-  $("#wfDelta").textContent = `${humans(w.before) - humans(w.after)}단계 감소`; $("#wfDelta").classList.add("show");
+function makeWF(sl, wi) {
+  const w = WF[wi]; let tok = 0;
+  const Q = (c) => $("." + c, sl);
+  function build(el, steps, after) {
+    const n = steps.length;
+    el.innerHTML = `<div class="lane-label"><b>${after ? "적용 후" : "적용 전"}</b><span>${after ? "ORIENT" : "사람이 직접"}</span></div><div class="meter">사람이 하는 단계 <b>0</b></div>
+    <div class="track"><div class="line"><i class="fill"></i></div><i class="dot"></i><div class="steps" style="grid-template-columns:repeat(${n},1fr)">
+    ${steps.map((s, i) => `<div class="step" data-i="${i}">${s.note ? `<span class="note">${s.note}</span>` : ""}<div class="node ${s.who === "AI" ? "ai" : "human"}">${i + 1}</div>
+    <div class="lbl">${s.t.map((x, j) => (j ? `<em>${x}</em>` : x)).join("")}</div><span class="who">${s.who === "AI" ? "AI·자동" : "사람"}</span></div>`).join("")}</div></div>`;
+    $$(".step", el).forEach((st) => st.addEventListener("click", (e) => { e.stopPropagation(); select(steps, +st.dataset.i, st); }));
+  }
+  function select(steps, i, st) {
+    $$(".step.sel", sl).forEach((e) => e.classList.remove("sel")); st.classList.add("sel");
+    const s = steps[i], d = Q("wfDetail"); d.className = "detail wfDetail";
+    d.innerHTML = `<div class="t">${i + 1}. ${s.ti} <span style="font-weight:500;color:#c9baa9;font-size:15px;margin-left:8px">${s.who === "AI" ? "AI·자동" : "사람"}</span></div><div class="d">${s.d}</div>`;
+  }
+  function idle() { const d = Q("wfDetail"); d.className = "detail idle wfDetail"; d.innerHTML = `<div class="t">${IDLE}</div>`; $$(".step.sel", sl).forEach((e) => e.classList.remove("sel")); }
+  function reset() {
+    $$(".step", sl).forEach((e) => e.classList.remove("reached")); $$(".fill", sl).forEach((e) => (e.style.width = "0"));
+    $$(".dot", sl).forEach((e) => { e.classList.remove("show"); e.style.left = "0px"; }); $$(".meter b", sl).forEach((e) => (e.textContent = "0"));
+    Q("wfNb").textContent = "0"; Q("wfNa").textContent = "0"; Q("wfDelta").classList.remove("show"); idle();
+  }
+  async function lane(laneEl, steps, my, numEl, gap) {
+    const dot = $(".dot", laneEl), fill = $(".fill", laneEl), els = $$(".step", laneEl), meter = $(".meter b", laneEl); let h = 0; const n = steps.length;
+    dot.style.transition = "none"; dot.style.left = cx(0, n) + "px"; dot.offsetWidth; dot.style.transition = ""; dot.classList.add("show");
+    for (let i = 0; i < n; i++) {
+      if (my !== tok) return;
+      const x = cx(i, n); dot.style.left = x + "px"; fill.style.width = x + "px"; await sleep(i === 0 ? 200 : gap * 0.6);
+      if (my !== tok) return;
+      els[i].classList.add("reached");
+      if (steps[i].who === "사람") { h++; meter.textContent = h; numEl.textContent = h; }
+      await sleep(gap * 0.55);
+    }
+  }
+  function delta() { Q("wfDelta").textContent = `${humans(w.before) - humans(w.after)}단계 감소`; Q("wfDelta").classList.add("show"); }
+  function final() {
+    [[Q("wfB"), w.before, Q("wfNb")], [Q("wfA"), w.after, Q("wfNa")]].forEach(([l, st, num]) => {
+      $$(".step", l).forEach((e) => e.classList.add("reached")); $(".fill", l).style.width = TW + "px";
+      $(".meter b", l).textContent = humans(st); num.textContent = humans(st);
+    });
+    delta();
+  }
+  async function play() {
+    const my = ++tok; reset();
+    if (reduce || q.has("static")) { final(); return; }
+    await sleep(400); await lane(Q("wfB"), w.before, my, Q("wfNb"), 1250);
+    if (my !== tok) return; await sleep(450); await lane(Q("wfA"), w.after, my, Q("wfNa"), 760);
+    if (my !== tok) return; delta();
+  }
+  function start() { build(Q("wfB"), w.before, false); build(Q("wfA"), w.after, true); Q("wfNote").textContent = w.nt; play(); }
+  function stop() { tok++; }
+  Q("play").addEventListener("click", (e) => { e.stopPropagation(); play(); });
+  Q("wfDetail").addEventListener("click", (e) => { e.stopPropagation(); idle(); });
+  return { el: sl, start, stop, play };
 }
-async function wfPlay() {
-  const my = ++wtok; wfReset(); const w = WF[wi];
-  if (reduce || q.has("static")) { wfFinal(); return; }
-  await sleep(400); await wfLane($("#wfB"), w.before, my, $("#wfNb"), 1250);
-  if (my !== wtok) return; await sleep(450); await wfLane($("#wfA"), w.after, my, $("#wfNa"), 760);
-  if (my !== wtok) return;
-  $("#wfDelta").textContent = `${humans(w.before) - humans(w.after)}단계 감소`; $("#wfDelta").classList.add("show");
-}
-function wfSet(i) {
-  wi = i; const w = WF[i]; $$(".s-wf .tab").forEach((t) => t.classList.toggle("on", +t.dataset.i === i));
-  wfBuild($("#wfB"), w.before, false); wfBuild($("#wfA"), w.after, true); $("#wfNote").textContent = w.nt; wfPlay();
-}
-function wfStart() { wfSet(wi); } function wfStop() { wtok++; }
-$$(".s-wf .tab").forEach((t) => t.addEventListener("click", (e) => { e.stopPropagation(); wfSet(+t.dataset.i); }));
-$("#wfPlay").addEventListener("click", (e) => { e.stopPropagation(); wfPlay(); });
-$(".s-wf .detail").addEventListener("click", (e) => { e.stopPropagation(); wfIdle(); });
+const wfCtl = $$(".slide[data-wf]").map((sl) => makeWF(sl, +sl.dataset.wf));
 
 const startAt = Math.max(0, Math.min(slides.length - 1, (parseInt(location.hash.slice(1)) || 1) - 1));
 if (q.has("notes")) $("#notes").classList.add("open");
