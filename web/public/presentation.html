@@ -554,13 +554,13 @@ function makeWF(sl, wi) {
     el.innerHTML = `<div class="lane-label"><b>${after ? "적용 후" : "적용 전"}</b><span>${after ? "ORIENT" : "사람이 직접"}</span></div><div class="meter">사람이 하는 단계 <b>0</b></div>
     <div class="track"><div class="line"><i class="fill"></i></div><i class="dot"></i><div class="steps" style="grid-template-columns:repeat(${n},1fr)">
     ${steps.map((s, i) => `<div class="step" data-i="${i}">${s.note ? `<span class="note">${s.note}</span>` : ""}<div class="node ${s.who === "AI" ? "ai" : "human"}">${i + 1}</div>
-    <div class="lbl">${s.t.map((x, j) => (j ? `<em>${x}</em>` : x)).join("")}</div><span class="who">${s.who === "AI" ? "AI·자동" : "사람"}</span></div>`).join("")}</div></div>`;
+    <div class="lbl">${s.t.map((x, j) => (j ? `<em>${x}</em>` : x)).join("")}</div><span class="who">${s.chip ?? (s.who === "AI" ? "AI·자동" : "사람")}</span></div>`).join("")}</div></div>`;
     $$(".step", el).forEach((st) => st.addEventListener("click", (e) => { e.stopPropagation(); select(steps, +st.dataset.i, st); }));
   }
   function select(steps, i, st) {
     $$(".step.sel", sl).forEach((e) => e.classList.remove("sel")); st.classList.add("sel");
     const s = steps[i], d = Q("wfDetail"); d.className = "detail wfDetail";
-    d.innerHTML = `<div class="t">${i + 1}. ${s.ti} <span style="font-weight:500;color:#c9baa9;font-size:15px;margin-left:8px">${s.who === "AI" ? "AI·자동" : "사람"}</span></div><div class="d">${s.d}</div>`;
+    d.innerHTML = `<div class="t">${i + 1}. ${s.ti} <span style="font-weight:500;color:#c9baa9;font-size:15px;margin-left:8px">${s.chip ?? (s.who === "AI" ? "AI·자동" : "사람")}</span></div><div class="d">${s.d}</div>`;
   }
   function idle() { const d = Q("wfDetail"); d.className = "detail idle wfDetail"; d.innerHTML = `<div class="t">${IDLE}</div>`; $$(".step.sel", sl).forEach((e) => e.classList.remove("sel")); }
   function reset() {
